@@ -1,0 +1,23 @@
+plugins {
+    id "java"
+    id "maven"
+    id 'maven-publish'
+}
+
+group = 'com.figaf.integration'
+version = '1.0-SNAPSHOT-rc001'
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    compile gradleApi()
+    compileOnly 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+    compile("org.apache.httpcomponents:httpclient:4.5.3")
+    compile("org.apache.httpcomponents:httpmime:4.5.3")
+    compile("commons-lang:commons-lang:2.5")
+    compile group: 'com.figaf.integration', name: 'commons', version: '1.0-SNAPSHOT-rc001'
+}
