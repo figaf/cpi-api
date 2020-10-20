@@ -1,9 +1,9 @@
 package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.client.wrapper.CommonClientWrapper;
-import com.figaf.integration.common.client.wrapper.RestTemplateWrapper;
 import com.figaf.integration.common.entity.CommonClientWrapperEntity;
 import com.figaf.integration.common.entity.ConnectionProperties;
+import com.figaf.integration.common.entity.RestTemplateWrapper;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdatePackageRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
