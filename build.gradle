@@ -8,8 +8,34 @@ group = 'com.figaf.integration'
 version = '1.0-SNAPSHOT-rc001'
 
 repositories {
-    mavenLocal()
     jcenter()
+    maven {
+        name = "FigafPackages"
+        url = uri("https://maven.pkg.github.com/figaf/commons")
+        credentials {
+            username = "dgraversen"
+            password = "b01e5c1e89d37dce4be0aa7c61398a0574c0d7d5"
+        }
+    }
+    mavenLocal()
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "FigafPackages"
+            url = uri("https://maven.pkg.github.com/figaf/cpi-api")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+        }
+    }
 }
 
 dependencies {
