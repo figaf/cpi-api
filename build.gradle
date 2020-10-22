@@ -4,38 +4,13 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'com.figaf.integration'
-version = '1.0-SNAPSHOT-rc001'
+group = 'com.github.figaf'
+version = '1.0-SNAPSHOT-rc003'
 
 repositories {
     jcenter()
-    maven {
-        name = "FigafPackages"
-        url = uri("https://maven.pkg.github.com/figaf/commons")
-        credentials {
-            username = "dgraversen"
-            password = "b01e5c1e89d37dce4be0aa7c61398a0574c0d7d5"
-        }
-    }
+    maven { url "https://jitpack.io" }
     mavenLocal()
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "FigafPackages"
-            url = uri("https://maven.pkg.github.com/figaf/cpi-api")
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-            }
-        }
-    }
-    publications {
-        gpr(MavenPublication) {
-            from(components.java)
-        }
-    }
 }
 
 dependencies {
@@ -45,5 +20,5 @@ dependencies {
     compile("org.apache.httpcomponents:httpclient:4.5.3")
     compile("org.apache.httpcomponents:httpmime:4.5.3")
     compile("commons-lang:commons-lang:2.5")
-    compile group: 'com.figaf.integration', name: 'commons', version: '1.0-SNAPSHOT-rc001'
+    compile group: 'com.github.figaf', name: 'commons', version: 'IRT-1836-istlentev-SNAPSHOT'
 }
