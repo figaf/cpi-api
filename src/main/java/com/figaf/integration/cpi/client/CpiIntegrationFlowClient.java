@@ -49,25 +49,25 @@ public class CpiIntegrationFlowClient extends CommonClientWrapper {
     }
 
     public List<CpiArtifact> getArtifactsByPackage(
-        CommonClientWrapperEntity commonClientWrapperEntity,
-        String packageTechnicalName,
-        String packageDisplayedName,
-        String packagePackageExternalId,
-        Set<String> artifactTypes
+            CommonClientWrapperEntity commonClientWrapperEntity,
+            String packageTechnicalName,
+            String packageDisplayedName,
+            String packagePackageExternalId,
+            Set<String> artifactTypes
     ) {
         log.debug("#getArtifactsByPackage(CommonClientWrapperEntity commonClientWrapperEntity, String packageTechnicalName, String packageDisplayedName, String packagePackageExternalId, Set<TrackedObjectType> artifactTypes): " +
-            "{}, {}, {}, {}, {}", commonClientWrapperEntity, packageTechnicalName, packageDisplayedName, packagePackageExternalId, artifactTypes);
+                "{}, {}, {}, {}, {}", commonClientWrapperEntity, packageTechnicalName, packageDisplayedName, packagePackageExternalId, artifactTypes);
         String path = String.format(API_ARTIFACTS, packageTechnicalName);
         return executeGet(
-            commonClientWrapperEntity,
-            path,
-            (body) -> CpiIntegrationFlowParser.buildCpiArtifacts(
-                packageTechnicalName,
-                packageDisplayedName,
-                packagePackageExternalId,
-                artifactTypes,
-                body
-            )
+                commonClientWrapperEntity,
+                path,
+                (body) -> CpiIntegrationFlowParser.buildCpiArtifacts(
+                        packageTechnicalName,
+                        packageDisplayedName,
+                        packagePackageExternalId,
+                        artifactTypes,
+                        body
+                )
         );
     }
 
@@ -75,52 +75,56 @@ public class CpiIntegrationFlowClient extends CommonClientWrapper {
         log.debug("checkDeployStatus(CommonClientWrapperEntity commonClientWrapperEntity, String taskId): {}, {}", commonClientWrapperEntity, taskId);
         String path = String.format(API_IFLOW_DEPLOY_STATUS, taskId);
         return executeGet(
-            commonClientWrapperEntity,
-            path,
-            CpiIntegrationFlowParser::retrieveDeployStatus
+                commonClientWrapperEntity,
+                path,
+                CpiIntegrationFlowParser::retrieveDeployStatus
         );
     }
 
     public byte[] downloadArtifact(
-        CommonClientWrapperEntity commonClientWrapperEntity,
-        String externalPackageId,
-        String externalArtifactId) {
+            CommonClientWrapperEntity commonClientWrapperEntity,
+            String externalPackageId,
+            String externalArtifactId) {
         log.debug("#downloadArtifact(CommonClientWrapperEntity commonClientWrapperEntity, String externalPackageId, String externalArtifactId): {}, {}, {}",
-            commonClientWrapperEntity, externalPackageId, externalArtifactId
+                commonClientWrapperEntity, externalPackageId, externalArtifactId
         );
         String path = String.format("/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s", externalPackageId, externalArtifactId, externalArtifactId);
         return executeGet(
-            commonClientWrapperEntity,
-            path,
-            resolvedBody -> resolvedBody,
-            byte[].class
+                commonClientWrapperEntity,
+                path,
+                resolvedBody -> resolvedBody,
+                byte[].class
         );
     }
 
     public void createIntegrationFlow(CommonClientWrapperEntity commonClientWrapperEntity, String externalPackageId, CreateOrUpdateIFlowRequest request, byte[] bundledModel) {
         log.debug("#updateIntegrationFlow(CommonClientWrapperEntity commonClientWrapperEntity, String externalPackageId, CreateIFlowRequest request, " +
-            "byte[] bundledModel): {}, {}, {}", commonClientWrapperEntity, externalPackageId, request);
+                "byte[] bundledModel): {}, {}, {}", commonClientWrapperEntity, externalPackageId, request);
 
-        RestTemplateWrapper restTemplateWrapper = getRestTemplateWrapper(commonClientWrapperEntity);
-
-        String token = retrieveToken(commonClientWrapperEntity, restTemplateWrapper.getRestTemplate());
-
-        String url = buildUrl(commonClientWrapperEntity, String.format("/itspaces/api/1.0/workspace/%s/iflows/", externalPackageId));
-
-        createArtifact(commonClientWrapperEntity.getConnectionProperties(), externalPackageId, request, bundledModel, "iflowBrowse-data", url, restTemplateWrapper, token);
+        executeMethod(
+                commonClientWrapperEntity,
+                String.format("/itspaces/api/1.0/workspace/%s/iflows/", externalPackageId),
+                (url, token, restTemplateWrapper) -> {
+                    createArtifact(commonClientWrapperEntity.getConnectionProperties(), externalPackageId, request, bundledModel, "iflowBrowse-data", url, token, restTemplateWrapper);
+                    return null;
+                }
+        );
 
     }
 
     public void createValueMapping(CommonClientWrapperEntity commonClientWrapperEntity, String externalPackageId, CreateOrUpdateValueMappingRequest request, byte[] model) {
         log.debug("#createValueMapping(CommonClientWrapperEntity commonClientWrapperEntity, String externalPackageId, CreateValueMappingRequest request, byte[] model): " +
-            "{}, {}, {}", commonClientWrapperEntity, externalPackageId, request);
+                "{}, {}, {}", commonClientWrapperEntity, externalPackageId, request);
 
-        RestTemplateWrapper restTemplateWrapper = getRestTemplateWrapper(commonClientWrapperEntity);
-        String token = retrieveToken(commonClientWrapperEntity, restTemplateWrapper.getRestTemplate());
+        executeMethod(
+                commonClientWrapperEntity,
+                String.format("/itspaces/api/1.0/workspace/%s/valuemappings/", externalPackageId),
+                (url, token, restTemplateWrapper) -> {
+                    createArtifact(commonClientWrapperEntity.getConnectionProperties(), externalPackageId, request, model, "vmBrowse-data", url, token, restTemplateWrapper);
+                    return null;
+                }
+        );
 
-        String url = buildUrl(commonClientWrapperEntity, String.format("/itspaces/api/1.0/workspace/%s/valuemappings/", externalPackageId));
-
-        createArtifact(commonClientWrapperEntity.getConnectionProperties(), externalPackageId, request, model, "vmBrowse-data", url, restTemplateWrapper, token);
     }
 
     public void updateArtifact(
@@ -144,52 +148,53 @@ public class CpiIntegrationFlowClient extends CommonClientWrapper {
     ) {
         log.debug("#updateIntegrationFlow(CommonClientWrapperEntity commonClientWrapperEntity, String externalPackageId, String externalArtifactId, UpdateIFlowRequest request, byte[] bundledModel): {}, {}, {}, {}", commonClientWrapperEntity, externalPackageId, externalArtifactId, request);
 
-        RestTemplateWrapper restTemplateWrapper = getRestTemplateWrapper(commonClientWrapperEntity);
-        String token = retrieveToken(commonClientWrapperEntity, restTemplateWrapper.getRestTemplate());
-
-        String url = buildUrl(commonClientWrapperEntity, String.format("/itspaces/api/1.0/workspace/%s/artifacts", externalPackageId));
-
-        uploadArtifact(commonClientWrapperEntity.getConnectionProperties(), externalPackageId, externalArtifactId, request, bundledModel, url, restTemplateWrapper, token, uploadDraftVersion, newIflowVersion);
+        executeMethod(
+                commonClientWrapperEntity,
+                String.format("/itspaces/api/1.0/workspace/%s/artifacts", externalPackageId),
+                (url, token, restTemplateWrapper) -> {
+                    uploadArtifact(commonClientWrapperEntity.getConnectionProperties(), externalPackageId, externalArtifactId, request, bundledModel, uploadDraftVersion, newIflowVersion, url, token, restTemplateWrapper);
+                    return null;
+                }
+        );
     }
 
     public String deployIFlow(CommonClientWrapperEntity commonClientWrapperEntity, String packageExternalId, String iFlowExternalId, String iFlowTechnicalName) {
         log.debug("#deployIFlow(CommonClientWrapperEntity commonClientWrapperEntity, String packageExternalId, String iFlowExternalId, String iFlowTechnicalName): {}, {}, {}, {}",
-            commonClientWrapperEntity, packageExternalId, iFlowExternalId, iFlowTechnicalName
+                commonClientWrapperEntity, packageExternalId, iFlowExternalId, iFlowTechnicalName
         );
 
-        RestTemplateWrapper restTemplateWrapper = getRestTemplateWrapper(commonClientWrapperEntity);
-        String token = retrieveToken(commonClientWrapperEntity, restTemplateWrapper.getRestTemplate());
-
-        String url = buildUrl(commonClientWrapperEntity, String.format("/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY", packageExternalId, iFlowExternalId, iFlowExternalId, iFlowTechnicalName));
-
-        return deployArtifact(commonClientWrapperEntity.getConnectionProperties(), packageExternalId, url, "CPI_IFLOW", restTemplateWrapper.getRestTemplate(), token);
+        return executeMethod(
+                commonClientWrapperEntity,
+                String.format("/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY", packageExternalId, iFlowExternalId, iFlowExternalId, iFlowTechnicalName),
+                (url, token, restTemplateWrapper) -> deployArtifact(commonClientWrapperEntity.getConnectionProperties(), packageExternalId, "CPI_IFLOW", url, token, restTemplateWrapper.getRestTemplate())
+        );
     }
 
     public String deployValueMapping(CommonClientWrapperEntity commonClientWrapperEntity, String packageExternalId, String valueMappingExternalId) {
         log.debug("#deployValueMapping(CommonClientWrapperEntity commonClientWrapperEntity, String packageExternalId, String valueMappingExternalId): {}, {}, {}",
-            commonClientWrapperEntity, packageExternalId, valueMappingExternalId
+                commonClientWrapperEntity, packageExternalId, valueMappingExternalId
         );
 
-        RestTemplateWrapper restTemplateWrapper = getRestTemplateWrapper(commonClientWrapperEntity);
-        String token = retrieveToken(commonClientWrapperEntity, restTemplateWrapper.getRestTemplate());
-
-        String url = buildUrl(commonClientWrapperEntity, String.format("/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/valuemappings/%s?webdav=DEPLOY", "undefined", valueMappingExternalId, valueMappingExternalId, valueMappingExternalId));
-
-       return deployArtifact(commonClientWrapperEntity.getConnectionProperties(), packageExternalId, url, "VALUE_MAPPING", restTemplateWrapper.getRestTemplate(), token);
+        return executeMethod(
+                commonClientWrapperEntity,
+                String.format("/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/valuemappings/%s?webdav=DEPLOY", "undefined", valueMappingExternalId, valueMappingExternalId, valueMappingExternalId),
+                (url, token, restTemplateWrapper) -> deployArtifact(commonClientWrapperEntity.getConnectionProperties(), packageExternalId, "VALUE_MAPPING", url, token, restTemplateWrapper.getRestTemplate())
+        );
 
     }
 
     public void setTraceLogLevelForIFlows(CommonClientWrapperEntity commonClientWrapperEntity, List<String> iFlows) {
         log.debug("#setTraceLogLevelForIFlows(CommonClientWrapperEntity commonClientWrapperEntity, List<String> iFlows): {}, {}", commonClientWrapperEntity, iFlows);
 
-        RestTemplateWrapper restTemplateWrapper = getRestTemplateWrapper(commonClientWrapperEntity);
-        String token = retrieveToken(commonClientWrapperEntity, restTemplateWrapper.getRestTemplate());
-
-        String url = buildUrl(commonClientWrapperEntity, "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentSetMplLogLevelCommand");
-
-        setTraceLogLevelForIFlows(iFlows, url, token, restTemplateWrapper.getRestTemplate());
+        executeMethod(
+                commonClientWrapperEntity,
+                "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentSetMplLogLevelCommand",
+                (url, token, restTemplateWrapper) -> {
+                    setTraceLogLevelForIFlows(iFlows, url, token, restTemplateWrapper.getRestTemplate());
+                    return null;
+                }
+        );
     }
-
 
     private void createArtifact(
             ConnectionProperties connectionProperties,
@@ -198,8 +203,8 @@ public class CpiIntegrationFlowClient extends CommonClientWrapper {
             byte[] model,
             String textBodyAttrName,
             String uploadArtifactUri,
-            RestTemplateWrapper restTemplateWrapper,
-            String userApiCsrfToken
+            String userApiCsrfToken,
+            RestTemplateWrapper restTemplateWrapper
     ) {
 
         HttpResponse uploadArtifactResponse = null;
@@ -254,18 +259,18 @@ public class CpiIntegrationFlowClient extends CommonClientWrapper {
             String externalArtifactId,
             CreateOrUpdateCpiArtifactRequest request,
             byte[] bundledModel,
-            String uploadArtifactUri,
-            RestTemplateWrapper restTemplateWrapper,
-            String userApiCsrfToken,
             boolean uploadDraftVersion,
-            String newIflowVersion
+            String newIflowVersion,
+            String uploadArtifactUri,
+            String userApiCsrfToken,
+            RestTemplateWrapper restTemplateWrapper
     ) {
         HttpResponse uploadArtifactResponse = null;
         boolean locked = false;
         try {
-            lockOrUnlockArtifact(connectionProperties, externalPackageId, externalArtifactId, restTemplateWrapper.getRestTemplate(), userApiCsrfToken, "LOCK", true);
+            lockOrUnlockArtifact(connectionProperties, externalPackageId, externalArtifactId, "LOCK", true, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
             try {
-                lockOrUnlockArtifact(connectionProperties, externalPackageId, externalArtifactId, restTemplateWrapper.getRestTemplate(), userApiCsrfToken, "LOCK", false);
+                lockOrUnlockArtifact(connectionProperties, externalPackageId, externalArtifactId, "LOCK", false, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
             } catch (HttpClientErrorException ex) {
                 if (HttpStatus.LOCKED.equals(ex.getStatusCode())) {
                     log.warn("artifact {} is already locked", externalArtifactId);
@@ -309,9 +314,7 @@ public class CpiIntegrationFlowClient extends CommonClientWrapper {
                             connectionProperties,
                             externalPackageId,
                             externalArtifactId,
-                            restTemplateWrapper.getRestTemplate(),
-                            userApiCsrfToken,
-                            newIflowVersion != null ? newIflowVersion : jsonObject.getString("bundleVersion")
+                            newIflowVersion != null ? newIflowVersion : jsonObject.getString("bundleVersion"), userApiCsrfToken, restTemplateWrapper.getRestTemplate()
                     );
                 }
             } else {
@@ -326,12 +329,12 @@ public class CpiIntegrationFlowClient extends CommonClientWrapper {
                 HttpClientUtils.closeQuietly(uploadArtifactResponse);
             }
             if (locked) {
-                lockOrUnlockArtifact(connectionProperties, externalPackageId, externalArtifactId, restTemplateWrapper.getRestTemplate(), userApiCsrfToken, "UNLOCK", false);
+                lockOrUnlockArtifact(connectionProperties, externalPackageId, externalArtifactId, "UNLOCK", false, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
             }
         }
     }
 
-    private String deployArtifact(ConnectionProperties connectionProperties, String packageExternalId, String deployArtifactUri, String objectType, RestTemplate restTemplate, String userApiCsrfToken) {
+    private String deployArtifact(ConnectionProperties connectionProperties, String packageExternalId, String objectType, String deployArtifactUri, String userApiCsrfToken, RestTemplate restTemplate) {
         boolean locked = false;
         try {
             integrationPackageClient.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplate, true);
@@ -412,7 +415,7 @@ public class CpiIntegrationFlowClient extends CommonClientWrapper {
         });
     }
 
-    private void lockOrUnlockArtifact(ConnectionProperties connectionProperties, String externalPackageId, String artifactExternalId, RestTemplate restTemplate, String userApiCsrfToken, String webdav, boolean lockinfo) {
+    private void lockOrUnlockArtifact(ConnectionProperties connectionProperties, String externalPackageId, String artifactExternalId, String webdav, boolean lockinfo, String userApiCsrfToken, RestTemplate restTemplate) {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
                 .scheme(connectionProperties.getProtocol())
@@ -449,7 +452,7 @@ public class CpiIntegrationFlowClient extends CommonClientWrapper {
 
     }
 
-    private void setVersionToArtifact(ConnectionProperties connectionProperties, String externalPackageId, String iflowExternalId, RestTemplate restTemplate, String userApiCsrfToken, String version) {
+    private void setVersionToArtifact(ConnectionProperties connectionProperties, String externalPackageId, String iflowExternalId, String version, String userApiCsrfToken, RestTemplate restTemplate) {
         try {
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()

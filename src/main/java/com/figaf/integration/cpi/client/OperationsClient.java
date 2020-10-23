@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.figaf.integration.common.entity.CommonClientWrapperEntity;
 import com.figaf.integration.common.entity.ConnectionProperties;
-import com.figaf.integration.common.entity.RestTemplateWrapper;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.monitoring.*;
@@ -43,14 +42,12 @@ public class OperationsClient extends CpiBaseClient {
     }
 
     public StatisticOverviewCommandResponse callStatisticOverviewCommand(CommonClientWrapperEntity commonClientWrapperEntity) {
-
-        RestTemplateWrapper restTemplateWrapper = getRestTemplateWrapper(commonClientWrapperEntity);
-
-        String token = retrieveToken(commonClientWrapperEntity, restTemplateWrapper.getRestTemplate(), "/itspaces/Operations");
-
-        String url = buildUrl(commonClientWrapperEntity, "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.StatisticOverviewCommand");
-
-        return callStatisticOverviewCommand(restTemplateWrapper.getRestTemplate(), url, token);
+        return executeMethod(
+                commonClientWrapperEntity,
+                "/itspaces/Operations",
+                "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.StatisticOverviewCommand",
+                (url, token, restTemplateWrapper) -> callStatisticOverviewCommand(url, token, restTemplateWrapper.getRestTemplate())
+        );
     }
 
     public String getCsrfToken(ConnectionProperties connectionProperties, HttpClient httpClient) {
@@ -140,7 +137,7 @@ public class OperationsClient extends CpiBaseClient {
         }
     }
 
-    public StatisticOverviewCommandResponse callStatisticOverviewCommand(RestTemplate restTemplate, String url, String csrfToken) {
+    private StatisticOverviewCommandResponse callStatisticOverviewCommand(String url, String csrfToken, RestTemplate restTemplate) {
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("X-CSRF-Token", csrfToken);

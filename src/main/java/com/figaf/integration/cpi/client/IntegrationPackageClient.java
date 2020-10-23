@@ -3,7 +3,6 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.client.wrapper.CommonClientWrapper;
 import com.figaf.integration.common.entity.CommonClientWrapperEntity;
 import com.figaf.integration.common.entity.ConnectionProperties;
-import com.figaf.integration.common.entity.RestTemplateWrapper;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdatePackageRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
@@ -52,10 +51,11 @@ public class IntegrationPackageClient extends CommonClientWrapper {
 
         validateInputParameters(commonClientWrapperEntity, request);
 
-        RestTemplateWrapper restTemplateWrapper = getRestTemplateWrapper(commonClientWrapperEntity);
-        String token = retrieveToken(commonClientWrapperEntity, restTemplateWrapper.getRestTemplate());
-
-        return createIntegrationPackage(commonClientWrapperEntity.getConnectionProperties(), request, restTemplateWrapper.getRestTemplate(), token);
+        return executeMethod(
+                commonClientWrapperEntity,
+                "/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages",
+                (url, token, restTemplateWrapper) -> createIntegrationPackage(request, url, token, restTemplateWrapper.getRestTemplate())
+        );
     }
 
     public void updateIntegrationPackage(CommonClientWrapperEntity commonClientWrapperEntity, String externalId, CreateOrUpdatePackageRequest request) {
@@ -63,32 +63,26 @@ public class IntegrationPackageClient extends CommonClientWrapper {
 
         validateInputParameters(commonClientWrapperEntity, request);
 
-        RestTemplateWrapper restTemplateWrapper = getRestTemplateWrapper(commonClientWrapperEntity);
+        executeMethod(
+                commonClientWrapperEntity,
+                String.format("/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages('%s')", request.getTechnicalName()),
+                (url, token, restTemplateWrapper) -> {
+                    updateIntegrationPackage(commonClientWrapperEntity.getConnectionProperties(), externalId, request, url, token, restTemplateWrapper.getRestTemplate());
+                    return null;
+                }
+        );
 
-        String token = retrieveToken(commonClientWrapperEntity, restTemplateWrapper.getRestTemplate());
-
-        updateIntegrationPackage(commonClientWrapperEntity.getConnectionProperties(), externalId, request, restTemplateWrapper.getRestTemplate(), token);
     }
 
     public void lockPackage(ConnectionProperties connectionProperties, String externalPackageId, String csrfToken, RestTemplate restTemplate, boolean forceLock) {
-        lockOrUnlockPackage(connectionProperties, externalPackageId, csrfToken, restTemplate, "LOCK", forceLock);
+        lockOrUnlockPackage(connectionProperties, externalPackageId, "LOCK", forceLock, csrfToken, restTemplate);
     }
 
     public void unlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String csrfToken, RestTemplate restTemplate) {
-        lockOrUnlockPackage(connectionProperties, externalPackageId, csrfToken, restTemplate, "UNLOCK", false);
+        lockOrUnlockPackage(connectionProperties, externalPackageId, "UNLOCK", false, csrfToken, restTemplate);
     }
 
-    private String createIntegrationPackage(ConnectionProperties connectionProperties, CreateOrUpdatePackageRequest request, RestTemplate restTemplate, String userApiCsrfToken) {
-
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                .scheme(connectionProperties.getProtocol())
-                .host(connectionProperties.getHost())
-                .path("/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages");
-
-        if (connectionProperties.getPort() != null) {
-            uriBuilder.port(connectionProperties.getPort());
-        }
-        URI uri = uriBuilder.build().toUri();
+    private String createIntegrationPackage(CreateOrUpdatePackageRequest request, String url, String userApiCsrfToken, RestTemplate restTemplate) {
 
         Map<String, String> requestBody = prepareRequestBodyForPackageUpload(request);
 
@@ -100,7 +94,7 @@ public class IntegrationPackageClient extends CommonClientWrapper {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, httpHeaders);
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                uri,
+                url,
                 HttpMethod.POST,
                 requestEntity,
                 String.class
@@ -120,25 +114,12 @@ public class IntegrationPackageClient extends CommonClientWrapper {
 
     }
 
-    private void updateIntegrationPackage(ConnectionProperties connectionProperties, String externalId, CreateOrUpdatePackageRequest request, RestTemplate restTemplate, String userApiCsrfToken) {
+    private void updateIntegrationPackage(ConnectionProperties connectionProperties, String externalId, CreateOrUpdatePackageRequest request, String url, String userApiCsrfToken, RestTemplate restTemplate) {
         boolean locked = false;
         try {
 
             lockPackage(connectionProperties, externalId, userApiCsrfToken, restTemplate, true);
             locked = true;
-
-            UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                    .scheme(connectionProperties.getProtocol())
-                    .host(connectionProperties.getHost())
-                    .path(String.format(
-                            "/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages('%s')",
-                            request.getTechnicalName())
-                    );
-
-            if (connectionProperties.getPort() != null) {
-                uriBuilder.port(connectionProperties.getPort());
-            }
-            URI uri = uriBuilder.build().toUri();
 
             Map<String, String> requestBody = prepareRequestBodyForPackageUpload(request);
 
@@ -150,7 +131,7 @@ public class IntegrationPackageClient extends CommonClientWrapper {
             HttpEntity<Map<String, String>> httpEntity = new HttpEntity<>(requestBody, httpHeaders);
 
             ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    uri,
+                    url,
                     HttpMethod.PUT,
                     httpEntity,
                     String.class
@@ -185,9 +166,9 @@ public class IntegrationPackageClient extends CommonClientWrapper {
         return requestBody;
     }
 
-    private void lockOrUnlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String csrfToken, RestTemplate restTemplate, String webdav, boolean forceLock) {
-        log.debug("#lockPackage(ConnectionProperties connectionProperties, String externalPackageId, String csrfToken, RestTemplate restTemplate, boolean forceLock): " +
-                "{}, {}, {}, {}, {}", connectionProperties, externalPackageId, csrfToken, restTemplate, forceLock);
+    private void lockOrUnlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String webdav, boolean forceLock, String csrfToken, RestTemplate restTemplate) {
+        log.debug("#lockOrUnlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String webdav, boolean forceLock, String csrfToken, RestTemplate restTemplate): " +
+                "{}, {}, {}, {}", connectionProperties, externalPackageId, webdav, forceLock);
 
         Assert.notNull(connectionProperties, "connectionProperties must be not null!");
         Assert.notNull(externalPackageId, "externalPackageId must be not null!");

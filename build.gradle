@@ -4,8 +4,12 @@ plugins {
     id 'maven-publish'
 }
 
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 group = 'com.github.figaf'
-version = '1.0-SNAPSHOT-rc003'
+version = '1.0-SNAPSHOT-rc004'
 
 repositories {
     jcenter()
