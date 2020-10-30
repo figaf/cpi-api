@@ -2,7 +2,7 @@ package com.figaf.integration.cpi.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.figaf.integration.common.entity.CloudPlatformType;
-import com.figaf.integration.common.entity.CommonClientWrapperEntity;
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
@@ -48,47 +48,47 @@ public class IntegrationContentClient extends CpiBaseClient {
         super(ssoUrl, httpClientsFactory);
     }
 
-    public List<IntegrationContent> getAllIntegrationRuntimeArtifacts(CommonClientWrapperEntity commonClientWrapperEntity) {
-        log.debug("#getAllIntegrationRuntimeArtifacts(CommonClientWrapperEntity commonClientWrapperEntity): {}", commonClientWrapperEntity);
-        if (CloudPlatformType.CLOUD_FOUNDRY.equals(commonClientWrapperEntity.getCloudPlatformType())) {
+    public List<IntegrationContent> getAllIntegrationRuntimeArtifacts(RequestContext requestContext) {
+        log.debug("#getAllIntegrationRuntimeArtifacts(RequestContext requestContext): {}", requestContext);
+        if (CloudPlatformType.CLOUD_FOUNDRY.equals(requestContext.getCloudPlatformType())) {
             String path = "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand";
-            return executeGet(commonClientWrapperEntity, path, IntegrationContentPrivateApiParser::getAllIntegrationRuntimeArtifacts);
+            return executeGet(requestContext, path, IntegrationContentPrivateApiParser::getAllIntegrationRuntimeArtifacts);
         } else {
-            return getAllIntegrationRuntimeArtifacts(commonClientWrapperEntity.getConnectionProperties());
+            return getAllIntegrationRuntimeArtifacts(requestContext.getConnectionProperties());
         }
     }
 
-    public IntegrationContent getIntegrationRuntimeArtifactByName(CommonClientWrapperEntity commonClientWrapperEntity, String name) {
-        log.debug("#getIntegrationRuntimeArtifactByName(CommonClientWrapperEntity commonClientWrapperEntity, String name): {}, {}", commonClientWrapperEntity, name);
+    public IntegrationContent getIntegrationRuntimeArtifactByName(RequestContext requestContext, String name) {
+        log.debug("#getIntegrationRuntimeArtifactByName(RequestContext requestContext, String name): {}, {}", requestContext, name);
 
-        if (CloudPlatformType.CLOUD_FOUNDRY.equals(commonClientWrapperEntity.getCloudPlatformType())) {
+        if (CloudPlatformType.CLOUD_FOUNDRY.equals(requestContext.getCloudPlatformType())) {
             String path = "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand";
             return executeGet(
-                commonClientWrapperEntity,
+                requestContext,
                 path,
                 body -> IntegrationContentPrivateApiParser.getIntegrationRuntimeArtifactByName(body, name)
             );
         } else {
-            return getIntegrationRuntimeArtifactByName(commonClientWrapperEntity.getConnectionProperties(), name);
+            return getIntegrationRuntimeArtifactByName(requestContext.getConnectionProperties(), name);
         }
     }
 
-    public List<CpiExternalConfiguration> getCpiExternalConfigurations(CommonClientWrapperEntity commonClientWrapperEntity, String iFlowName) {
-        log.debug("#getCpiExternalConfigurations(CommonClientWrapperEntity commonClientWrapperEntity, String iFlowName): {}, {}", commonClientWrapperEntity, iFlowName);
-        return getCpiExternalConfigurations(commonClientWrapperEntity.getConnectionProperties(), iFlowName);
+    public List<CpiExternalConfiguration> getCpiExternalConfigurations(RequestContext requestContext, String iFlowName) {
+        log.debug("#getCpiExternalConfigurations(RequestContext requestContext, String iFlowName): {}, {}", requestContext, iFlowName);
+        return getCpiExternalConfigurations(requestContext.getConnectionProperties(), iFlowName);
     }
 
-    public void uploadCpiExternalConfiguration(CommonClientWrapperEntity commonClientWrapperEntity, String iFlowName, List<CpiExternalConfiguration> cpiExternalConfigurations) {
-        log.debug("#uploadCpiExternalConfiguration(CommonClientWrapperEntity commonClientWrapperEntity, String iFlowName, List<CpiExternalConfiguration> cpiExternalConfigurations): {}, {}, {}", commonClientWrapperEntity, iFlowName, cpiExternalConfigurations);
-        uploadCpiExternalConfiguration(commonClientWrapperEntity.getConnectionProperties(), iFlowName, cpiExternalConfigurations);
+    public void uploadCpiExternalConfiguration(RequestContext requestContext, String iFlowName, List<CpiExternalConfiguration> cpiExternalConfigurations) {
+        log.debug("#uploadCpiExternalConfiguration(RequestContext requestContext, String iFlowName, List<CpiExternalConfiguration> cpiExternalConfigurations): {}, {}, {}", requestContext, iFlowName, cpiExternalConfigurations);
+        uploadCpiExternalConfiguration(requestContext.getConnectionProperties(), iFlowName, cpiExternalConfigurations);
     }
 
-    public IntegrationContentErrorInformation getIntegrationRuntimeArtifactErrorInformation(CommonClientWrapperEntity commonClientWrapperEntity, IntegrationContent integrationContent) {
-        log.debug("#getIntegrationRuntimeArtifactErrorInformation(CommonClientWrapperEntity commonClientWrapperEntity, IntegrationContent integrationContent):, {}, {}", commonClientWrapperEntity, integrationContent);
-        if (CloudPlatformType.CLOUD_FOUNDRY.equals(commonClientWrapperEntity.getCloudPlatformType())) {
+    public IntegrationContentErrorInformation getIntegrationRuntimeArtifactErrorInformation(RequestContext requestContext, IntegrationContent integrationContent) {
+        log.debug("#getIntegrationRuntimeArtifactErrorInformation(RequestContext requestContext, IntegrationContent integrationContent):, {}, {}", requestContext, integrationContent);
+        if (CloudPlatformType.CLOUD_FOUNDRY.equals(requestContext.getCloudPlatformType())) {
             String path = String.format("/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentDetailCommand?artifactId=%s", integrationContent.getExternalId());
             List<String> errorMessages = executeGet(
-                commonClientWrapperEntity,
+                requestContext,
                 path,
                 IntegrationContentPrivateApiParser::getIntegrationRuntimeErrorInformation
             );
@@ -96,7 +96,7 @@ public class IntegrationContentClient extends CpiBaseClient {
             integrationContentErrorInformation.setErrorMessage(StringUtils.join(errorMessages,", "));
             return integrationContentErrorInformation;
         } else {
-            return getIntegrationContentErrorInformation(commonClientWrapperEntity.getConnectionProperties(), integrationContent);
+            return getIntegrationContentErrorInformation(requestContext.getConnectionProperties(), integrationContent);
         }
     }
 
@@ -313,7 +313,7 @@ public class IntegrationContentClient extends CpiBaseClient {
     }
 
     private List<IntegrationContent> getAllIntegrationRuntimeArtifacts(ConnectionProperties connectionProperties, URI uri) {
-        log.debug("getAllIntegrationRuntimeArtifacts(ConnectionProperties connectionProperties, URI uri): {}, {}", connectionProperties, uri);
+        log.debug("#getAllIntegrationRuntimeArtifacts(ConnectionProperties connectionProperties, URI uri): {}, {}", connectionProperties, uri);
 
         try {
 

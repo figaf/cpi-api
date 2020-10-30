@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.figaf.integration.common.entity.CommonClientWrapperEntity;
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
@@ -41,9 +41,9 @@ public class OperationsClient extends CpiBaseClient {
         this.xmlObjectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
-    public StatisticOverviewCommandResponse callStatisticOverviewCommand(CommonClientWrapperEntity commonClientWrapperEntity) {
+    public StatisticOverviewCommandResponse callStatisticOverviewCommand(RequestContext requestContext) {
         return executeMethod(
-                commonClientWrapperEntity,
+                requestContext,
                 "/itspaces/Operations",
                 "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.StatisticOverviewCommand",
                 (url, token, restTemplateWrapper) -> callStatisticOverviewCommand(url, token, restTemplateWrapper.getRestTemplate())

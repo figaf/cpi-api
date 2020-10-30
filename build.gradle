@@ -1,6 +1,5 @@
 plugins {
-    id "java"
-    id "maven"
+    id 'java-library'
     id 'maven-publish'
 }
 
@@ -9,7 +8,7 @@ configurations.all {
 }
 
 group = 'com.github.figaf'
-version = '1.0-SNAPSHOT-rc004'
+version = '1.0-SNAPSHOT-rc005'
 
 repositories {
     jcenter()
@@ -18,11 +17,48 @@ repositories {
 }
 
 dependencies {
-    compile gradleApi()
+
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok:1.18.8'
-    compile("org.apache.httpcomponents:httpclient:4.5.3")
-    compile("org.apache.httpcomponents:httpmime:4.5.3")
-    compile("commons-lang:commons-lang:2.5")
-    compile group: 'com.github.figaf', name: 'commons', version: 'IRT-1836-istlentev-SNAPSHOT'
+
+    api 'com.github.figaf:integration-commons:1.0-SNAPSHOT-rc005'
+
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'org.apache.httpcomponents:httpmime:4.5.3'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.8'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.8'
+
+    testImplementation 'com.github.figaf:integration-commons-test:1.0-SNAPSHOT-rc001'
+    testImplementation 'org.assertj:assertj-core:3.18.0'
+    testImplementation 'org.mockito:mockito-core:3.6.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:3.6.0'
+    testImplementation 'ch.qos.logback:logback-classic:1.2.3'
+
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+
+    project.properties.each {propertyName, propertyValue ->
+        if (!propertyName.startsWith("agent-test-data")) return
+
+        systemProperty propertyName, propertyValue
+    }
+
+    testLogging {
+        showStandardStreams = true
+        events "passed", "skipped", "failed"
+    }
+
+    maxHeapSize = "2G"
 }

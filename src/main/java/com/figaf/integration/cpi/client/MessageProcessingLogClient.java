@@ -1,6 +1,6 @@
 package com.figaf.integration.cpi.client;
 
-import com.figaf.integration.common.entity.CommonClientWrapperEntity;
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
@@ -8,8 +8,8 @@ import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSear
 import com.figaf.integration.cpi.entity.message_processing.*;
 import com.figaf.integration.cpi.response_parser.MessageProcessingLogParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -38,10 +38,10 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         super(ssoUrl, httpClientsFactory);
     }
 
-    public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByCustomHeader(CommonClientWrapperEntity commonClientWrapperEntity, int top, int skip, String filter) {
-        log.debug("getMessageProcessingLogsByCustomHeader(CommonClientWrapperEntity commonClientWrapperEntity, int top, int skip, String filter): {}, {}, {}, {}", commonClientWrapperEntity, top, skip, filter);
+    public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByCustomHeader(RequestContext requestContext, int top, int skip, String filter) {
+        log.debug("getMessageProcessingLogsByCustomHeader(RequestContext requestContext, int top, int skip, String filter): {}, {}, {}, {}", requestContext, top, skip, filter);
         String path = String.format("/itspaces/odata/api/v1/MessageProcessingLogCustomHeaderProperties?$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$expand=Log&$filter=%s", top, skip, filter.replace(" ", "%20"));
-        return executeGet(commonClientWrapperEntity, path, MessageProcessingLogParser::buildMessageProcessingLogsResult);
+        return executeGet(requestContext, path, MessageProcessingLogParser::buildMessageProcessingLogsResult);
     }
 
 
@@ -97,7 +97,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
 
             String totalCountString = optString(jsonObjectD, "__count");
             Integer totalMessagesCount = null;
-            if (NumberUtils.isNumber(totalCountString)) {
+            if (NumberUtils.isCreatable(totalCountString)) {
                 totalMessagesCount = NumberUtils.toInt(totalCountString);
             }
 
@@ -159,7 +159,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
             int count = callRestWs(
                     connectionProperties,
                     resourcePath,
-                    response -> NumberUtils.isNumber(response) ? NumberUtils.toInt(response) : 0,
+                    response -> NumberUtils.isCreatable(response) ? NumberUtils.toInt(response) : 0,
                     null
             );
             return count;
@@ -243,7 +243,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 attachment.setName(optString(attachmentElement, "Name"));
                 attachment.setContentType(optString(attachmentElement, "ContentType"));
                 String payloadSizeString = optString(attachmentElement, "PayloadSize");
-                if (NumberUtils.isNumber(payloadSizeString)) {
+                if (NumberUtils.isCreatable(payloadSizeString)) {
                     attachment.setPayloadSize(NumberUtils.toInt(payloadSizeString));
                 }
 

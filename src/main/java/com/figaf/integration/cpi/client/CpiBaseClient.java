@@ -1,6 +1,6 @@
 package com.figaf.integration.cpi.client;
 
-import com.figaf.integration.common.client.wrapper.CommonClientWrapper;
+import com.figaf.integration.common.client.BaseClient;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
@@ -30,30 +30,30 @@ import java.nio.charset.StandardCharsets;
  */
 
 
-public abstract class CpiBaseClient extends CommonClientWrapper {
+public abstract class CpiBaseClient extends BaseClient {
 
     /*
     Package lock:
-    Request URL: https://p0201-tmn.hci.eu1.hana.ondemand.com/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d
+    Request URL: https://<host>/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d
     Request Method: LOCK
      */
 
     /*
     Package delete:
-    https://p0201-tmn.hci.eu1.hana.ondemand.com/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages('IRTTestDummyPackage')
+    https://<host>/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages('IRTTestDummyPackage')
     Request Method: DELETE
     */
 
     /*
     Package create:
-    Request URL: https://p0201-tmn.hci.eu1.hana.ondemand.com/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages
+    Request URL: https://<host>/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages
     Request Method: POST
     Request: {"Category":"Integration","SupportedPlatforms":"SAP HANA Cloud Integration","TechnicalName":"hgfhgfhfhgfh","DisplayName":"hgfhgfhfhgfh","ShortText":"hghfghgfhgf","Vendor":"Figaf","Version":"1.0","Description":""}
      */
 
     /*
     Create IFlow
-    Request URL: https://p0201-tmn.hci.eu1.hana.ondemand.com/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d/iflows/
+    Request URL: https://<host>/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d/iflows/
     Request Method: POST
     Request: {"name":"IRT_DemoScenario","description":"Copy of IRTTest|DemoScenario","type":"IFlow","id":"IRT_DemoScenario","additionalAttrs":{"source":[""],"target":[""],"productProfile":["iflmap"],"nodeType":["IFLMAP"]}}
     Response: {"id":"752a00da8c1342f9a207ac494089af28","name":"testFlow","tooltip":"testFlow","description":" ","type":"IFlow","entityID":"752a00da8c1342f9a207ac494089af28","additionalAttrs":{"source":[""],"target":[""],"nodeType":["IFLMAP"],"productProfile":["iflmap"]},"semanticVersion":"1.0.0","modifiedAt":1524906592350,"privilegeState":"EDIT_ALLOWED"}
@@ -61,34 +61,34 @@ public abstract class CpiBaseClient extends CommonClientWrapper {
 
     /*
     Deploy IFlow
-    Request URL: https://p0201-tmn.hci.eu1.hana.ondemand.com/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d/artifacts/412b1fc4a2e04e459ac291b586252bf6/entities/412b1fc4a2e04e459ac291b586252bf6/iflows/IRT_DemoScenario
+    Request URL: https://<host>/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d/artifacts/412b1fc4a2e04e459ac291b586252bf6/entities/412b1fc4a2e04e459ac291b586252bf6/iflows/IRT_DemoScenario
     Request Method: DEPLOY
     Response: {"taskId":"3270f4f3-32cd-4061-b113-e60843d76778"}
     */
 
     /*
     Undeploy IFlow
-    Request URL: https://p0201-tmn.hci.eu1.hana.ondemand.com/itspaces/Operations/com.sap.it.nm.commands.deploy.DeleteContentCommand
+    Request URL: https://<host>/itspaces/Operations/com.sap.it.nm.commands.deploy.DeleteContentCommand
     Request Method: POST
     Request body: artifactIds=4b645794-c527-486b-9af5-fd564426723b&tenantId=a3bf9677f
      */
 
     /*
     Deployment status:
-    Request URL: https://p0201-tmn.hci.eu1.hana.ondemand.com/itspaces/api/1.0/deploystatus/3270f4f3-32cd-4061-b113-e60843d76778
+    Request URL: https://<host>/itspaces/api/1.0/deploystatus/3270f4f3-32cd-4061-b113-e60843d76778
     Request Method: GET
     Response: {"status":"DEPLOYING"}
      */
 
     /*
     Delete IFlow
-    Request URL: https://p0201-tmn.hci.eu1.hana.ondemand.com/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d/artifacts/412b1fc4a2e04e459ac291b586252bf6/entities/412b1fc4a2e04e459ac291b586252bf6/iflows/IRT_DemoScenario
+    Request URL: https://<host>/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d/artifacts/412b1fc4a2e04e459ac291b586252bf6/entities/412b1fc4a2e04e459ac291b586252bf6/iflows/IRT_DemoScenario
     Request Method: DELETE
      */
 
     /*
     Unlock IFlow
-    Request URL: https://p0201-tmn.hci.eu1.hana.ondemand.com/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d/artifacts/412b1fc4a2e04e459ac291b586252bf6/entities/412b1fc4a2e04e459ac291b586252bf6/iflows/IRT_DemoScenario
+    Request URL: https://<host>/itspaces/api/1.0/workspace/170d342e95424be6b095e0b55e9a929d/artifacts/412b1fc4a2e04e459ac291b586252bf6/entities/412b1fc4a2e04e459ac291b586252bf6/iflows/IRT_DemoScenario
     Request Method: UNLOCK
      */
 

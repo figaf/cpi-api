@@ -2,7 +2,7 @@ package com.figaf.integration.cpi.response_parser;
 
 import com.figaf.integration.common.utils.Utils;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLog;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
@@ -22,7 +22,7 @@ public class MessageProcessingLogParser {
 
         String totalCountString = Utils.optString(jsonObjectD, "__count");
         Integer totalMessagesCount = null;
-        if (NumberUtils.isNumber(totalCountString)) {
+        if (NumberUtils.isCreatable(totalCountString)) {
             totalMessagesCount = NumberUtils.toInt(totalCountString);
         }
 

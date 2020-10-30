@@ -1,7 +1,7 @@
 package com.figaf.integration.cpi.client;
 
-import com.figaf.integration.common.client.wrapper.CommonClientWrapper;
-import com.figaf.integration.common.entity.CommonClientWrapperEntity;
+import com.figaf.integration.common.client.BaseClient;
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdatePackageRequest;
@@ -23,7 +23,7 @@ import java.util.Map;
  * @author Arsenii Istlentev
  */
 @Slf4j
-public class IntegrationPackageClient extends CommonClientWrapper {
+public class IntegrationPackageClient extends BaseClient {
 
     private static final String API_PACKAGES = "/itspaces/odata/1.0/workspace.svc/ContentPackages?$format=json";
 
@@ -33,41 +33,41 @@ public class IntegrationPackageClient extends CommonClientWrapper {
         super(ssoUrl);
     }
 
-    public List<IntegrationPackage> getIntegrationPackages(CommonClientWrapperEntity commonClientWrapperEntity, String filter) {
-        log.debug("#getIntegrationPackages(CommonClientWrapperEntity commonClientWrapperEntity, String filter): {}, {}", commonClientWrapperEntity, filter);
+    public List<IntegrationPackage> getIntegrationPackages(RequestContext requestContext, String filter) {
+        log.debug("#getIntegrationPackages(RequestContext requestContext, String filter): {}, {}", requestContext, filter);
         String path = API_PACKAGES + (filter == null ? "" : "&$filter=" + filter.replace(" ", "%20"));
-        return executeGet(commonClientWrapperEntity, path, IntegrationPackageParser::buildIntegrationPackages);
+        return executeGet(requestContext, path, IntegrationPackageParser::buildIntegrationPackages);
     }
 
-    public byte[] downloadPackage(CommonClientWrapperEntity commonClientWrapperEntity, String packageTechnicalName) {
-        log.debug("#downloadPackage(CommonClientWrapperEntity commonClientWrapperEntity, String packageTechnicalName): {}, {}", commonClientWrapperEntity, packageTechnicalName);
+    public byte[] downloadPackage(RequestContext requestContext, String packageTechnicalName) {
+        log.debug("#downloadPackage(RequestContext requestContext, String packageTechnicalName): {}, {}", requestContext, packageTechnicalName);
 
         String path = String.format("/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')", packageTechnicalName);
-        return executeGet(commonClientWrapperEntity, path, resolvedBody -> resolvedBody, byte[].class);
+        return executeGet(requestContext, path, resolvedBody -> resolvedBody, byte[].class);
     }
 
-    public String createIntegrationPackage(CommonClientWrapperEntity commonClientWrapperEntity, CreateOrUpdatePackageRequest request) {
-        log.debug("#createIntegrationPackage(CommonClientWrapperEntity commonClientWrapperEntity, CreatePackageRequest request): {}, {}", commonClientWrapperEntity, request);
+    public String createIntegrationPackage(RequestContext requestContext, CreateOrUpdatePackageRequest request) {
+        log.debug("#createIntegrationPackage(RequestContext requestContext, CreatePackageRequest request): {}, {}", requestContext, request);
 
-        validateInputParameters(commonClientWrapperEntity, request);
+        validateInputParameters(requestContext, request);
 
         return executeMethod(
-                commonClientWrapperEntity,
+                requestContext,
                 "/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages",
                 (url, token, restTemplateWrapper) -> createIntegrationPackage(request, url, token, restTemplateWrapper.getRestTemplate())
         );
     }
 
-    public void updateIntegrationPackage(CommonClientWrapperEntity commonClientWrapperEntity, String externalId, CreateOrUpdatePackageRequest request) {
-        log.debug("#updateIntegrationPackage(CommonClientWrapperEntity commonClientWrapperEntity, CreatePackageRequest request): {}, {}", commonClientWrapperEntity, request);
+    public void updateIntegrationPackage(RequestContext requestContext, String externalId, CreateOrUpdatePackageRequest request) {
+        log.debug("#updateIntegrationPackage(RequestContext requestContext, CreatePackageRequest request): {}, {}", requestContext, request);
 
-        validateInputParameters(commonClientWrapperEntity, request);
+        validateInputParameters(requestContext, request);
 
         executeMethod(
-                commonClientWrapperEntity,
+                requestContext,
                 String.format("/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages('%s')", request.getTechnicalName()),
                 (url, token, restTemplateWrapper) -> {
-                    updateIntegrationPackage(commonClientWrapperEntity.getConnectionProperties(), externalId, request, url, token, restTemplateWrapper.getRestTemplate());
+                    updateIntegrationPackage(requestContext.getConnectionProperties(), externalId, request, url, token, restTemplateWrapper.getRestTemplate());
                     return null;
                 }
         );
@@ -223,8 +223,8 @@ public class IntegrationPackageClient extends CommonClientWrapper {
         }
     }
 
-    private void validateInputParameters(CommonClientWrapperEntity commonClientWrapperEntity, CreateOrUpdatePackageRequest request) {
-        Assert.notNull(commonClientWrapperEntity, "commonClientWrapperEntity must be not null!");
+    private void validateInputParameters(RequestContext requestContext, CreateOrUpdatePackageRequest request) {
+        Assert.notNull(requestContext, "requestContext must be not null!");
         Assert.notNull(request, "request must be not null!");
         Assert.notNull(request.getTechnicalName(), "package technical name must be not null!");
         Assert.notNull(request.getDisplayName(), "package display name must be not null!");

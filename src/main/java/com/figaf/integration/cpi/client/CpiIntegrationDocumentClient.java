@@ -1,7 +1,7 @@
 package com.figaf.integration.cpi.client;
 
-import com.figaf.integration.common.client.wrapper.CommonClientWrapper;
-import com.figaf.integration.common.entity.CommonClientWrapperEntity;
+import com.figaf.integration.common.client.BaseClient;
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiIntegrationDocument;
 import com.figaf.integration.cpi.response_parser.CpiIntegrationDocumentParser;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import java.util.List;
  * @author Arsenii Istlentev
  */
 @Slf4j
-public class CpiIntegrationDocumentClient extends CommonClientWrapper {
+public class CpiIntegrationDocumentClient extends BaseClient {
 
     private static final String API_FILE_DOCUMENTS_META_DATA = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Files?$format=json";
     private static final String API_URL_DOCUMENTS = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Urls?$format=json";
@@ -24,14 +24,14 @@ public class CpiIntegrationDocumentClient extends CommonClientWrapper {
     }
 
     public List<CpiIntegrationDocument> getDocumentsByPackage(
-        CommonClientWrapperEntity commonClientWrapperEntity,
+        RequestContext requestContext,
         String packageTechnicalName,
         String packageDisplayedName,
         String packagePackageExternalId,
         String documentType
     ) {
-        log.debug("#getDocumentsByPackage(CommonClientWrapperEntity commonClientWrapperEntity, String packageTechnicalName, String packageDisplayedName, String packagePackageExternalId, TrackedObjectType documentType): " +
-            "{}, {}, {}, {}, {}", commonClientWrapperEntity, packageTechnicalName, packageDisplayedName, packagePackageExternalId, documentType);
+        log.debug("#getDocumentsByPackage(RequestContext requestContext, String packageTechnicalName, String packageDisplayedName, String packagePackageExternalId, TrackedObjectType documentType): " +
+            "{}, {}, {}, {}, {}", requestContext, packageTechnicalName, packageDisplayedName, packagePackageExternalId, documentType);
 
         String path;
         switch (documentType) {
@@ -46,16 +46,16 @@ public class CpiIntegrationDocumentClient extends CommonClientWrapper {
         }
 
         return executeGet(
-            commonClientWrapperEntity,
+            requestContext,
             path,
             body -> CpiIntegrationDocumentParser.buildCpiIntegrationDocuments(documentType, body)
         );
     }
 
-    public byte[] downloadFileDocument(CommonClientWrapperEntity commonClientWrapperEntity, String documentTechnicalName) {
-        log.debug("#downloadFileDocument(CommonClientWrapperEntity commonClientWrapperEntity, String documentTechnicalName): {}, {}", commonClientWrapperEntity, documentTechnicalName);
+    public byte[] downloadFileDocument(RequestContext requestContext, String documentTechnicalName) {
+        log.debug("#downloadFileDocument(RequestContext requestContext, String documentTechnicalName): {}, {}", requestContext, documentTechnicalName);
         String path = String.format(API_FILE_DOCUMENT, documentTechnicalName);
-        return executeGet(commonClientWrapperEntity, path, resolvedBody -> resolvedBody, byte[].class);
+        return executeGet(requestContext, path, resolvedBody -> resolvedBody, byte[].class);
     }
 
     public byte[] downloadUrlDocument(String url) {

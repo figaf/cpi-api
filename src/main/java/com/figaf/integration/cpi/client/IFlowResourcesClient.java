@@ -3,7 +3,7 @@ package com.figaf.integration.cpi.client;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.figaf.integration.common.entity.CommonClientWrapperEntity;
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
@@ -46,10 +46,10 @@ public class IFlowResourcesClient extends CpiBaseClient {
         jsonMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    public List<IFlowResource> getIFlowResources(CommonClientWrapperEntity commonClientWrapperEntity, String externalPackageId, String externalIFlowId) {
-        log.debug("#getIFlowResources(CommonClientWrapperEntity commonClientWrapperEntity, String externalPackageId, String externalIFlowId): {}, {}, {}", commonClientWrapperEntity, externalPackageId, externalIFlowId);
+    public List<IFlowResource> getIFlowResources(RequestContext requestContext, String externalPackageId, String externalIFlowId) {
+        log.debug("#getIFlowResources(RequestContext requestContext, String externalPackageId, String externalIFlowId): {}, {}, {}", requestContext, externalPackageId, externalIFlowId);
         String path = String.format(API_IFLOW_RESOURCES, externalPackageId, externalIFlowId, externalIFlowId);
-        return executeGet(commonClientWrapperEntity, path, body -> IFlowResourcesParser.buildIFlowResources(body, jsonMapper));
+        return executeGet(requestContext, path, body -> IFlowResourcesParser.buildIFlowResources(body, jsonMapper));
     }
 
 
