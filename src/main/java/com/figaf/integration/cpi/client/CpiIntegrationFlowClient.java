@@ -360,7 +360,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
                         return new JSONObject(result).getString("taskId");
                     }
                     case "VALUE_MAPPING": {
-                        return result;
+                        return result != null ? result.replaceAll("\"", "") : null;
                     }
                     default: {
                         throw new ClientIntegrationException("Unexpected object type: " + objectType);
