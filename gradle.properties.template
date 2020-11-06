@@ -4,3 +4,6 @@ agent-test-data.cpi-neo-1.password=
 agent-test-data.cpi-cf-1.host=
 agent-test-data.cpi-cf-1.username=
 agent-test-data.cpi-cf-1.password=
+agent-test-data.cpi-cf-2.host=
+agent-test-data.cpi-cf-2.username=
+agent-test-data.cpi-cf-2.password=
