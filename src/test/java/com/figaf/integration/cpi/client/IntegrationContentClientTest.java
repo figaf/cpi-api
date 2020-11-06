@@ -41,7 +41,7 @@ class IntegrationContentClientTest {
 
 
     @Test
-    void test_parallelAuthorization() throws InterruptedException {
+    void test_getAllIntegrationRuntimeArtifacts_with_parallel_authorization() throws InterruptedException {
         List<IntegrationContent> integrationRuntimeArtifacts1 = new ArrayList<>();
         List<IntegrationContent> integrationRuntimeArtifacts2 = new ArrayList<>();
         Thread thread1 = new Thread(() -> {
