@@ -19,6 +19,9 @@ public class MessageProcessingLogAttachment {
     private String contentType;
     private Integer payloadSize;
 
+    //only for PERSISTED attachmentType
+    private String messageStoreId;
+
     private MessageProcessingLogAttachmentType attachmentType = MessageProcessingLogAttachmentType.LOGGED;
 
 }

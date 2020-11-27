@@ -283,7 +283,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                             new Timestamp(Long.parseLong(timeStamp.replaceAll("[^0-9]", "")))
                     );
                 }
-                attachment.setName(String.format("%s-%s", optString(attachmentElement, "MessageStoreId"), attachment.getId().replace("sap-it-res:msg:", "")));
+
+                attachment.setMessageStoreId(optString(attachmentElement, "MessageStoreId"));
+                attachment.setName(String.format("%s-%s", attachment.getMessageStoreId(), attachment.getId().replace("sap-it-res:msg:", "")));
                 attachment.setContentType("Persisted payload");
                 attachment.setAttachmentType(MessageProcessingLogAttachmentType.PERSISTED);
 
