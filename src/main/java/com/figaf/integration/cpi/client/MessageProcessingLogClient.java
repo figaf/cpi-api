@@ -52,7 +52,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 TimeZone.getTimeZone("GMT")
         );
         String resourcePath = String.format(API_MSG_PROC_LOGS,
-                String.format("LogLevel eq 'TRACE' and Status eq 'COMPLETED' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s'",
+                String.format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s'",
                         integrationFlowName,
                         dateFormat.format(startDate),
                         dateFormat.format(DateUtils.addMinutes(new Date(), -55))
@@ -283,7 +283,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                             new Timestamp(Long.parseLong(timeStamp.replaceAll("[^0-9]", "")))
                     );
                 }
-                attachment.setName(String.format("%s-%s", optString(attachmentElement, "MessageStoreId"), attachment.getId().replace("sap-it-res:msg:", "")));
+
+                attachment.setMessageStoreId(optString(attachmentElement, "MessageStoreId"));
+                attachment.setName(String.format("%s-%s", attachment.getMessageStoreId(), attachment.getId().replace("sap-it-res:msg:", "")));
                 attachment.setContentType("Persisted payload");
                 attachment.setAttachmentType(MessageProcessingLogAttachmentType.PERSISTED);
 
