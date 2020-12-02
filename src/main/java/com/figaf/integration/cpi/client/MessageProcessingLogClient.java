@@ -52,7 +52,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 TimeZone.getTimeZone("GMT")
         );
         String resourcePath = String.format(API_MSG_PROC_LOGS,
-                String.format("LogLevel eq 'TRACE' and Status eq 'COMPLETED' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s'",
+                String.format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s'",
                         integrationFlowName,
                         dateFormat.format(startDate),
                         dateFormat.format(DateUtils.addMinutes(new Date(), -55))
