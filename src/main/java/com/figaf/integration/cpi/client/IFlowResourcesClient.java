@@ -36,10 +36,7 @@ public class IFlowResourcesClient extends CpiBaseClient {
 
     private final ObjectMapper jsonMapper;
 
-    public IFlowResourcesClient(
-        String ssoUrl,
-        HttpClientsFactory httpClientsFactory
-    ) {
+    public IFlowResourcesClient(String ssoUrl, HttpClientsFactory httpClientsFactory) {
         super(ssoUrl, httpClientsFactory);
         this.jsonMapper = new ObjectMapper();
         jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

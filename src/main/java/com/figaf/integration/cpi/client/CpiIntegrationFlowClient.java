@@ -5,6 +5,7 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.entity.RestTemplateWrapper;
 import com.figaf.integration.common.exception.ClientIntegrationException;
+import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateCpiArtifactRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateIFlowRequest;
@@ -43,8 +44,8 @@ public class CpiIntegrationFlowClient extends BaseClient {
 
     private final IntegrationPackageClient integrationPackageClient;
 
-    public CpiIntegrationFlowClient(String ssoUrl, IntegrationPackageClient integrationPackageClient) {
-        super(ssoUrl);
+    public CpiIntegrationFlowClient(String ssoUrl, IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
+        super(ssoUrl, httpClientsFactory);
         this.integrationPackageClient = integrationPackageClient;
     }
 

@@ -2,6 +2,7 @@ package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.client.BaseClient;
 import com.figaf.integration.common.entity.RequestContext;
+import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiIntegrationDocument;
 import com.figaf.integration.cpi.response_parser.CpiIntegrationDocumentParser;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +20,8 @@ public class CpiIntegrationDocumentClient extends BaseClient {
     private static final String API_URL_DOCUMENTS = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Urls?$format=json";
     private static final String API_FILE_DOCUMENT = "/itspaces/odata/1.0/workspace.svc/ContentEntities.Files('%s')/$value?attachment=false";
 
-    public CpiIntegrationDocumentClient(String ssoUrl) {
-        super(ssoUrl);
+    public CpiIntegrationDocumentClient(String ssoUrl, HttpClientsFactory httpClientsFactory) {
+        super(ssoUrl, httpClientsFactory);
     }
 
     public List<CpiIntegrationDocument> getDocumentsByPackage(
