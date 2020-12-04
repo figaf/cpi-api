@@ -4,6 +4,7 @@ import com.figaf.integration.common.client.BaseClient;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.exception.ClientIntegrationException;
+import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdatePackageRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import com.figaf.integration.cpi.response_parser.IntegrationPackageParser;
@@ -27,10 +28,8 @@ public class IntegrationPackageClient extends BaseClient {
 
     private static final String API_PACKAGES = "/itspaces/odata/1.0/workspace.svc/ContentPackages?$format=json";
 
-    public IntegrationPackageClient(
-        String ssoUrl
-    ) {
-        super(ssoUrl);
+    public IntegrationPackageClient(String ssoUrl, HttpClientsFactory httpClientsFactory) {
+        super(ssoUrl, httpClientsFactory);
     }
 
     public List<IntegrationPackage> getIntegrationPackages(RequestContext requestContext, String filter) {

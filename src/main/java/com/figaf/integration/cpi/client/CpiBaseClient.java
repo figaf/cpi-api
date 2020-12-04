@@ -108,11 +108,9 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_TRACE_MESSAGE_EXCHANGE_PROPERTIES = "/api/v1/TraceMessages(%sL)/ExchangeProperties?$format=json";
     protected static final String API_MSG_STORE_ENTRIES_VALUE = "/api/v1/MessageStoreEntries('%s')/$value";
 
-    protected final HttpClientsFactory httpClientsFactory;
 
     public CpiBaseClient(String ssoUrl, HttpClientsFactory httpClientsFactory) {
-        super(ssoUrl);
-        this.httpClientsFactory = httpClientsFactory;
+        super(ssoUrl, httpClientsFactory);
     }
 
     protected String getCsrfToken(ConnectionProperties connectionProperties, HttpClient httpClient) {
