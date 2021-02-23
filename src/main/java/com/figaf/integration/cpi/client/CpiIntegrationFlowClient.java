@@ -323,8 +323,8 @@ public class CpiIntegrationFlowClient extends BaseClient {
             }
 
         } catch (Exception ex) {
-            log.error("Error occurred while uploading value mapping " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while uploading value mapping: " + ex.getMessage(), ex);
+            log.error("Error occurred while uploading artifact " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while uploading artifact: " + ex.getMessage(), ex);
         } finally {
             if (uploadArtifactResponse != null) {
                 HttpClientUtils.closeQuietly(uploadArtifactResponse);
