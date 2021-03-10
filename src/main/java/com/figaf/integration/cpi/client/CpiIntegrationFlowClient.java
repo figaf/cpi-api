@@ -13,6 +13,7 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateValue
 import com.figaf.integration.cpi.response_parser.CpiIntegrationFlowParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -427,7 +428,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
         }
         uriBuilder.queryParam("webdav", webdav);
 
-        if (connectionProperties.getPort() != null) {
+        if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
             uriBuilder.port(connectionProperties.getPort());
         }
 
@@ -463,7 +464,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
                     .queryParam("notifications", "true")
                     .queryParam("webdav", "CHECKIN");
 
-            if (connectionProperties.getPort() != null) {
+            if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
             }
 

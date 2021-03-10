@@ -11,6 +11,7 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.IFlowResource;
 import com.figaf.integration.cpi.response_parser.IFlowResourcesParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -64,7 +65,7 @@ public class IFlowResourcesClient extends CpiBaseClient {
                     .host(connectionProperties.getHost())
                     .path(String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/Resources", iFlowName));
 
-            if (connectionProperties.getPort() != null) {
+            if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
             }
             URI uri = uriBuilder.build().toUri();
@@ -129,7 +130,7 @@ public class IFlowResourcesClient extends CpiBaseClient {
                             iFlowName, resourceName, resourceExtension)
                     );
 
-            if (connectionProperties.getPort() != null) {
+            if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
             }
             URI uri = uriBuilder.build().toUri();
