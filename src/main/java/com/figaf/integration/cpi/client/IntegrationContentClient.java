@@ -223,7 +223,7 @@ public class IntegrationContentClient extends CpiBaseClient {
                         .host(connectionProperties.getHost())
                         .path(String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/$links/Configurations('%s')", iFlowName, cpiExternalConfiguration.getParameterKey()));
 
-                if (connectionProperties.getPort() != null) {
+                if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                     uriBuilder.port(connectionProperties.getPort());
                 }
                 URI uri = uriBuilder.build().toUri();
