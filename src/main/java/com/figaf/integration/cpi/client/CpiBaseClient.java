@@ -6,6 +6,7 @@ import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.common.utils.Utils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -132,7 +133,7 @@ public abstract class CpiBaseClient extends BaseClient {
                     .host(connectionProperties.getHost())
                     .path(path);
 
-            if (connectionProperties.getPort() != null) {
+            if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
             }
 

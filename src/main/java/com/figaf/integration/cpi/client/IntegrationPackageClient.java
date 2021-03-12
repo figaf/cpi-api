@@ -9,6 +9,7 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdatePacka
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import com.figaf.integration.cpi.response_parser.IntegrationPackageParser;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.http.*;
 import org.springframework.util.Assert;
@@ -181,7 +182,7 @@ public class IntegrationPackageClient extends BaseClient {
                     .host(connectionProperties.getHost())
                     .path("/itspaces/api/1.0/workspace/{0}");
 
-            if (connectionProperties.getPort() != null) {
+            if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
             }
 
