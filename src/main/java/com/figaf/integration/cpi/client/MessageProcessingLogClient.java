@@ -1,7 +1,7 @@
 package com.figaf.integration.cpi.client;
 
-import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
@@ -44,9 +44,23 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         return executeGet(requestContext, path, MessageProcessingLogParser::buildMessageProcessingLogsResult);
     }
 
-
     public List<MessageProcessingLog> getMessageProcessingLogs(ConnectionProperties connectionProperties, String integrationFlowName, Date startDate) {
         log.debug("#getMessageProcessingLogs(ConnectionProperties connectionProperties, String integrationFlowName, Date startDate): {}, {}", connectionProperties, startDate);
+        FastDateFormat dateFormat = FastDateFormat.getInstance(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                TimeZone.getTimeZone("GMT")
+        );
+        String resourcePath = String.format(API_MSG_PROC_LOGS,
+                String.format("IntegrationFlowName eq '%s' and LogStart gt datetime'%s'",
+                        integrationFlowName,
+                        dateFormat.format(startDate)
+                )
+        );
+        return getMessageProcessingLogs(connectionProperties, resourcePath);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsWithTraceLevel(ConnectionProperties connectionProperties, String integrationFlowName, Date startDate) {
+        log.debug("#getMessageProcessingLogsWithTraceLevel(ConnectionProperties connectionProperties, String integrationFlowName, Date startDate): {}, {}", connectionProperties, startDate);
         FastDateFormat dateFormat = FastDateFormat.getInstance(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS",
                 TimeZone.getTimeZone("GMT")
