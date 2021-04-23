@@ -14,7 +14,7 @@
         <tags name="SAP-NodeType" value="IFLMAP"/>
         <tags name="artifact.package.id" value="ZqaPackagewithGermanletters"/>
         <tags name="artifact.authenticity.status" value="REPUDIATED"/>
-        <tags name="artifact.package.name" value="Z_qa|Package with German letters: Ä, ä, Ö, ö, Ü, ü, ?, ß"/>
+        <tags name="artifact.package.name" value="Z_qa|Package with German letters: Ä, ä, Ö, ö, Ü, ü, ẞ, ß"/>
         <tags name="deployed.by" value="test@test.com"/>
         <tags name="deployed.on" value="1619188952829"/>
         <tags name="SAP-BundleType" value="INTEGRATION_FLOW"/>
