@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListResponse>
+    <artifactInformations>
+        <taskId>e33ce2f8-fbb0-42f4-a737-492ddb721b24</taskId>
+        <deployState>STORED</deployState>
+        <deployedBy>test@test.com</deployedBy>
+        <deployedOn>2021-04-23T14:42:32.829Z</deployedOn>
+        <id>9656fe1b-3fb1-43ef-8c4b-7426d10b65c2</id>
+        <name>Iflow with German letters in desciption|qa</name>
+        <nodeType>IFLMAP</nodeType>
+        <semanticState>STARTING</semanticState>
+        <symbolicName>Iflow_with_German_letters_in_desciption_qa</symbolicName>
+        <tags name="Bundle-SymbolicName" value="Iflow_with_German_letters_in_desciption_qa"/>
+        <tags name="SAP-NodeType" value="IFLMAP"/>
+        <tags name="artifact.package.id" value="ZqaPackagewithGermanletters"/>
+        <tags name="artifact.authenticity.status" value="REPUDIATED"/>
+        <tags name="artifact.package.name" value="Z_qa|Package with German letters: Ä, ä, Ö, ö, Ü, ü, ẞ, ß"/>
+        <tags name="deployed.by" value="test@test.com"/>
+        <tags name="deployed.on" value="1619188952829"/>
+        <tags name="SAP-BundleType" value="INTEGRATION_FLOW"/>
+        <tags name="SAP-ArtifactId" value="9656fe1b-3fb1-43ef-8c4b-7426d10b65c2"/>
+        <tenantId>figaf_test</tenantId>
+        <type>INTEGRATION_FLOW</type>
+        <version>1.0.2</version>
+    </artifactInformations>
+</com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListResponse>
