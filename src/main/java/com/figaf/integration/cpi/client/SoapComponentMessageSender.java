@@ -5,6 +5,7 @@ import com.figaf.integration.common.client.support.parser.CloudFoundryOAuthToken
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.entity.OAuthTokenRequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
+import com.figaf.integration.cpi.entity.message_sender.MessageSendingAdditionalProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -28,7 +29,8 @@ public class SoapComponentMessageSender extends MessageSender {
         ConnectionProperties connectionProperties,
         String url,
         HttpMethod httpMethod,
-        HttpEntity<byte[]> requestEntity
+        HttpEntity<byte[]> requestEntity,
+        MessageSendingAdditionalProperties messageSendingAdditionalProperties
     ) {
         RestTemplate restTemplate = httpClientsFactory.createRestTemplate(
             new BasicAuthenticationInterceptor(connectionProperties.getUsername(), connectionProperties.getPassword())
@@ -41,13 +43,16 @@ public class SoapComponentMessageSender extends MessageSender {
         String url,
         HttpMethod httpMethod,
         HttpEntity<byte[]> requestEntity,
-        String oauthUrl,
-        String restTemplateWrapperKey
+        MessageSendingAdditionalProperties messageSendingAdditionalProperties
     ) {
         RestTemplate restTemplate = restTemplateWrapperHolder.getOrCreateRestTemplateWrapperSingletonWithInterceptors(
-            restTemplateWrapperKey,
+            messageSendingAdditionalProperties.getRestTemplateWrapperKey(),
             singleton(new OAuthTokenInterceptor(
-                new OAuthTokenRequestContext(connectionProperties.getUsername(), connectionProperties.getPassword(), oauthUrl),
+                new OAuthTokenRequestContext(
+                    connectionProperties.getUsername(),
+                    connectionProperties.getPassword(),
+                    messageSendingAdditionalProperties.getOauthUrl()
+                ),
                 new CloudFoundryOAuthTokenParser(),
                 httpClientsFactory
             ))
