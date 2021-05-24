@@ -36,15 +36,20 @@ public abstract class MessageSender {
             "{}, {}, {}, {}, {}", connectionProperties, url, httpMethod, requestEntity, messageSendingAdditionalProperties);
         switch (messageSendingAdditionalProperties.getAuthenticationType()) {
             case BASIC:
-                return sendMessageWithBasicAuthentication(connectionProperties, url, httpMethod, requestEntity);
+                return sendMessageWithBasicAuthentication(
+                    connectionProperties,
+                    url,
+                    httpMethod,
+                    requestEntity,
+                    messageSendingAdditionalProperties
+                );
             case OAUTH:
                 return sendMessageWithOAuth(
                     connectionProperties,
                     url,
                     httpMethod,
                     requestEntity,
-                    messageSendingAdditionalProperties.getOauthUrl(),
-                    messageSendingAdditionalProperties.getRestTemplateWrapperKey()
+                    messageSendingAdditionalProperties
                 );
             default:
                 throw new IllegalArgumentException("Unexpected authentication type " + messageSendingAdditionalProperties.getAuthenticationType());
@@ -55,7 +60,8 @@ public abstract class MessageSender {
         ConnectionProperties connectionProperties,
         String url,
         HttpMethod httpMethod,
-        HttpEntity<byte[]> requestEntity
+        HttpEntity<byte[]> requestEntity,
+        MessageSendingAdditionalProperties messageSendingAdditionalProperties
     );
 
     protected abstract ResponseEntity<String> sendMessageWithOAuth(
@@ -63,8 +69,7 @@ public abstract class MessageSender {
         String url,
         HttpMethod httpMethod,
         HttpEntity<byte[]> requestEntity,
-        String oauthUrl,
-        String restTemplateWrapperKey
+        MessageSendingAdditionalProperties messageSendingAdditionalProperties
     );
 
 }
