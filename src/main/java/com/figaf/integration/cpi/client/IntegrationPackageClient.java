@@ -29,8 +29,8 @@ public class IntegrationPackageClient extends BaseClient {
 
     private static final String API_PACKAGES = "/itspaces/odata/1.0/workspace.svc/ContentPackages?$format=json";
 
-    public IntegrationPackageClient(String ssoUrl, HttpClientsFactory httpClientsFactory) {
-        super(ssoUrl, httpClientsFactory);
+    public IntegrationPackageClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<IntegrationPackage> getIntegrationPackages(RequestContext requestContext, String filter) {

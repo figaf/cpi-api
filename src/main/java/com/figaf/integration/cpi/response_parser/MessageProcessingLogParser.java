@@ -2,6 +2,7 @@ package com.figaf.integration.cpi.response_parser;
 
 import com.figaf.integration.common.utils.Utils;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLog;
+import com.figaf.integration.cpi.utils.CpiApiUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -51,20 +52,8 @@ public class MessageProcessingLogParser {
         messageProcessingLog.setSender(Utils.optString(messageProcessingLogElement, "Sender"));
         messageProcessingLog.setReceiver(Utils.optString(messageProcessingLogElement, "Receiver"));
         messageProcessingLog.setAlternateWebLink(Utils.optString(messageProcessingLogElement, "AlternateWebLink"));
-
-        String logStart = Utils.optString(messageProcessingLogElement, "LogStart");
-        if (logStart != null) {
-            messageProcessingLog.setLogStart(
-                    new Timestamp(Long.parseLong(logStart.replaceAll("[^0-9]", "")))
-            );
-        }
-
-        String logEnd = Utils.optString(messageProcessingLogElement, "LogEnd");
-        if (logEnd != null) {
-            messageProcessingLog.setLogEnd(
-                    new Timestamp(Long.parseLong(logEnd.replaceAll("[^0-9]", "")))
-            );
-        }
+        messageProcessingLog.setLogStart(CpiApiUtils.parseDate(Utils.optString(messageProcessingLogElement, "LogStart")));
+        messageProcessingLog.setLogEnd(CpiApiUtils.parseDate(Utils.optString(messageProcessingLogElement, "LogEnd")));
         return messageProcessingLog;
     }
 }

@@ -45,8 +45,8 @@ public class CpiIntegrationFlowClient extends BaseClient {
 
     private final IntegrationPackageClient integrationPackageClient;
 
-    public CpiIntegrationFlowClient(String ssoUrl, IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(ssoUrl, httpClientsFactory);
+    public CpiIntegrationFlowClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
         this.integrationPackageClient = integrationPackageClient;
     }
 

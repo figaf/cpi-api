@@ -2,6 +2,7 @@ package com.figaf.integration.cpi.response_parser;
 
 import com.figaf.integration.common.utils.Utils;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
+import com.figaf.integration.cpi.utils.CpiApiUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -27,15 +28,9 @@ public class IntegrationPackageParser {
             integrationPackage.setTechnicalName(packageElement.getString("TechnicalName"));
             integrationPackage.setDisplayedName(packageElement.getString("DisplayName"));
             integrationPackage.setVersion(Utils.optString(packageElement, "Version"));
-            integrationPackage.setCreationDate(
-                new Timestamp(Long.parseLong(packageElement.getString("CreatedAt").replaceAll("[^0-9]", "")))
-            );
+            integrationPackage.setCreationDate(CpiApiUtils.parseDate(packageElement.getString("CreatedAt")));
             integrationPackage.setCreatedBy(Utils.optString(packageElement, "CreatedBy"));
-            String modifiedAt = Utils.optString(packageElement, "ModifiedAt");
-            integrationPackage.setModificationDate(modifiedAt != null
-                ? new Timestamp(Long.parseLong(modifiedAt.replaceAll("[^0-9]", "")))
-                : null
-            );
+            integrationPackage.setModificationDate(CpiApiUtils.parseDate(Utils.optString(packageElement, "ModifiedAt")));
             integrationPackage.setModifiedBy(packageElement.getString("ModifiedBy"));
             integrationPackage.setVendor(Utils.optString(packageElement, "Vendor"));
             integrationPackage.setShortDescription(Utils.optString(packageElement, "ShortText"));

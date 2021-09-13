@@ -2,6 +2,7 @@ package com.figaf.integration.cpi.response_parser;
 
 import com.figaf.integration.common.utils.Utils;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiIntegrationDocument;
+import com.figaf.integration.cpi.utils.CpiApiUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -32,15 +33,9 @@ public class CpiIntegrationDocumentParser {
             document.setTechnicalName(documentElement.getString("TechnicalName"));
             document.setDisplayedName(documentElement.getString("DisplayName"));
             document.setVersion(Utils.optString(documentElement, "Version"));
-            document.setCreationDate(
-                new Timestamp(Long.parseLong(documentElement.getString("CreatedAt").replaceAll("[^0-9]", "")))
-            );
+            document.setCreationDate(CpiApiUtils.parseDate(documentElement.getString("CreatedAt")));
             document.setCreatedBy(Utils.optString(documentElement, "CreatedBy"));
-            String modifiedAt = Utils.optString(documentElement, "ModifiedAt");
-            document.setModificationDate(modifiedAt != null
-                ? new Timestamp(Long.parseLong(modifiedAt.replaceAll("[^0-9]", "")))
-                : null
-            );
+            document.setModificationDate(CpiApiUtils.parseDate(Utils.optString(documentElement, "ModifiedAt")));
             document.setModifiedBy(documentElement.getString("ModifiedBy"));
             document.setDescription(documentElement.getString("Description"));
 
