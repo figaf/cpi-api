@@ -2,6 +2,7 @@ package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.client.BaseClient;
 import com.figaf.integration.common.entity.ConnectionProperties;
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.common.utils.Utils;
@@ -16,7 +17,6 @@ import org.apache.http.message.BasicHeader;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.client.RestTemplate;
@@ -110,8 +110,8 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_MSG_STORE_ENTRIES_VALUE = "/api/v1/MessageStoreEntries('%s')/$value";
 
 
-    public CpiBaseClient(String ssoUrl, HttpClientsFactory httpClientsFactory) {
-        super(ssoUrl, httpClientsFactory);
+    public CpiBaseClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     protected String getCsrfToken(ConnectionProperties connectionProperties, HttpClient httpClient) {
@@ -169,22 +169,16 @@ public abstract class CpiBaseClient extends BaseClient {
     }
 
     protected <R> R callRestWs(
-            ConnectionProperties connectionProperties,
+            RequestContext requestContext,
             String resourcePath,
-            CheckedFunction<String, R, JSONException> responseExtractor,
-            RestTemplate restTemplate
+            CheckedFunction<String, R, JSONException> responseExtractor
     ) {
-
         try {
-            if (restTemplate == null) {
-                restTemplate = httpClientsFactory.createRestTemplate(new BasicAuthenticationInterceptor(connectionProperties.getUsername(), connectionProperties.getPassword()));
-            }
-            final String url = connectionProperties.getURL() + resourcePath;
+            ConnectionProperties connectionProperties = requestContext.getConnectionProperties();
+            RestTemplate restTemplate = getOrCreateRestTemplateWrapperSingletonWithInterceptors(requestContext);
+            final String url = connectionProperties.getUrlRemovingDefaultPortIfNecessary() + resourcePath;
             String response = restTemplate.getForObject(url, String.class);
-
-
             return responseExtractor.apply(response);
-
         } catch (JSONException ex) {
             getLogger().error("Error occurred while parsing response: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);

@@ -20,8 +20,8 @@ public class CpiIntegrationDocumentClient extends BaseClient {
     private static final String API_URL_DOCUMENTS = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Urls?$format=json";
     private static final String API_FILE_DOCUMENT = "/itspaces/odata/1.0/workspace.svc/ContentEntities.Files('%s')/$value?attachment=false";
 
-    public CpiIntegrationDocumentClient(String ssoUrl, HttpClientsFactory httpClientsFactory) {
-        super(ssoUrl, httpClientsFactory);
+    public CpiIntegrationDocumentClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiIntegrationDocument> getDocumentsByPackage(

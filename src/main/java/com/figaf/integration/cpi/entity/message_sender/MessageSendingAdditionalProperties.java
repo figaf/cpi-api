@@ -1,9 +1,11 @@
 package com.figaf.integration.cpi.entity.message_sender;
 
-import lombok.*;
+import com.figaf.integration.common.entity.AuthenticationType;
+import lombok.Getter;
+import lombok.ToString;
 
-import static com.figaf.integration.cpi.entity.message_sender.AuthenticationType.BASIC;
-import static com.figaf.integration.cpi.entity.message_sender.AuthenticationType.OAUTH;
+import static com.figaf.integration.common.entity.AuthenticationType.BASIC;
+import static com.figaf.integration.common.entity.AuthenticationType.OAUTH;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.springframework.util.Assert.isTrue;
 

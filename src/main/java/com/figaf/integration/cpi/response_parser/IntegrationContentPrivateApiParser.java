@@ -4,6 +4,7 @@ import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.cpi.entity.runtime_artifacts.IntegrationContent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -13,7 +14,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -85,7 +85,7 @@ public class IntegrationContentPrivateApiParser {
     }
 
     private static List<IntegrationContent> getAllIntegrationRuntimeArtifacts(String body, String name) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS");
+        FastDateFormat dateFormat = FastDateFormat.getInstance("yyyy-MM-dd'T'hh:mm:ss.SSS");
         List<IntegrationContent> integrationContentList = new ArrayList<>();
         Document document = loadXMLFromString(body);
         NodeList artifactInformationsList = document.getElementsByTagName("artifactInformations");

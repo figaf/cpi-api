@@ -1,5 +1,6 @@
 package com.figaf.integration.cpi.client;
 
+import com.figaf.integration.common.client.CsrfTokenHolder;
 import com.figaf.integration.common.client.support.OAuthTokenInterceptor;
 import com.figaf.integration.common.client.support.parser.CloudFoundryOAuthTokenParser;
 import com.figaf.integration.common.entity.ConnectionProperties;
