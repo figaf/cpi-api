@@ -33,8 +33,8 @@ public class OperationsClient extends CpiBaseClient {
 
     private final ObjectMapper xmlObjectMapper;
 
-    public OperationsClient(String ssoUrl, HttpClientsFactory httpClientsFactory) {
-        super(ssoUrl, httpClientsFactory);
+    public OperationsClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
         this.xmlObjectMapper = new XmlMapper();
         this.xmlObjectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.xmlObjectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);

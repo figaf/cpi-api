@@ -2,6 +2,7 @@ package com.figaf.integration.cpi.response_parser;
 
 import com.figaf.integration.common.utils.Utils;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
+import com.figaf.integration.cpi.utils.CpiApiUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -58,15 +59,9 @@ public class CpiIntegrationFlowParser {
             artifact.setTechnicalName(iFlowElement.getString("Name"));
             artifact.setDisplayedName(iFlowElement.getString("DisplayName"));
             artifact.setVersion(Utils.optString(iFlowElement, "Version"));
-            artifact.setCreationDate(
-                new Timestamp(Long.parseLong(iFlowElement.getString("CreatedAt").replaceAll("[^0-9]", "")))
-            );
+            artifact.setCreationDate(CpiApiUtils.parseDate(iFlowElement.getString("CreatedAt")));
             artifact.setCreatedBy(Utils.optString(iFlowElement, "CreatedBy"));
-            String modifiedAt = Utils.optString(iFlowElement, "ModifiedAt");
-            artifact.setModificationDate(modifiedAt != null
-                ? new Timestamp(Long.parseLong(modifiedAt.replaceAll("[^0-9]", "")))
-                : null
-            );
+            artifact.setModificationDate(CpiApiUtils.parseDate(Utils.optString(iFlowElement, "ModifiedAt")));
             artifact.setModifiedBy(iFlowElement.getString("ModifiedBy"));
             artifact.setDescription(Utils.optString(iFlowElement, "Description"));
 
