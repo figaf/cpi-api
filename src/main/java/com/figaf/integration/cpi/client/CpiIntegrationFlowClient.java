@@ -34,14 +34,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.String.format;
+import static org.springframework.http.HttpMethod.DELETE;
+import static org.springframework.http.HttpStatus.OK;
+
 /**
  * @author Arsenii Istlentev
  */
 @Slf4j
 public class CpiIntegrationFlowClient extends BaseClient {
 
+    private static final String API_PACKAGES = "/itspaces/odata/1.0/workspace.svc/ContentPackages";
     private static final String API_ARTIFACTS = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Artifacts?$format=json";
     private static final String API_IFLOW_DEPLOY_STATUS = "/itspaces/api/1.0/deploystatus/%s";
+    private static final String API_PACKAGE_NAME_AND_ARTIFACT_NAME = "/itspaces/api/1.0/workspace/%s/artifacts/%s";
 
     private final IntegrationPackageClient integrationPackageClient;
 
@@ -198,6 +204,33 @@ public class CpiIntegrationFlowClient extends BaseClient {
         );
     }
 
+    public void deleteArtifact(
+        String externalPackageId,
+        String externalArtifactId,
+        String artifactName,
+        RequestContext requestContext
+    ) {
+        log.debug("#deleteArtifact(String externalPackageId, String externalArtifactId, RequestContext requestContext): {}, {}, {}",
+            externalPackageId, externalArtifactId, requestContext);
+
+        executeMethod(
+            requestContext,
+            API_PACKAGES,
+            format(API_PACKAGE_NAME_AND_ARTIFACT_NAME, externalPackageId, externalArtifactId),
+            (url, token, restTemplateWrapper) -> {
+                deleteArtifact(
+                    requestContext.getConnectionProperties(),
+                    externalPackageId,
+                    artifactName,
+                    url,
+                    token,
+                    restTemplateWrapper.getRestTemplate()
+                );
+                return null;
+            }
+        );
+    }
+
     private void createArtifact(
             ConnectionProperties connectionProperties,
             String externalPackageId,
@@ -250,6 +283,43 @@ public class CpiIntegrationFlowClient extends BaseClient {
             HttpClientUtils.closeQuietly(uploadArtifactResponse);
             if (locked) {
                 integrationPackageClient.unlockPackage(connectionProperties, externalPackageId, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
+            }
+        }
+
+    }
+
+    private void deleteArtifact(
+        ConnectionProperties connectionProperties,
+        String externalPackageId,
+        String artifactName,
+        String url,
+        String token,
+        RestTemplate restTemplate
+    ) {
+        boolean locked = false;
+        try {
+            integrationPackageClient.lockPackage(connectionProperties, externalPackageId, token, restTemplate, true);
+            locked = true;
+
+            HttpHeaders httpHeaders = createHttpHeadersWithCSRFToken(token);
+            HttpEntity<Void> httpEntity = new HttpEntity<>(httpHeaders);
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, DELETE, httpEntity, String.class);
+
+            if (!OK.equals(responseEntity.getStatusCode())) {
+                throw new ClientIntegrationException(format(
+                    "Couldn't delete artifact %s: Code: %d, Message: %s",
+                    artifactName,
+                    responseEntity.getStatusCode().value(),
+                    responseEntity.getBody())
+                );
+            }
+
+        } catch (Exception ex) {
+            log.error("Error occurred while deleting artifact " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while deleting artifact: " + ex.getMessage(), ex);
+        } finally {
+            if (locked) {
+                integrationPackageClient.unlockPackage(connectionProperties, externalPackageId, token, restTemplate);
             }
         }
 
@@ -354,7 +424,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
                     String.class
             );
 
-            if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+            if (OK.equals(responseEntity.getStatusCode())) {
                 String result = responseEntity.getBody();
 
                 switch (objectType) {
@@ -448,7 +518,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
                 String.class
         );
 
-        if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+        if (!OK.equals(responseEntity.getStatusCode())) {
             throw new RuntimeException("Couldn't lock or unlock artifact\n" + responseEntity.getBody());
         }
 
@@ -490,7 +560,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
                     String.class
             );
 
-            if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+            if (!OK.equals(responseEntity.getStatusCode())) {
                 throw new RuntimeException("Couldn't set version to Artifact:\n" + responseEntity.getBody());
 
             }
