@@ -18,7 +18,7 @@ public class AgentTestDataProvider extends AbstractAgentTestDataProvider {
         return Stream.of(
                 Arguments.of(buildAgentTestDataForNeo()),
                 Arguments.of(buildAgentTestDataForCf1()),
-                Arguments.of(buildAgentTestDataForCf3()),
+                //Arguments.of(buildAgentTestDataForCf3()),
                 Arguments.of(buildAgentTestDataForCf4())
         );
     }
@@ -31,9 +31,9 @@ public class AgentTestDataProvider extends AbstractAgentTestDataProvider {
         return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-cf-2"));
     }
 
-    public static AgentTestData buildAgentTestDataForCf3() {
-        return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-cf-oauth-3"));
-    }
+    //public static AgentTestData buildAgentTestDataForCf3() {
+    //    return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-cf-oauth-3"));
+    //}
 
     public static AgentTestData buildAgentTestDataForCf4() {
         return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-cf-oauth-4"));

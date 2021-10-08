@@ -21,6 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.String.format;
+import static org.springframework.http.HttpMethod.DELETE;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 /**
  * @author Arsenii Istlentev
  */
@@ -28,6 +32,7 @@ import java.util.Map;
 public class IntegrationPackageClient extends BaseClient {
 
     private static final String API_PACKAGES = "/itspaces/odata/1.0/workspace.svc/ContentPackages?$format=json";
+    private static final String API_PACKAGES_WITH_NAME = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')";
 
     public IntegrationPackageClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -80,6 +85,20 @@ public class IntegrationPackageClient extends BaseClient {
 
     public void unlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String csrfToken, RestTemplate restTemplate) {
         lockOrUnlockPackage(connectionProperties, externalPackageId, "UNLOCK", false, csrfToken, restTemplate);
+    }
+
+    public void deletePackage(String packageName, RequestContext requestContext) {
+        log.debug("#deletePackage(String packageName, RequestContext requestContext): {}, {}", packageName, requestContext);
+
+        executeMethod(
+            requestContext,
+            API_PACKAGES,
+            format(API_PACKAGES_WITH_NAME, packageName),
+            (url, token, restTemplateWrapper) -> {
+                deletePackage(packageName, url, token, restTemplateWrapper.getRestTemplate());
+                return null;
+            }
+        );
     }
 
     private String createIntegrationPackage(CreateOrUpdatePackageRequest request, String url, String userApiCsrfToken, RestTemplate restTemplate) {
@@ -138,7 +157,7 @@ public class IntegrationPackageClient extends BaseClient {
             );
 
 
-            if (!HttpStatus.NO_CONTENT.equals(responseEntity.getStatusCode())) {
+            if (!NO_CONTENT.equals(responseEntity.getStatusCode())) {
                 throw new ClientIntegrationException(String.format(
                         "Couldn't update package %s: Code: %d, Message: %s",
                         request.getTechnicalName(),
@@ -228,6 +247,26 @@ public class IntegrationPackageClient extends BaseClient {
         Assert.notNull(request, "request must be not null!");
         Assert.notNull(request.getTechnicalName(), "package technical name must be not null!");
         Assert.notNull(request.getDisplayName(), "package display name must be not null!");
+    }
+
+    private void deletePackage(
+        String packageName,
+        String url,
+        String token,
+        RestTemplate restTemplate
+    ) {
+        HttpHeaders httpHeaders = createHttpHeadersWithCSRFToken(token);
+        HttpEntity<Void> httpEntity = new HttpEntity<>(httpHeaders);
+        ResponseEntity<String> responseEntity = restTemplate.exchange(url, DELETE, httpEntity, String.class);
+
+        if (!NO_CONTENT.equals(responseEntity.getStatusCode())) {
+            throw new ClientIntegrationException(format(
+                "Couldn't delete package %s: Code: %d, Message: %s",
+                packageName,
+                responseEntity.getStatusCode().value(),
+                responseEntity.getBody())
+            );
+        }
     }
 
 }
