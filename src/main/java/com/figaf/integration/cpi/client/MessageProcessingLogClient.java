@@ -20,7 +20,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -58,7 +57,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
-        log.debug("#getMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}", requestContext, integrationFlowName, startDate);
+        log.debug("#getMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
         FastDateFormat dateFormat = FastDateFormat.getInstance(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS",
                 TimeZone.getTimeZone("GMT")
@@ -459,8 +458,36 @@ public class MessageProcessingLogClient extends CpiBaseClient {
 
                     firstStepWithPayloadChecked = true;
 
-                    // for now we take only first message
-                    JSONObject traceMessageElement = traceMessagesJsonArray.getJSONObject(0);
+                    /*If traceMessagesJsonArray has multiple messages, we need to find the most appropriate one.
+                    Its SAP_TRACE_HEADER_<some digits>_MessageType property should be equal to "STEP". If it's not found, we just take the first one.
+                    Maybe later we will need to download and handle all the messages.*/
+                    JSONObject traceMessageElement = null;
+                    JSONArray foundTraceMessagePropertiesJsonArray = null;
+                    if (traceMessagesJsonArray.length() > 1) {
+                        for (int i = 0; i < traceMessagesJsonArray.length() && traceMessageElement == null; i++) {
+                            JSONObject currentTraceMessage = traceMessagesJsonArray.getJSONObject(i);
+                            JSONArray traceMessagePropertiesJsonArray = callRestWs(
+                                    requestContext,
+                                    String.format(API_TRACE_MESSAGE_PROPERTIES, optString(currentTraceMessage, "TraceId")),
+                                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                            );
+                            for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
+                                JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
+                                String name = optString(traceMessagePropertyElement, "Name");
+                                if (name.startsWith("SAP_TRACE_HEADER_") && name.endsWith("_MessageType")) {
+                                    String value = optString(traceMessagePropertyElement, "Value");
+                                    if (value.equals("STEP")) {
+                                        traceMessageElement = currentTraceMessage;
+                                        foundTraceMessagePropertiesJsonArray = traceMessagePropertiesJsonArray;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (traceMessageElement == null) {
+                        traceMessageElement = traceMessagesJsonArray.getJSONObject(0);
+                    }
 
                     MessageProcessingLogRunStep.TraceMessage traceMessage = new MessageProcessingLogRunStep.TraceMessage();
                     traceMessage.setTraceId(optString(traceMessageElement, "TraceId"));
@@ -474,16 +501,24 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                     traceMessage.setProcessingDate(runStep.getStepStop());
 
                     if (runStepSearchCriteria.isInitTraceMessagePayload()) {
-                        getPayloadForMessage(requestContext, traceMessage.getTraceId());
+                        byte[] payloadForMessage = getPayloadForMessage(requestContext, traceMessage.getTraceId());
+                        traceMessage.setPayload(payloadForMessage);
                     }
 
                     if (runStepSearchCriteria.isInitTraceMessageProperties()) {
 
-                        JSONArray traceMessagePropertiesJsonArray = callRestWs(
-                                requestContext,
-                                String.format(API_TRACE_MESSAGE_PROPERTIES, traceMessage.getTraceId()),
-                                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-                        );
+                        JSONArray traceMessagePropertiesJsonArray;
+                        /*We could already have traceMessagePropertiesJsonArray if there are multiple trace messages.
+                         In this case we don't need to make the same request twice.*/
+                        if (foundTraceMessagePropertiesJsonArray != null) {
+                            traceMessagePropertiesJsonArray = foundTraceMessagePropertiesJsonArray;
+                        } else {
+                            traceMessagePropertiesJsonArray = callRestWs(
+                                    requestContext,
+                                    String.format(API_TRACE_MESSAGE_PROPERTIES, traceMessage.getTraceId()),
+                                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                            );
+                        }
 
                         for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
                             JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
