@@ -33,7 +33,7 @@ import java.util.List;
 @Slf4j
 public class IFlowResourcesClient extends CpiBaseClient {
 
-    private static final String API_IFLOW_RESOURCES = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/resource";
+    private static final String API_IFLOW_RESOURCES = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/resource?artifactType=IFlow";
 
     private final ObjectMapper jsonMapper;
 
