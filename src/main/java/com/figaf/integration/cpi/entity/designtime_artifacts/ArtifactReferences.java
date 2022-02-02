@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class IFlowResources {
+public class ArtifactReferences {
 
-    List<IFlowResource> resourceList;
+    List<ArtifactReference> referenceList;
 }
