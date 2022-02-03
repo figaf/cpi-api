@@ -140,9 +140,20 @@ public class CpiIntegrationFlowClient extends BaseClient {
             String externalPackageId,
             String externalArtifactId,
             CreateOrUpdateCpiArtifactRequest request,
+            byte[] bundledModel,
+            String ticketInfo
+    ) {
+        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, false, null, ticketInfo);
+    }
+
+    public void updateArtifact(
+            RequestContext requestContext,
+            String externalPackageId,
+            String externalArtifactId,
+            CreateOrUpdateCpiArtifactRequest request,
             byte[] bundledModel
     ) {
-        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, false, null);
+        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, false, null, "");
     }
 
     public void updateArtifact(
@@ -152,7 +163,8 @@ public class CpiIntegrationFlowClient extends BaseClient {
             CreateOrUpdateCpiArtifactRequest request,
             byte[] bundledModel,
             boolean uploadDraftVersion,
-            String newIflowVersion
+            String newIflowVersion,
+            String ticketInfo
     ) {
         log.debug("#updateIntegrationFlow(RequestContext requestContext, String externalPackageId, String externalArtifactId, UpdateIFlowRequest request, byte[] bundledModel): {}, {}, {}, {}", requestContext, externalPackageId, externalArtifactId, request);
 
@@ -160,7 +172,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
                 requestContext,
                 String.format("/itspaces/api/1.0/workspace/%s/artifacts", externalPackageId),
                 (url, token, restTemplateWrapper) -> {
-                    uploadArtifact(requestContext.getConnectionProperties(), externalPackageId, externalArtifactId, request, bundledModel, uploadDraftVersion, newIflowVersion, url, token, restTemplateWrapper);
+                    uploadArtifact(requestContext.getConnectionProperties(), externalPackageId, externalArtifactId, request, bundledModel, uploadDraftVersion, newIflowVersion, url, token, ticketInfo, restTemplateWrapper);
                     return null;
                 }
         );
@@ -335,6 +347,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
             String newIflowVersion,
             String uploadArtifactUri,
             String userApiCsrfToken,
+            String ticketInfo,
             RestTemplateWrapper restTemplateWrapper
     ) {
         HttpResponse uploadArtifactResponse = null;
@@ -386,7 +399,10 @@ public class CpiIntegrationFlowClient extends BaseClient {
                             connectionProperties,
                             externalPackageId,
                             externalArtifactId,
-                            newIflowVersion != null ? newIflowVersion : jsonObject.getString("bundleVersion"), userApiCsrfToken, restTemplateWrapper.getRestTemplate()
+                            newIflowVersion != null ? newIflowVersion : jsonObject.getString("bundleVersion"),
+                            userApiCsrfToken,
+                            ticketInfo,
+                            restTemplateWrapper.getRestTemplate()
                     );
                 }
             } else {
@@ -524,7 +540,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
 
     }
 
-    private void setVersionToArtifact(ConnectionProperties connectionProperties, String externalPackageId, String iflowExternalId, String version, String userApiCsrfToken, RestTemplate restTemplate) {
+    private void setVersionToArtifact(ConnectionProperties connectionProperties, String externalPackageId, String iflowExternalId, String version, String userApiCsrfToken, String ticketInfo, RestTemplate restTemplate) {
         try {
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
@@ -544,7 +560,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
                     .toUri();
 
             Map<String, String> requestBody = new HashMap<>();
-            requestBody.put("comment", "");
+            requestBody.put("comment", ticketInfo == null ? "" : ticketInfo);
             requestBody.put("semanticVersion", version);
 
             HttpHeaders httpHeaders = new HttpHeaders();
