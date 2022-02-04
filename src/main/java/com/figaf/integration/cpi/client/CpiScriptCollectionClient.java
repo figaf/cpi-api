@@ -100,8 +100,9 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
         String scriptCollectionExternalId,
         String scriptCollectionTechnicalName
     ) {
-        log.debug("#deployScriptCollection(RequestContext commonClientWrapperEntity, String packageExternalId, String scriptCollectionExternalId): {}, {}, {}",
-            requestContext, packageExternalId, scriptCollectionExternalId
+        log.debug("#deployScriptCollection(RequestContext commonClientWrapperEntity, String packageExternalId, " +
+                "String scriptCollectionExternalId, String scriptCollectionTechnicalName): {}, {}, {}, {}",
+            requestContext, packageExternalId, scriptCollectionExternalId, scriptCollectionTechnicalName
         );
 
         return executeMethod(

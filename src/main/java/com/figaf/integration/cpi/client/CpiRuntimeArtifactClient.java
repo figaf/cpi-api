@@ -62,7 +62,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
         this.integrationPackageClient = integrationPackageClient;
     }
 
-    public String checkDeployStatus(RequestContext requestContext, String taskId) {
+    public String checkDeploymentStatus(RequestContext requestContext, String taskId) {
         String path = String.format(API_ARTIFACT_DEPLOY_STATUS, taskId);
         return executeGet(
             requestContext,

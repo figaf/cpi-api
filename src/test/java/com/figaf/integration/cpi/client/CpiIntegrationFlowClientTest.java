@@ -139,7 +139,7 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_deployIFlowAndCheckDeployStatus(AgentTestData agentTestData) throws Exception {
+    void test_deployIFlowAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
@@ -157,7 +157,7 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
         );
         assertThat(taskId).isNotBlank();
 
-        String status = cpiIntegrationFlowClient.checkDeployStatus(requestContext, taskId);
+        String status = cpiIntegrationFlowClient.checkDeploymentStatus(requestContext, taskId);
         assertThat(status).isNotBlank();
 
         cpiIntegrationFlowClient.deleteIFlow(packageExternalId, iFlowExternalId, API_TEST_DUMMY_IFLOW_NAME, requestContext);
@@ -167,7 +167,7 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_setTraceLogLevelForIFlows(AgentTestData agentTestData) throws Exception {
+    void test_setTraceLogLevelForIFlows(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         cpiIntegrationFlowClient.setTraceLogLevelForIFlows(requestContext, singletonList(API_TEST_IFLOW_NAME));
     }

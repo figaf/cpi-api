@@ -76,7 +76,8 @@ public class CpiRuntimeArtifactParser {
             case SCRIPT_COLLECTION: {
                 return new JSONObject(result).getString("taskId");
             }
-            case VALUE_MAPPING: {
+            case VALUE_MAPPING:
+            case SHARED_MESSAGE_MAPPING:{
                 return result != null ? result.replace("\"", "") : null;
             }
             default: {

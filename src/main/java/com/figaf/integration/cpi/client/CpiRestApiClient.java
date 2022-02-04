@@ -46,7 +46,7 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
             String packageExternalId,
             String restApiExternalId
     ) {
-        log.debug("#downloadValueMapping(RequestContext requestContext, String packageExternalId, String restApiExternalId): {}, {}, {}",
+        log.debug("#downloadRestApi(RequestContext requestContext, String packageExternalId, String restApiExternalId): {}, {}, {}",
                 requestContext, packageExternalId, restApiExternalId
         );
         return downloadArtifact(requestContext, packageExternalId, restApiExternalId);

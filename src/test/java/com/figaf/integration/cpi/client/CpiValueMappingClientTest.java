@@ -140,7 +140,7 @@ class CpiValueMappingClientTest extends CpiRuntimeArtifactClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_deployValueMappingAndCheckDeployStatus(AgentTestData agentTestData) throws Exception {
+    void test_deployValueMappingAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
@@ -157,7 +157,7 @@ class CpiValueMappingClientTest extends CpiRuntimeArtifactClientTest {
         );
         assertThat(taskId).isNotBlank();
 
-        String status = cpiValueMappingClient.checkDeployStatus(requestContext, taskId);
+        String status = cpiValueMappingClient.checkDeploymentStatus(requestContext, taskId);
         assertThat(status).isNotBlank();
 
         cpiValueMappingClient.deleteValueMapping(packageExternalId, valueMappingExternalId, API_TEST_DUMMY_VALUE_MAPPING_NAME, requestContext);

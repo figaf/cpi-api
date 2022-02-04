@@ -138,7 +138,7 @@ class CpiRestApiClientTest extends CpiRuntimeArtifactClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_deployRestApiAndCheckDeployStatus(AgentTestData agentTestData) throws Exception {
+    void test_deployRestApiAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
@@ -156,7 +156,7 @@ class CpiRestApiClientTest extends CpiRuntimeArtifactClientTest {
         );
         assertThat(taskId).isNotBlank();
 
-        String status = cpiRestApiClient.checkDeployStatus(requestContext, taskId);
+        String status = cpiRestApiClient.checkDeploymentStatus(requestContext, taskId);
         assertThat(status).isNotBlank();
 
         cpiRestApiClient.deleteRestApi(packageExternalId, restApiExternalId, API_TEST_DUMMY_REST_API_NAME, requestContext);

@@ -145,7 +145,7 @@ class CpiScriptCollectionClientTest extends CpiRuntimeArtifactClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_deployScriptCollectionAndCheckDeployStatus(AgentTestData agentTestData) throws Exception {
+    void test_deployScriptCollectionAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
@@ -163,7 +163,7 @@ class CpiScriptCollectionClientTest extends CpiRuntimeArtifactClientTest {
         );
         assertThat(taskId).isNotBlank();
 
-        String status = cpiScriptCollectionClient.checkDeployStatus(requestContext, taskId);
+        String status = cpiScriptCollectionClient.checkDeploymentStatus(requestContext, taskId);
         assertThat(status).isNotBlank();
 
         cpiScriptCollectionClient.deleteScriptCollection(
