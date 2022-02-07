@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.VALUE_MAPPING;
+import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.REST_API;
 
 /**
  * @author Klochkov Sergey
@@ -13,10 +13,10 @@ import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactT
 @Getter
 @Setter
 @ToString
-public class CreateOrUpdateValueMappingRequest extends CreateOrUpdateCpiArtifactRequest {
+public class CreateOrUpdateRestApiRequest extends CreateOrUpdateCpiArtifactRequest {
 
     @Builder
-    public CreateOrUpdateValueMappingRequest(
+    public CreateOrUpdateRestApiRequest(
         String id,
         String name,
         String description,
@@ -28,7 +28,7 @@ public class CreateOrUpdateValueMappingRequest extends CreateOrUpdateCpiArtifact
 
     @Override
     public String getType() {
-        return VALUE_MAPPING.getQueryTitle();
+        return REST_API.getQueryTitle();
     }
 
 }
