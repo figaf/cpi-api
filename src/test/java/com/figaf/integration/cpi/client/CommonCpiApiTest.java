@@ -8,15 +8,18 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.*;
 import com.figaf.integration.cpi.entity.runtime_artifacts.CpiExternalConfiguration;
 import com.figaf.integration.cpi.entity.runtime_artifacts.IntegrationContent;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.io.IOException;
 import java.util.*;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.SetUtils.hashSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -25,15 +28,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 class CommonCpiApiTest {
 
+    private static final String API_TEST_PACKAGE_NAME = "FigafApiTestPackage";
     private static final String API_DELETE_TEST_PACKAGE_NAME = "FigafApiDeleteTestPackage";
+    private static final String API_TEST_IFLOW_NAME = "FigafApiTestIFlow";
+    private static final String API_TEST_VALUE_MAPPING_NAME = "FigafApiTestValueMapping";
 
     private static IntegrationContentClient integrationContentClient;
     private static IntegrationPackageClient integrationPackageClient;
+    private static CpiIntegrationFlowClient cpiIntegrationFlowClient;
 
     @BeforeAll
     static void setUp() {
         integrationContentClient = new IntegrationContentClient(new HttpClientsFactory());
         integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
+        cpiIntegrationFlowClient = new CpiIntegrationFlowClient(integrationPackageClient, new HttpClientsFactory());
     }
 
     @ParameterizedTest
@@ -135,6 +143,40 @@ class CommonCpiApiTest {
         assertThat(integrationPackage).as("Package %s wasn't deleted", API_DELETE_TEST_PACKAGE_NAME).isNull();
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(AgentTestDataProvider.class)
+    void test_privateArtifactApiDelete(AgentTestData agentTestData) throws IOException {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        IntegrationPackage integrationPackage = getOrCreatePackage(requestContext, API_TEST_PACKAGE_NAME);
+        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
+
+        CpiArtifact iFlow = getOrCreateDummyIFlow(requestContext, integrationPackage.getExternalId());
+        assertThat(iFlow).as("IFlow %s wasn't found", API_TEST_IFLOW_NAME).isNotNull();
+
+        CpiArtifact valueMapping = getOrCreateDummyValueMapping(requestContext, integrationPackage.getExternalId());
+        assertThat(valueMapping).as("ValueMapping %s wasn't found", API_TEST_VALUE_MAPPING_NAME).isNotNull();
+
+        cpiIntegrationFlowClient.deleteArtifact(
+            integrationPackage.getExternalId(),
+            iFlow.getExternalId(),
+            API_TEST_IFLOW_NAME,
+            requestContext
+        );
+
+        cpiIntegrationFlowClient.deleteArtifact(
+            integrationPackage.getExternalId(),
+            valueMapping.getExternalId(),
+            API_TEST_VALUE_MAPPING_NAME,
+            requestContext
+        );
+
+        iFlow = findDummyIFlowIfExist(requestContext);
+        assertThat(iFlow).as("IFlow %s wasn't deleted", API_TEST_IFLOW_NAME).isNull();
+
+        valueMapping = findDummyValueMappingIfExist(requestContext);
+        assertThat(valueMapping).as("ValueMapping %s wasn't deleted", API_TEST_VALUE_MAPPING_NAME).isNull();
+    }
+
     private IntegrationPackage findPackageByNameIfExist(RequestContext requestContext, String packageName) {
         List<IntegrationPackage> integrationPackages = integrationPackageClient.getIntegrationPackages(
             requestContext,
@@ -161,6 +203,85 @@ class CommonCpiApiTest {
             integrationPackage = createDummyPackage(requestContext, packageName);
         }
         return integrationPackage;
+    }
+
+    private CpiArtifact findDummyIFlowIfExist(RequestContext requestContext) {
+        List<CpiArtifact> artifacts = cpiIntegrationFlowClient.getArtifactsByPackage(
+            requestContext,
+            API_TEST_PACKAGE_NAME,
+            API_TEST_PACKAGE_NAME,
+            API_TEST_IFLOW_NAME,
+            hashSet("CPI_IFLOW")
+        );
+
+        return artifacts.stream().filter(cpiArtifact -> API_TEST_IFLOW_NAME.equals(cpiArtifact.getTechnicalName()))
+            .findFirst().orElse(null);
+    }
+
+    private CpiArtifact createDummyIFlow(RequestContext requestContext, String packageExternalId) throws IOException {
+        byte[] payload = IOUtils.toByteArray(
+            this.getClass().getClassLoader().getResource("client/FigafApiTestIFlow.zip")
+        );
+        CreateOrUpdateIFlowRequest createIFlowRequest = new CreateOrUpdateIFlowRequest();
+        createIFlowRequest.setId(API_TEST_IFLOW_NAME);
+        createIFlowRequest.setName(API_TEST_IFLOW_NAME);
+        createIFlowRequest.setDescription("IFlow for api tests");
+        cpiIntegrationFlowClient.createIntegrationFlow(
+            requestContext,
+            packageExternalId,
+            createIFlowRequest,
+            payload
+        );
+        return findDummyIFlowIfExist(requestContext);
+    }
+
+    private CpiArtifact getOrCreateDummyIFlow(RequestContext requestContext, String packageExternalId) throws IOException {
+        CpiArtifact iFlow = findDummyIFlowIfExist(requestContext);
+        if (iFlow == null) {
+            iFlow = createDummyIFlow(requestContext, packageExternalId);
+        }
+        return iFlow;
+    }
+
+    private CpiArtifact findDummyValueMappingIfExist(RequestContext requestContext) {
+        List<CpiArtifact> artifacts = cpiIntegrationFlowClient.getArtifactsByPackage(
+            requestContext,
+            API_TEST_PACKAGE_NAME,
+            API_TEST_PACKAGE_NAME,
+            API_TEST_VALUE_MAPPING_NAME,
+            hashSet("VALUE_MAPPING")
+        );
+
+        return artifacts.stream().filter(cpiArtifact -> API_TEST_VALUE_MAPPING_NAME.equals(cpiArtifact.getTechnicalName()))
+            .findFirst().orElse(null);
+    }
+
+    private CpiArtifact createDummyValueMapping(
+        RequestContext requestContext,
+        String packageExternalId
+    ) throws IOException {
+        byte[] payload = IOUtils.toByteArray(
+            this.getClass().getClassLoader().getResource("client/FigafApiTestValueMapping.zip")
+        );
+        CreateOrUpdateValueMappingRequest createValueMappingRequest = new CreateOrUpdateValueMappingRequest();
+        createValueMappingRequest.setId(API_TEST_VALUE_MAPPING_NAME);
+        createValueMappingRequest.setName(API_TEST_VALUE_MAPPING_NAME);
+        createValueMappingRequest.setDescription("Value Mapping for api tests");
+        cpiIntegrationFlowClient.createValueMapping(
+            requestContext,
+            packageExternalId,
+            createValueMappingRequest,
+            payload
+        );
+        return findDummyValueMappingIfExist(requestContext);
+    }
+
+    private CpiArtifact getOrCreateDummyValueMapping(RequestContext requestContext, String packageExternalId) throws IOException {
+        CpiArtifact valueMapping = findDummyValueMappingIfExist(requestContext);
+        if (valueMapping == null) {
+            valueMapping = createDummyValueMapping(requestContext, packageExternalId);
+        }
+        return valueMapping;
     }
 
 }
