@@ -140,9 +140,20 @@ public class CpiIntegrationFlowClient extends BaseClient {
             String externalPackageId,
             String externalArtifactId,
             CreateOrUpdateCpiArtifactRequest request,
+            byte[] bundledModel,
+            String comment
+    ) {
+        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, false, null, comment);
+    }
+
+    public void updateArtifact(
+            RequestContext requestContext,
+            String externalPackageId,
+            String externalArtifactId,
+            CreateOrUpdateCpiArtifactRequest request,
             byte[] bundledModel
     ) {
-        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, false, null);
+        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, false, null, null);
     }
 
     public void updateArtifact(
@@ -154,13 +165,26 @@ public class CpiIntegrationFlowClient extends BaseClient {
             boolean uploadDraftVersion,
             String newIflowVersion
     ) {
+        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, uploadDraftVersion, newIflowVersion, null);
+    }
+
+    public void updateArtifact(
+            RequestContext requestContext,
+            String externalPackageId,
+            String externalArtifactId,
+            CreateOrUpdateCpiArtifactRequest request,
+            byte[] bundledModel,
+            boolean uploadDraftVersion,
+            String newIflowVersion,
+            String comment
+    ) {
         log.debug("#updateIntegrationFlow(RequestContext requestContext, String externalPackageId, String externalArtifactId, UpdateIFlowRequest request, byte[] bundledModel): {}, {}, {}, {}", requestContext, externalPackageId, externalArtifactId, request);
 
         executeMethod(
                 requestContext,
                 String.format("/itspaces/api/1.0/workspace/%s/artifacts", externalPackageId),
                 (url, token, restTemplateWrapper) -> {
-                    uploadArtifact(requestContext.getConnectionProperties(), externalPackageId, externalArtifactId, request, bundledModel, uploadDraftVersion, newIflowVersion, url, token, restTemplateWrapper);
+                    uploadArtifact(requestContext.getConnectionProperties(), externalPackageId, externalArtifactId, request, bundledModel, uploadDraftVersion, newIflowVersion, url, token, comment, restTemplateWrapper);
                     return null;
                 }
         );
@@ -335,6 +359,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
             String newIflowVersion,
             String uploadArtifactUri,
             String userApiCsrfToken,
+            String comment,
             RestTemplateWrapper restTemplateWrapper
     ) {
         HttpResponse uploadArtifactResponse = null;
@@ -386,7 +411,10 @@ public class CpiIntegrationFlowClient extends BaseClient {
                             connectionProperties,
                             externalPackageId,
                             externalArtifactId,
-                            newIflowVersion != null ? newIflowVersion : jsonObject.getString("bundleVersion"), userApiCsrfToken, restTemplateWrapper.getRestTemplate()
+                            newIflowVersion != null ? newIflowVersion : jsonObject.getString("bundleVersion"),
+                            userApiCsrfToken,
+                            comment,
+                            restTemplateWrapper.getRestTemplate()
                     );
                 }
             } else {
@@ -524,7 +552,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
 
     }
 
-    private void setVersionToArtifact(ConnectionProperties connectionProperties, String externalPackageId, String iflowExternalId, String version, String userApiCsrfToken, RestTemplate restTemplate) {
+    private void setVersionToArtifact(ConnectionProperties connectionProperties, String externalPackageId, String iflowExternalId, String version, String userApiCsrfToken, String comment, RestTemplate restTemplate) {
         try {
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
@@ -544,7 +572,7 @@ public class CpiIntegrationFlowClient extends BaseClient {
                     .toUri();
 
             Map<String, String> requestBody = new HashMap<>();
-            requestBody.put("comment", "");
+            requestBody.put("comment", comment == null ? "" : comment);
             requestBody.put("semanticVersion", version);
 
             HttpHeaders httpHeaders = new HttpHeaders();
