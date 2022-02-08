@@ -151,6 +151,28 @@ public class CpiIntegrationFlowClient extends BaseClient {
             String externalPackageId,
             String externalArtifactId,
             CreateOrUpdateCpiArtifactRequest request,
+            byte[] bundledModel
+    ) {
+        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, false, null, null);
+    }
+
+    public void updateArtifact(
+            RequestContext requestContext,
+            String externalPackageId,
+            String externalArtifactId,
+            CreateOrUpdateCpiArtifactRequest request,
+            byte[] bundledModel,
+            boolean uploadDraftVersion,
+            String newIflowVersion
+    ) {
+        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, uploadDraftVersion, newIflowVersion, null);
+    }
+
+    public void updateArtifact(
+            RequestContext requestContext,
+            String externalPackageId,
+            String externalArtifactId,
+            CreateOrUpdateCpiArtifactRequest request,
             byte[] bundledModel,
             boolean uploadDraftVersion,
             String newIflowVersion,
@@ -163,37 +185,6 @@ public class CpiIntegrationFlowClient extends BaseClient {
                 String.format("/itspaces/api/1.0/workspace/%s/artifacts", externalPackageId),
                 (url, token, restTemplateWrapper) -> {
                     uploadArtifact(requestContext.getConnectionProperties(), externalPackageId, externalArtifactId, request, bundledModel, uploadDraftVersion, newIflowVersion, url, token, comment, restTemplateWrapper);
-                    return null;
-                }
-        );
-    }
-
-    public void updateArtifact(
-            RequestContext requestContext,
-            String externalPackageId,
-            String externalArtifactId,
-            CreateOrUpdateCpiArtifactRequest request,
-            byte[] bundledModel
-    ) {
-        updateArtifact(requestContext, externalPackageId, externalArtifactId, request, bundledModel, false, null);
-    }
-
-    public void updateArtifact(
-            RequestContext requestContext,
-            String externalPackageId,
-            String externalArtifactId,
-            CreateOrUpdateCpiArtifactRequest request,
-            byte[] bundledModel,
-            boolean uploadDraftVersion,
-            String newIflowVersion
-    ) {
-        log.debug("#updateIntegrationFlow(RequestContext requestContext, String externalPackageId, String externalArtifactId, UpdateIFlowRequest request, byte[] bundledModel): {}, {}, {}, {}", requestContext, externalPackageId, externalArtifactId, request);
-
-        executeMethod(
-                requestContext,
-                String.format("/itspaces/api/1.0/workspace/%s/artifacts", externalPackageId),
-                (url, token, restTemplateWrapper) -> {
-                    uploadArtifact(requestContext.getConnectionProperties(), externalPackageId, externalArtifactId, request, bundledModel, uploadDraftVersion, newIflowVersion, url, token, null, restTemplateWrapper);
                     return null;
                 }
         );
