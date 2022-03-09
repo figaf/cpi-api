@@ -1,13 +1,15 @@
 package com.figaf.integration.cpi.entity.designtime_artifacts;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
 @ToString
-public class IFlowResource {
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ArtifactResource {
 
     private String resourceName;
 

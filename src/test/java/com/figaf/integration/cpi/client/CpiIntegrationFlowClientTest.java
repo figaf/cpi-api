@@ -5,15 +5,19 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.designtime_artifacts.*;
+import com.figaf.integration.cpi.utils.IFlowUtils;
+import com.figaf.integration.cpi.utils.PackageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.io.IOException;
 import java.util.List;
 
+import static com.figaf.integration.cpi.utils.IFlowUtils.API_TEST_DUMMY_IFLOW_NAME;
+import static com.figaf.integration.cpi.utils.IFlowUtils.API_TEST_IFLOW_NAME;
+import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,24 +25,25 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Klochkov Sergey
  */
 @Slf4j
-class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
-
-    private static final String API_TEST_IFLOW_NAME = "FigafApiTestIFlow";
-    private static final String API_TEST_DUMMY_IFLOW_NAME = "FigafApiTestDummyIFlow";
+class CpiIntegrationFlowClientTest {
 
     private static CpiIntegrationFlowClient cpiIntegrationFlowClient;
+    private static PackageUtils packageUtils;
+    private static IFlowUtils iFlowUtils;
 
     @BeforeAll
     static void setUp() {
-        integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
+        IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
         cpiIntegrationFlowClient = new CpiIntegrationFlowClient(integrationPackageClient, new HttpClientsFactory());
+        packageUtils = new PackageUtils(integrationPackageClient);
+        iFlowUtils = new IFlowUtils(packageUtils, cpiIntegrationFlowClient);
     }
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_getIFlowsByPackage(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
+        IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
 
         List<CpiArtifact> iFlows = cpiIntegrationFlowClient.getIFlowsByPackage(
@@ -54,19 +59,12 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_downloadIFlow(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
-        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-
-        CpiArtifact iFlow = findIFlowIfExist(
-            requestContext,
-            integrationPackage.getExternalId(),
-            API_TEST_IFLOW_NAME
-        );
+        CpiArtifact iFlow = iFlowUtils.findTestIFlowInTestPackageIfExist(requestContext);
         assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_IFLOW_NAME).isNotNull();
 
         byte[] iFlowPayload = cpiIntegrationFlowClient.downloadIFlow(
             requestContext,
-            integrationPackage.getExternalId(),
+            iFlow.getPackageExternalId(),
             iFlow.getExternalId()
         );
         assertThat(iFlowPayload).isNotEmpty();
@@ -76,31 +74,13 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_createAndDeleteIFlow(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
-        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-
-        CpiArtifact iFlow = findIFlowIfExist(
-            requestContext,
-            integrationPackage.getExternalId(),
-            API_TEST_DUMMY_IFLOW_NAME
-        );
+        CpiArtifact iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);
         assertThat(iFlow).as("iFlow %s already exist", API_TEST_DUMMY_IFLOW_NAME).isNull();
 
-        iFlow = createDummyIFlow(requestContext, integrationPackage.getExternalId());
+        iFlow = iFlowUtils.createDummyIFlowInTestPackage(requestContext);
         assertThat(iFlow).as("iFlow %s was not created", API_TEST_DUMMY_IFLOW_NAME).isNotNull();
-
-        cpiIntegrationFlowClient.deleteIFlow(
-            integrationPackage.getExternalId(),
-            iFlow.getExternalId(),
-            API_TEST_DUMMY_IFLOW_NAME,
-            requestContext
-        );
-
-        iFlow = findIFlowIfExist(
-            requestContext,
-            integrationPackage.getExternalId(),
-            API_TEST_DUMMY_IFLOW_NAME
-        );
+        iFlowUtils.deleteIFlow(requestContext, iFlow);
+        iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);
         assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
     }
 
@@ -108,11 +88,7 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_updateIFlow(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
-        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-
-        String packageExternalId = integrationPackage.getExternalId();
-        CpiArtifact iFlow = getOrCreateDummyIFlow(requestContext, packageExternalId);
+        CpiArtifact iFlow = iFlowUtils.getOrCreateDummyIFlow(requestContext);
         assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_DUMMY_IFLOW_NAME).isNotNull();
 
         String iFlowExternalId = iFlow.getExternalId();
@@ -126,14 +102,14 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
             .build();
         cpiIntegrationFlowClient.updateIFlow(
             requestContext,
-            packageExternalId,
+            iFlow.getPackageExternalId(),
             iFlowExternalId,
             createIFlowRequest,
             payload
         );
 
-        cpiIntegrationFlowClient.deleteIFlow(packageExternalId, iFlowExternalId, API_TEST_DUMMY_IFLOW_NAME, requestContext);
-        iFlow = findIFlowIfExist(requestContext, packageExternalId, API_TEST_DUMMY_IFLOW_NAME);
+        iFlowUtils.deleteIFlow(requestContext, iFlow);
+        iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);
         assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
     }
 
@@ -141,17 +117,13 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_deployIFlowAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
-        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-
-        String packageExternalId = integrationPackage.getExternalId();
-        CpiArtifact iFlow = getOrCreateDummyIFlow(requestContext, packageExternalId);
+        CpiArtifact iFlow = iFlowUtils.getOrCreateDummyIFlow(requestContext);
         assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_DUMMY_IFLOW_NAME).isNotNull();
 
         String iFlowExternalId = iFlow.getExternalId();
         String taskId = cpiIntegrationFlowClient.deployIFlow(
             requestContext,
-            packageExternalId,
+            iFlow.getPackageExternalId(),
             iFlowExternalId,
             API_TEST_DUMMY_IFLOW_NAME
         );
@@ -160,8 +132,8 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
         String status = cpiIntegrationFlowClient.checkDeploymentStatus(requestContext, taskId);
         assertThat(status).isNotBlank();
 
-        cpiIntegrationFlowClient.deleteIFlow(packageExternalId, iFlowExternalId, API_TEST_DUMMY_IFLOW_NAME, requestContext);
-        iFlow = findIFlowIfExist(requestContext, packageExternalId, API_TEST_DUMMY_IFLOW_NAME);
+        iFlowUtils.deleteIFlow(requestContext, iFlow);
+        iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);
         assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
     }
 
@@ -170,48 +142,6 @@ class CpiIntegrationFlowClientTest extends CpiRuntimeArtifactClientTest {
     void test_setTraceLogLevelForIFlows(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         cpiIntegrationFlowClient.setTraceLogLevelForIFlows(requestContext, singletonList(API_TEST_IFLOW_NAME));
-    }
-
-    private CpiArtifact findIFlowIfExist(
-        RequestContext requestContext,
-        String packageExternalId,
-        String iFlowName
-    ) {
-        List<CpiArtifact> artifacts = cpiIntegrationFlowClient.getIFlowsByPackage(
-            requestContext,
-            API_TEST_PACKAGE_NAME,
-            API_TEST_PACKAGE_NAME,
-            packageExternalId
-        );
-
-        return artifacts.stream().filter(cpiArtifact -> iFlowName.equals(cpiArtifact.getTechnicalName()))
-            .findFirst().orElse(null);
-    }
-
-    private CpiArtifact createDummyIFlow(RequestContext requestContext, String packageExternalId) throws IOException {
-        byte[] payload = IOUtils.toByteArray(
-            this.getClass().getClassLoader().getResource("client/FigafApiTestDummyIFlow.zip")
-        );
-        CreateOrUpdateIFlowRequest createIFlowRequest = CreateOrUpdateIFlowRequest.builder()
-            .id(API_TEST_DUMMY_IFLOW_NAME)
-            .name(API_TEST_DUMMY_IFLOW_NAME)
-            .description("IFlow for api tests")
-            .build();
-        cpiIntegrationFlowClient.createIFlow(
-            requestContext,
-            packageExternalId,
-            createIFlowRequest,
-            payload
-        );
-        return findIFlowIfExist(requestContext, packageExternalId, API_TEST_DUMMY_IFLOW_NAME);
-    }
-
-    private CpiArtifact getOrCreateDummyIFlow(RequestContext requestContext, String packageExternalId) throws IOException {
-        CpiArtifact iFlow = findIFlowIfExist(requestContext, packageExternalId, API_TEST_DUMMY_IFLOW_NAME);
-        if (iFlow == null) {
-            iFlow = createDummyIFlow(requestContext, packageExternalId);
-        }
-        return iFlow;
     }
 
 }

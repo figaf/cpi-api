@@ -7,39 +7,44 @@ import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateScriptCollectionRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
+import com.figaf.integration.cpi.utils.PackageUtils;
+import com.figaf.integration.cpi.utils.ScriptCollectionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.io.IOException;
 import java.util.List;
 
+import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
+import static com.figaf.integration.cpi.utils.ScriptCollectionUtils.API_TEST_DUMMY_SCRIPT_COLLECTION_NAME;
+import static com.figaf.integration.cpi.utils.ScriptCollectionUtils.API_TEST_SCRIPT_COLLECTION_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Klochkov Sergey
  */
 @Slf4j
-class CpiScriptCollectionClientTest extends CpiRuntimeArtifactClientTest {
-
-    private static final String API_TEST_SCRIPT_COLLECTION_NAME = "FigafApiTestScriptCollection";
-    private static final String API_TEST_DUMMY_SCRIPT_COLLECTION_NAME = "FigafApiTestDummyScriptCollection";
+class CpiScriptCollectionClientTest {
 
     private static CpiScriptCollectionClient cpiScriptCollectionClient;
+    private static PackageUtils packageUtils;
+    private static ScriptCollectionUtils scriptCollectionUtils;
 
     @BeforeAll
     static void setUp() {
-        integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
+        IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
         cpiScriptCollectionClient = new CpiScriptCollectionClient(integrationPackageClient, new HttpClientsFactory());
+        packageUtils = new PackageUtils(integrationPackageClient);
+        scriptCollectionUtils = new ScriptCollectionUtils(packageUtils, cpiScriptCollectionClient);
     }
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_getScriptCollectionByPackage(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
+        IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
 
         List<CpiArtifact> scriptCollection = cpiScriptCollectionClient.getScriptCollectionsByPackage(
@@ -55,19 +60,12 @@ class CpiScriptCollectionClientTest extends CpiRuntimeArtifactClientTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_downloadScriptCollection(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
-        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-
-        CpiArtifact scriptCollection = findScriptCollectionIfExist(
-            requestContext,
-            integrationPackage.getExternalId(),
-            API_TEST_SCRIPT_COLLECTION_NAME
-        );
+        CpiArtifact scriptCollection = scriptCollectionUtils.findTestScriptCollectionInTestPackageIfExist(requestContext);
         assertThat(scriptCollection).as("script collection %s wasn't found", API_TEST_SCRIPT_COLLECTION_NAME).isNotNull();
 
         byte[] scriptCollectionPayload = cpiScriptCollectionClient.downloadScriptCollection(
             requestContext,
-            integrationPackage.getExternalId(),
+            scriptCollection.getPackageExternalId(),
             scriptCollection.getExternalId()
         );
         assertThat(scriptCollectionPayload).isNotEmpty();
@@ -77,31 +75,13 @@ class CpiScriptCollectionClientTest extends CpiRuntimeArtifactClientTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_createAndDeleteScriptCollection(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
-        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-
-        CpiArtifact scriptCollection = findScriptCollectionIfExist(
-            requestContext,
-            integrationPackage.getExternalId(),
-            API_TEST_DUMMY_SCRIPT_COLLECTION_NAME
-        );
+        CpiArtifact scriptCollection = scriptCollectionUtils.findDummyScriptCollectionInTestPackageIfExist(requestContext);
         assertThat(scriptCollection).as("script collection %s already exist", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNull();
 
-        scriptCollection = createDummyScriptCollection(requestContext, integrationPackage.getExternalId());
+        scriptCollection = scriptCollectionUtils.createDummyScriptCollectionInTestPackage(requestContext);
         assertThat(scriptCollection).as("script collection %s was not created", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNotNull();
-
-        cpiScriptCollectionClient.deleteScriptCollection(
-            integrationPackage.getExternalId(),
-            scriptCollection.getExternalId(),
-            API_TEST_DUMMY_SCRIPT_COLLECTION_NAME,
-            requestContext
-        );
-
-        scriptCollection = findScriptCollectionIfExist(
-            requestContext,
-            integrationPackage.getExternalId(),
-            API_TEST_DUMMY_SCRIPT_COLLECTION_NAME
-        );
+        scriptCollectionUtils.deleteScriptCollection(requestContext, scriptCollection);
+        scriptCollection = scriptCollectionUtils.findDummyScriptCollectionInTestPackageIfExist(requestContext);
         assertThat(scriptCollection).as("script collection %s was not deleted", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNull();
     }
 
@@ -109,11 +89,7 @@ class CpiScriptCollectionClientTest extends CpiRuntimeArtifactClientTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_updateScriptCollection(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
-        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-
-        String packageExternalId = integrationPackage.getExternalId();
-        CpiArtifact scriptCollection = getOrCreateDummyScriptCollection(requestContext, packageExternalId);
+        CpiArtifact scriptCollection = scriptCollectionUtils.getOrCreateDummyScriptCollection(requestContext);
         assertThat(scriptCollection).as("script collection %s wasn't found", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNotNull();
 
         String scriptCollectionExternalId = scriptCollection.getExternalId();
@@ -127,19 +103,14 @@ class CpiScriptCollectionClientTest extends CpiRuntimeArtifactClientTest {
             .build();
         cpiScriptCollectionClient.updateScriptCollection(
             requestContext,
-            packageExternalId,
+            scriptCollection.getPackageExternalId(),
             scriptCollectionExternalId,
             createScriptCollectionRequest,
             payload
         );
 
-        cpiScriptCollectionClient.deleteScriptCollection(
-            packageExternalId,
-            scriptCollectionExternalId,
-            API_TEST_DUMMY_SCRIPT_COLLECTION_NAME,
-            requestContext
-        );
-        scriptCollection = findScriptCollectionIfExist(requestContext, packageExternalId, API_TEST_DUMMY_SCRIPT_COLLECTION_NAME);
+        scriptCollectionUtils.deleteScriptCollection(requestContext, scriptCollection);
+        scriptCollection = scriptCollectionUtils.findDummyScriptCollectionInTestPackageIfExist(requestContext);
         assertThat(scriptCollection).as("script collection %s was not deleted", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNull();
     }
 
@@ -147,17 +118,13 @@ class CpiScriptCollectionClientTest extends CpiRuntimeArtifactClientTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_deployScriptCollectionAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        IntegrationPackage integrationPackage = findPackageByNameIfExist(requestContext, API_TEST_PACKAGE_NAME);
-        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-
-        String packageExternalId = integrationPackage.getExternalId();
-        CpiArtifact scriptCollection = getOrCreateDummyScriptCollection(requestContext, packageExternalId);
+        CpiArtifact scriptCollection = scriptCollectionUtils.getOrCreateDummyScriptCollection(requestContext);
         assertThat(scriptCollection).as("script collection %s wasn't found", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNotNull();
 
         String scriptCollectionExternalId = scriptCollection.getExternalId();
         String taskId = cpiScriptCollectionClient.deployScriptCollection(
             requestContext,
-            packageExternalId,
+            scriptCollection.getPackageExternalId(),
             scriptCollectionExternalId,
             scriptCollection.getTechnicalName()
         );
@@ -166,56 +133,9 @@ class CpiScriptCollectionClientTest extends CpiRuntimeArtifactClientTest {
         String status = cpiScriptCollectionClient.checkDeploymentStatus(requestContext, taskId);
         assertThat(status).isNotBlank();
 
-        cpiScriptCollectionClient.deleteScriptCollection(
-            packageExternalId,
-            scriptCollectionExternalId,
-            API_TEST_DUMMY_SCRIPT_COLLECTION_NAME,
-            requestContext
-        );
-        scriptCollection = findScriptCollectionIfExist(requestContext, packageExternalId, API_TEST_DUMMY_SCRIPT_COLLECTION_NAME);
+        scriptCollectionUtils.deleteScriptCollection(requestContext, scriptCollection);
+        scriptCollection = scriptCollectionUtils.findDummyScriptCollectionInTestPackageIfExist(requestContext);
         assertThat(scriptCollection).as("script collection %s was not deleted", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNull();
-    }
-
-    private CpiArtifact findScriptCollectionIfExist(
-        RequestContext requestContext,
-        String packageExternalId,
-        String scriptCollectionName
-    ) {
-        List<CpiArtifact> artifacts = cpiScriptCollectionClient.getScriptCollectionsByPackage(
-            requestContext,
-            API_TEST_PACKAGE_NAME,
-            API_TEST_PACKAGE_NAME,
-            packageExternalId
-        );
-
-        return artifacts.stream().filter(cpiArtifact -> scriptCollectionName.equals(cpiArtifact.getTechnicalName()))
-            .findFirst().orElse(null);
-    }
-
-    private CpiArtifact createDummyScriptCollection(RequestContext requestContext, String packageExternalId) throws IOException {
-        byte[] payload = IOUtils.toByteArray(
-            this.getClass().getClassLoader().getResource("client/FigafApiTestDummyScriptCollection.zip")
-        );
-        CreateOrUpdateScriptCollectionRequest createScriptCollectionRequest = CreateOrUpdateScriptCollectionRequest.builder()
-            .id(API_TEST_DUMMY_SCRIPT_COLLECTION_NAME)
-            .name(API_TEST_DUMMY_SCRIPT_COLLECTION_NAME)
-            .description("Script Collection for api tests")
-            .build();
-        cpiScriptCollectionClient.createScriptCollection(
-            requestContext,
-            packageExternalId,
-            createScriptCollectionRequest,
-            payload
-        );
-        return findScriptCollectionIfExist(requestContext, packageExternalId, API_TEST_DUMMY_SCRIPT_COLLECTION_NAME);
-    }
-
-    private CpiArtifact getOrCreateDummyScriptCollection(RequestContext requestContext, String packageExternalId) throws IOException {
-        CpiArtifact scriptCollection = findScriptCollectionIfExist(requestContext, packageExternalId, API_TEST_DUMMY_SCRIPT_COLLECTION_NAME);
-        if (scriptCollection == null) {
-            scriptCollection = createDummyScriptCollection(requestContext, packageExternalId);
-        }
-        return scriptCollection;
     }
 
 }
