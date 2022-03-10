@@ -34,6 +34,7 @@ import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser
 import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.retrieveDeployingResult;
 import static java.lang.String.format;
 import static org.apache.commons.collections4.SetUtils.hashSet;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -113,13 +114,26 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
             CreateOrUpdateCpiArtifactRequest request,
             byte[] bundledModel,
             boolean uploadDraftVersion,
-            String newArtifactVersion
+            String newArtifactVersion,
+            String comment
     ) {
         executeMethod(
                 requestContext,
                 String.format(API_UPDATE_ARTIFACT, packageExternalId),
                 (url, token, restTemplateWrapper) -> {
-                    uploadArtifact(requestContext.getConnectionProperties(), packageExternalId, artifactExternalId, request, bundledModel, uploadDraftVersion, newArtifactVersion, url, token, restTemplateWrapper);
+                    uploadArtifact(
+                        requestContext.getConnectionProperties(),
+                        packageExternalId,
+                        artifactExternalId,
+                        request,
+                        bundledModel,
+                        uploadDraftVersion,
+                        newArtifactVersion,
+                        url,
+                        token,
+                        comment,
+                        restTemplateWrapper
+                    );
                     return null;
                 }
         );
@@ -296,6 +310,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
             String newIflowVersion,
             String uploadArtifactUri,
             String userApiCsrfToken,
+            String comment,
             RestTemplateWrapper restTemplateWrapper
     ) {
         HttpResponse uploadArtifactResponse = null;
@@ -344,10 +359,13 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
                 if (!uploadDraftVersion) {
                     setVersionToArtifact(
-                            connectionProperties,
-                            packageExternalId,
-                            artifactExternalId,
-                            newIflowVersion != null ? newIflowVersion : jsonObject.getString("bundleVersion"), userApiCsrfToken, restTemplateWrapper.getRestTemplate()
+                        connectionProperties,
+                        packageExternalId,
+                        artifactExternalId,
+                        newIflowVersion != null ? newIflowVersion : jsonObject.getString("bundleVersion"),
+                        userApiCsrfToken,
+                        comment,
+                        restTemplateWrapper.getRestTemplate()
                     );
                 }
             } else {
@@ -418,6 +436,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
         String artifactExternalId,
         String version,
         String userApiCsrfToken,
+        String comment,
         RestTemplate restTemplate
     ) {
         try {
@@ -439,7 +458,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                     .toUri();
 
             Map<String, String> requestBody = new HashMap<>();
-            requestBody.put("comment", "");
+            requestBody.put("comment", !isBlank(comment) ? comment : "");
             requestBody.put("semanticVersion", version);
 
             HttpHeaders httpHeaders = new HttpHeaders();

@@ -92,12 +92,13 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
             String packageExternalId,
             String iFlowExternalId,
             CreateOrUpdateIFlowRequest request,
-            byte[] bundledModel
+            byte[] bundledModel,
+            String comment
     ) {
         log.debug("#updateIFlow(RequestContext requestContext, String packageExternalId, String iFlowExternalId, " +
             "CreateOrUpdateIFlowRequest request, byte[] bundledModel): {}, {}, {}, {}",
             requestContext, packageExternalId, iFlowExternalId, request);
-        updateArtifact(requestContext, packageExternalId, iFlowExternalId, request, bundledModel, false, null);
+        updateArtifact(requestContext, packageExternalId, iFlowExternalId, request, bundledModel, false, null, comment);
     }
 
     public String deployIFlow(
