@@ -3,7 +3,7 @@ package com.figaf.integration.cpi.utils;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.cpi.client.CpiRestApiClient;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateRestApiRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateRestApiRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,17 +111,14 @@ public class RestApiUtils {
         String restApiName,
         byte[] payload
     ) {
-        CreateOrUpdateRestApiRequest createOrUpdateRestApiRequest = CreateOrUpdateRestApiRequest.builder()
+        CreateRestApiRequest createOrUpdateRestApiRequest = CreateRestApiRequest.builder()
             .id(restApiName)
             .name(restApiName)
             .description("Rest Api for api tests")
+            .packageExternalId(packageExternalId)
+            .bundledModel(payload)
             .build();
-        cpiRestApiClient.createRestApi(
-            requestContext,
-            packageExternalId,
-            createOrUpdateRestApiRequest,
-            payload
-        );
+        cpiRestApiClient.createRestApi(requestContext, createOrUpdateRestApiRequest);
         return findRestApiIfExist(
             requestContext,
             packageTechnicalName,

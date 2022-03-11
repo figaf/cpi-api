@@ -3,7 +3,8 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateSharedMessageMappingRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateSharedMessageMappingRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateSharedMessageMappingRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -52,24 +53,15 @@ public class CpiSharedMessageMappingClient extends CpiRuntimeArtifactClient {
         return downloadArtifact(requestContext, packageExternalId, sharedMessageMappingExternalId);
     }
 
-    public void createSharedMessageMapping(
-        RequestContext requestContext,
-        String packageExternalId,
-        CreateOrUpdateSharedMessageMappingRequest request,
-        byte[] model
-    ) {
-        log.debug("#createSharedMessageMapping(RequestContext requestContext, String packageExternalId, CreateOrUpdateSharedMessageMappingRequest request, byte[] model): " +
-                "{}, {}, {}", requestContext, packageExternalId, request);
-
+    public void createSharedMessageMapping(RequestContext requestContext, CreateSharedMessageMappingRequest request) {
+        log.debug("#createSharedMessageMapping(RequestContext requestContext, CreateSharedMessageMappingRequest request): {}, {}", requestContext, request);
         executeMethod(
             requestContext,
-            String.format(API_UPLOAD_SHARED_MESSAGE_MAPPING, packageExternalId),
+            String.format(API_UPLOAD_SHARED_MESSAGE_MAPPING, request.getPackageExternalId()),
             (url, token, restTemplateWrapper) -> {
                 createArtifact(
                     requestContext.getConnectionProperties(),
-                    packageExternalId,
                     request,
-                    model,
                     "mmBrowse-data",
                     url,
                     token,
@@ -81,25 +73,9 @@ public class CpiSharedMessageMappingClient extends CpiRuntimeArtifactClient {
 
     }
 
-    public void updateSharedMessageMapping(
-            RequestContext requestContext,
-            String packageExternalId,
-            String sharedMessageMappingExternalId,
-            CreateOrUpdateSharedMessageMappingRequest request,
-            byte[] model
-    ) {
-        log.debug("#updateSharedMessageMapping(RequestContext requestContext, String packageExternalId, String sharedMessageMappingExternalId, " +
-                "CreateOrUpdateSharedMessageMappingRequest request, byte[] model): {}, {}, {}, {}",
-            requestContext, packageExternalId, sharedMessageMappingExternalId, request);
-        updateArtifact(
-            requestContext,
-            packageExternalId,
-            sharedMessageMappingExternalId,
-            request,
-            model,
-            false,
-            null
-        );
+    public void updateSharedMessageMapping(RequestContext requestContext, UpdateSharedMessageMappingRequest request) {
+        log.debug("#updateSharedMessageMapping(RequestContext requestContext, UpdateSharedMessageMappingRequest request): {}, {}", requestContext, request);
+        updateArtifact(requestContext, request);
     }
 
     public String deploySharedMessageMapping(

@@ -95,18 +95,15 @@ class CpiIntegrationFlowClientTest {
         byte[] payload = IOUtils.toByteArray(
             this.getClass().getClassLoader().getResource("client/FigafApiTestDummyIFlowUpdated.zip")
         );
-        CreateOrUpdateIFlowRequest createIFlowRequest = CreateOrUpdateIFlowRequest.builder()
+        UpdateIFlowRequest updateIFlowRequest = UpdateIFlowRequest.builder()
             .id(iFlowExternalId)
             .name(API_TEST_DUMMY_IFLOW_NAME)
             .description("IFlow for api tests")
+            .bundledModel(payload)
+            .packageExternalId(iFlow.getPackageExternalId())
+            .comment("Comment")
             .build();
-        cpiIntegrationFlowClient.updateIFlow(
-            requestContext,
-            iFlow.getPackageExternalId(),
-            iFlowExternalId,
-            createIFlowRequest,
-            payload
-        );
+        cpiIntegrationFlowClient.updateIFlow(requestContext, updateIFlowRequest);
 
         iFlowUtils.deleteIFlow(requestContext, iFlow);
         iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);

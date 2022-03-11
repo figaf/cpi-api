@@ -3,7 +3,8 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateIFlowRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateIFlowRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
@@ -58,24 +59,15 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         return downloadArtifact(requestContext, packageExternalId, iFlowExternalId);
     }
 
-    public void createIFlow(
-        RequestContext requestContext,
-        String packageExternalId,
-        CreateOrUpdateIFlowRequest request,
-        byte[] bundledModel
-    ) {
-        log.debug("#createIFlow(RequestContext requestContext, String packageExternalId, CreateIFlowRequest request, " +
-                "byte[] bundledModel): {}, {}, {}", requestContext, packageExternalId, request);
-
+    public void createIFlow(RequestContext requestContext, CreateIFlowRequest request) {
+        log.debug("#createIFlow(RequestContext requestContext, CreateIFlowRequest request): {}, {}", requestContext, request);
         executeMethod(
                 requestContext,
-                String.format(API_UPLOAD_IFLOW, packageExternalId),
+                String.format(API_UPLOAD_IFLOW, request.getPackageExternalId()),
                 (url, token, restTemplateWrapper) -> {
                     createArtifact(
                         requestContext.getConnectionProperties(),
-                        packageExternalId,
                         request,
-                        bundledModel,
                         "iflowBrowse-data",
                         url,
                         token,
@@ -87,18 +79,9 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
     }
 
-    public void updateIFlow(
-            RequestContext requestContext,
-            String packageExternalId,
-            String iFlowExternalId,
-            CreateOrUpdateIFlowRequest request,
-            byte[] bundledModel,
-            String comment
-    ) {
-        log.debug("#updateIFlow(RequestContext requestContext, String packageExternalId, String iFlowExternalId, " +
-            "CreateOrUpdateIFlowRequest request, byte[] bundledModel): {}, {}, {}, {}",
-            requestContext, packageExternalId, iFlowExternalId, request);
-        updateArtifact(requestContext, packageExternalId, iFlowExternalId, request, bundledModel, false, null, comment);
+    public void updateIFlow(RequestContext requestContext, UpdateIFlowRequest request) {
+        log.debug("#updateIFlow(RequestContext requestContext, UpdateIFlowRequest request): {}, {}", requestContext, request);
+        updateArtifact(requestContext, request);
     }
 
     public String deployIFlow(

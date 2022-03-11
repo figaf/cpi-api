@@ -3,7 +3,7 @@ package com.figaf.integration.cpi.utils;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.cpi.client.CpiValueMappingClient;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateValueMappingRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateValueMappingRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,17 +111,14 @@ public class ValueMappingUtils {
         String valueMappingName,
         byte[] payload
     ) {
-        CreateOrUpdateValueMappingRequest createValueMappingRequest = CreateOrUpdateValueMappingRequest.builder()
+        CreateValueMappingRequest createValueMappingRequest = CreateValueMappingRequest.builder()
             .id(valueMappingName)
             .name(valueMappingName)
             .description("Value Mapping for api tests")
+            .packageExternalId(packageExternalId)
+            .bundledModel(payload)
             .build();
-        cpiValueMappingClient.createValueMapping(
-            requestContext,
-            packageExternalId,
-            createValueMappingRequest,
-            payload
-        );
+        cpiValueMappingClient.createValueMapping(requestContext, createValueMappingRequest);
         return findValueMappingIfExist(
             requestContext,
             packageTechnicalName,

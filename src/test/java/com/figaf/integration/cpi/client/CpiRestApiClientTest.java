@@ -94,18 +94,14 @@ class CpiRestApiClientTest {
         byte[] payload = IOUtils.toByteArray(
             this.getClass().getClassLoader().getResource("client/FigafApiTestDummyRestApiUpdated.zip")
         );
-        CreateOrUpdateRestApiRequest createOrUpdateRestApiRequest = CreateOrUpdateRestApiRequest.builder()
+        UpdateRestApiRequest updateRestApiRequest = UpdateRestApiRequest.builder()
             .id(restApiExternalId)
             .name(API_TEST_DUMMY_REST_API_NAME)
             .description("Rest Api for api tests")
+            .packageExternalId(restApi.getPackageExternalId())
+            .bundledModel(payload)
             .build();
-        cpiRestApiClient.updateRestApi(
-            requestContext,
-            restApi.getPackageExternalId(),
-            restApiExternalId,
-            createOrUpdateRestApiRequest,
-            payload
-        );
+        cpiRestApiClient.updateRestApi(requestContext, updateRestApiRequest);
 
         restApiUtils.deleteRestApi(requestContext, restApi);
         restApi = restApiUtils.findDummyRestApiInTestPackageIfExist(requestContext);

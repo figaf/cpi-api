@@ -107,31 +107,16 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
         );
     }
 
-    protected void updateArtifact(
-            RequestContext requestContext,
-            String packageExternalId,
-            String artifactExternalId,
-            CreateOrUpdateCpiArtifactRequest request,
-            byte[] bundledModel,
-            boolean uploadDraftVersion,
-            String newArtifactVersion,
-            String comment
-    ) {
+    protected void updateArtifact(RequestContext requestContext, CreateOrUpdateCpiArtifactRequest request) {
         executeMethod(
                 requestContext,
-                String.format(API_UPDATE_ARTIFACT, packageExternalId),
+                String.format(API_UPDATE_ARTIFACT, request.getPackageExternalId()),
                 (url, token, restTemplateWrapper) -> {
                     uploadArtifact(
                         requestContext.getConnectionProperties(),
-                        packageExternalId,
-                        artifactExternalId,
                         request,
-                        bundledModel,
-                        uploadDraftVersion,
-                        newArtifactVersion,
                         url,
                         token,
-                        comment,
                         restTemplateWrapper
                     );
                     return null;
@@ -165,9 +150,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
 
     protected void createArtifact(
             ConnectionProperties connectionProperties,
-            String packageExternalId,
             CreateOrUpdateCpiArtifactRequest request,
-            byte[] model,
             String textBodyAttrName,
             String uploadArtifactUri,
             String userApiCsrfToken,
@@ -176,6 +159,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
 
         HttpResponse uploadArtifactResponse = null;
         boolean locked = false;
+        String packageExternalId = request.getPackageExternalId();
         try {
             integrationPackageClient.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), true);
             locked = true;
@@ -192,7 +176,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
 
             MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
             entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            entityBuilder.addBinaryBody("payload", model, ContentType.DEFAULT_BINARY, FILE_NAME);
+            entityBuilder.addBinaryBody("payload", request.getBundledModel(), ContentType.DEFAULT_BINARY, FILE_NAME);
             entityBuilder.addTextBody("_charset_", "UTF-8");
             entityBuilder.addTextBody(textBodyAttrName, requestBody.toString(), ContentType.APPLICATION_JSON);
 
@@ -302,19 +286,15 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
 
     private void uploadArtifact(
             ConnectionProperties connectionProperties,
-            String packageExternalId,
-            String artifactExternalId,
             CreateOrUpdateCpiArtifactRequest request,
-            byte[] bundledModel,
-            boolean uploadDraftVersion,
-            String newIflowVersion,
             String uploadArtifactUri,
             String userApiCsrfToken,
-            String comment,
             RestTemplateWrapper restTemplateWrapper
     ) {
         HttpResponse uploadArtifactResponse = null;
         boolean locked = false;
+        String packageExternalId = request.getPackageExternalId();
+        String artifactExternalId = request.getId();
         try {
             lockOrUnlockArtifact(connectionProperties, packageExternalId, artifactExternalId, "LOCK", true, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
             try {
@@ -343,7 +323,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
 
             MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
             entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            entityBuilder.addBinaryBody("simpleUploader", bundledModel, ContentType.DEFAULT_BINARY, FILE_NAME);
+            entityBuilder.addBinaryBody("simpleUploader", request.getBundledModel(), ContentType.DEFAULT_BINARY, FILE_NAME);
             entityBuilder.addTextBody("_charset_", "UTF-8");
             entityBuilder.addTextBody("simpleUploader-data", requestBody.toString(), ContentType.APPLICATION_JSON);
 
@@ -357,14 +337,14 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
 
             if (uploadArtifactResponse.getStatusLine().getStatusCode() == 201) {
                 JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
-                if (!uploadDraftVersion) {
+                if (!request.isUploadDraftVersion()) {
                     setVersionToArtifact(
                         connectionProperties,
                         packageExternalId,
                         artifactExternalId,
-                        newIflowVersion != null ? newIflowVersion : jsonObject.getString("bundleVersion"),
+                        !isBlank(request.getNewArtifactVersion()) ? request.getNewArtifactVersion() : jsonObject.getString("bundleVersion"),
                         userApiCsrfToken,
-                        comment,
+                        request.getComment(),
                         restTemplateWrapper.getRestTemplate()
                     );
                 }

@@ -3,7 +3,8 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateScriptCollectionRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateScriptCollectionRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateScriptCollectionRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -52,24 +53,15 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
         return downloadArtifact(requestContext, packageExternalId, scriptCollectionExternalId);
     }
 
-    public void createScriptCollection(
-        RequestContext requestContext,
-        String packageExternalId,
-        CreateOrUpdateScriptCollectionRequest request,
-        byte[] model
-    ) {
-        log.debug("#createScriptCollection(RequestContext requestContext, String packageExternalId, CreateOrUpdateScriptCollectionRequest request, byte[] model): " +
-                "{}, {}, {}", requestContext, packageExternalId, request);
-
+    public void createScriptCollection(RequestContext requestContext, CreateScriptCollectionRequest request) {
+        log.debug("#createScriptCollection(RequestContext requestContext, CreateScriptCollectionRequest request): {}, {}", requestContext, request);
         executeMethod(
             requestContext,
-            String.format(API_UPLOAD_SCRIPT_COLLECTION, packageExternalId),
+            String.format(API_UPLOAD_SCRIPT_COLLECTION, request.getPackageExternalId()),
             (url, token, restTemplateWrapper) -> {
                 createArtifact(
                     requestContext.getConnectionProperties(),
-                    packageExternalId,
                     request,
-                    model,
                     "scriptBrowse-data",
                     url,
                     token,
@@ -81,17 +73,10 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
 
     }
 
-    public void updateScriptCollection(
-            RequestContext requestContext,
-            String packageExternalId,
-            String scriptCollectionExternalId,
-            CreateOrUpdateScriptCollectionRequest request,
-            byte[] model
-    ) {
-        log.debug("#updateScriptCollection(RequestContext requestContext, String packageExternalId, String scriptCollectionExternalId, " +
-                "CreateOrUpdateScriptCollectionRequest request, byte[] model): {}, {}, {}, {}",
-            requestContext, packageExternalId, scriptCollectionExternalId, request);
-        updateArtifact(requestContext, packageExternalId, scriptCollectionExternalId, request, model, false, null);
+    public void updateScriptCollection(RequestContext requestContext, UpdateScriptCollectionRequest request) {
+        log.debug("#updateScriptCollection(RequestContext requestContext, UpdateScriptCollectionRequest request): {}, {}",
+            requestContext, request);
+        updateArtifact(requestContext, request);
     }
 
     public String deployScriptCollection(

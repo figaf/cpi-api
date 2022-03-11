@@ -9,17 +9,19 @@ import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactT
  * @author Nesterov Ilya
  */
 @ToString
-public class CreateOrUpdateIFlowRequest extends CreateOrUpdateCpiArtifactRequest {
+public class CreateIFlowRequest extends CreateOrUpdateCpiArtifactRequest {
 
     @Builder
-    public CreateOrUpdateIFlowRequest(
+    public CreateIFlowRequest(
         String id,
         String name,
         String description,
         AdditionalAttributes additionalAttrs,
-        String fileName
+        String fileName,
+        byte[] bundledModel,
+        String packageExternalId
     ) {
-        super(id, name, description, additionalAttrs, fileName);
+        super(id, name, description, additionalAttrs, fileName, bundledModel, packageExternalId);
     }
 
     @Override

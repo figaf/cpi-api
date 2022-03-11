@@ -13,17 +13,22 @@ import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactT
 @Getter
 @Setter
 @ToString
-public class CreateOrUpdateScriptCollectionRequest extends CreateOrUpdateCpiArtifactRequest {
+public class UpdateScriptCollectionRequest extends CreateOrUpdateCpiArtifactRequest {
 
     @Builder
-    public CreateOrUpdateScriptCollectionRequest(
+    public UpdateScriptCollectionRequest(
         String id,
         String name,
         String description,
         AdditionalAttributes additionalAttrs,
-        String fileName
+        String fileName,
+        byte[] bundledModel,
+        String packageExternalId,
+        boolean uploadDraftVersion,
+        String newArtifactVersion,
+        String comment
     ) {
-        super(id, name, description, additionalAttrs, fileName);
+        super(id, name, description, additionalAttrs, fileName, bundledModel, packageExternalId, uploadDraftVersion, newArtifactVersion, comment);
     }
 
     @Override

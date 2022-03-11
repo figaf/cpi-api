@@ -5,8 +5,8 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateSharedMessageMappingRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
+import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateSharedMessageMappingRequest;
 import com.figaf.integration.cpi.utils.PackageUtils;
 import com.figaf.integration.cpi.utils.SharedMessageMappingUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -96,18 +96,14 @@ class CpiSharedMessageMappingClientTest {
         byte[] payload = IOUtils.toByteArray(
             this.getClass().getClassLoader().getResource("client/FigafApiTestDummyMessageMappingUpdated.zip")
         );
-        CreateOrUpdateSharedMessageMappingRequest createMessageMappingRequest = CreateOrUpdateSharedMessageMappingRequest.builder()
+        UpdateSharedMessageMappingRequest updateMessageMappingRequest = UpdateSharedMessageMappingRequest.builder()
             .id(messageMappingExternalId)
             .name(API_TEST_DUMMY_SHARED_MESSAGE_MAPPING_NAME)
             .description("Message Mapping for api tests")
+            .packageExternalId(messageMapping.getPackageExternalId())
+            .bundledModel(payload)
             .build();
-        cpiSharedMessageMappingClient.updateSharedMessageMapping(
-            requestContext,
-            messageMapping.getPackageExternalId(),
-            messageMappingExternalId,
-            createMessageMappingRequest,
-            payload
-        );
+        cpiSharedMessageMappingClient.updateSharedMessageMapping(requestContext, updateMessageMappingRequest);
 
         sharedMessageMappingUtils.deleteSharedMessageMapping(requestContext, messageMapping);
         messageMapping = sharedMessageMappingUtils.findDummySharedMessageMappingInTestPackageIfExist(requestContext);

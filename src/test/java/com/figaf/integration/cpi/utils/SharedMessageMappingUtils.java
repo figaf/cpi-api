@@ -3,7 +3,7 @@ package com.figaf.integration.cpi.utils;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.cpi.client.CpiSharedMessageMappingClient;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateSharedMessageMappingRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateSharedMessageMappingRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,17 +111,14 @@ public class SharedMessageMappingUtils {
         String sharedMessageMappingName,
         byte[] payload
     ) {
-        CreateOrUpdateSharedMessageMappingRequest createMessageMappingRequest = CreateOrUpdateSharedMessageMappingRequest.builder()
+        CreateSharedMessageMappingRequest createMessageMappingRequest = CreateSharedMessageMappingRequest.builder()
             .id(sharedMessageMappingName)
             .name(sharedMessageMappingName)
             .description("Message mapping for api tests")
+            .packageExternalId(packageExternalId)
+            .bundledModel(payload)
             .build();
-        cpiSharedMessageMappingClient.createSharedMessageMapping(
-            requestContext,
-            packageExternalId,
-            createMessageMappingRequest,
-            payload
-        );
+        cpiSharedMessageMappingClient.createSharedMessageMapping(requestContext, createMessageMappingRequest);
         return findSharedMessageMappingIfExist(
             requestContext,
             packageTechnicalName,

@@ -5,8 +5,8 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateValueMappingRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
+import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateValueMappingRequest;
 import com.figaf.integration.cpi.utils.PackageUtils;
 import com.figaf.integration.cpi.utils.ValueMappingUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -96,18 +96,14 @@ class CpiValueMappingClientTest {
         byte[] payload = IOUtils.toByteArray(
             this.getClass().getClassLoader().getResource("client/FigafApiTestDummyValueMappingUpdated.zip")
         );
-        CreateOrUpdateValueMappingRequest createValueMappingRequest = CreateOrUpdateValueMappingRequest.builder()
+        UpdateValueMappingRequest updateValueMappingRequest = UpdateValueMappingRequest.builder()
             .id(valueMappingExternalId)
             .name(API_TEST_DUMMY_VALUE_MAPPING_NAME)
             .description("Value Mapping for api tests")
+            .packageExternalId(valueMapping.getPackageExternalId())
+            .bundledModel(payload)
             .build();
-        cpiValueMappingClient.updateValueMapping(
-            requestContext,
-            valueMapping.getPackageExternalId(),
-            valueMappingExternalId,
-            createValueMappingRequest,
-            payload
-        );
+        cpiValueMappingClient.updateValueMapping(requestContext, updateValueMappingRequest);
 
         valueMappingUtils.deleteValueMapping(requestContext, valueMapping);
         valueMapping = valueMappingUtils.findDummyValueMappingInTestPackageIfExist(requestContext);

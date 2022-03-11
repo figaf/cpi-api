@@ -13,17 +13,22 @@ import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactT
 @Getter
 @Setter
 @ToString
-public class CreateOrUpdateSharedMessageMappingRequest extends CreateOrUpdateCpiArtifactRequest {
+public class UpdateSharedMessageMappingRequest extends CreateOrUpdateCpiArtifactRequest {
 
     @Builder
-    public CreateOrUpdateSharedMessageMappingRequest(
+    public UpdateSharedMessageMappingRequest(
         String id,
         String name,
         String description,
         AdditionalAttributes additionalAttrs,
-        String fileName
+        String fileName,
+        byte[] bundledModel,
+        String packageExternalId,
+        boolean uploadDraftVersion,
+        String newArtifactVersion,
+        String comment
     ) {
-        super(id, name, description, additionalAttrs, fileName);
+        super(id, name, description, additionalAttrs, fileName, bundledModel, packageExternalId, uploadDraftVersion, newArtifactVersion, comment);
     }
 
     @Override

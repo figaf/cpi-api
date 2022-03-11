@@ -5,8 +5,8 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateScriptCollectionRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
+import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateScriptCollectionRequest;
 import com.figaf.integration.cpi.utils.PackageUtils;
 import com.figaf.integration.cpi.utils.ScriptCollectionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -96,18 +96,14 @@ class CpiScriptCollectionClientTest {
         byte[] payload = IOUtils.toByteArray(
             this.getClass().getClassLoader().getResource("client/FigafApiTestDummyScriptCollectionUpdated.zip")
         );
-        CreateOrUpdateScriptCollectionRequest createScriptCollectionRequest = CreateOrUpdateScriptCollectionRequest.builder()
+        UpdateScriptCollectionRequest updateScriptCollectionRequest = UpdateScriptCollectionRequest.builder()
             .id(scriptCollectionExternalId)
             .name(API_TEST_DUMMY_SCRIPT_COLLECTION_NAME)
             .description("Script Collection for api tests")
+            .packageExternalId(scriptCollection.getPackageExternalId())
+            .bundledModel(payload)
             .build();
-        cpiScriptCollectionClient.updateScriptCollection(
-            requestContext,
-            scriptCollection.getPackageExternalId(),
-            scriptCollectionExternalId,
-            createScriptCollectionRequest,
-            payload
-        );
+        cpiScriptCollectionClient.updateScriptCollection(requestContext, updateScriptCollectionRequest);
 
         scriptCollectionUtils.deleteScriptCollection(requestContext, scriptCollection);
         scriptCollection = scriptCollectionUtils.findDummyScriptCollectionInTestPackageIfExist(requestContext);

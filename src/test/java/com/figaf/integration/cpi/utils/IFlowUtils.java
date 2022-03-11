@@ -3,7 +3,7 @@ package com.figaf.integration.cpi.utils;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.cpi.client.CpiIntegrationFlowClient;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateIFlowRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,17 +111,14 @@ public class IFlowUtils {
         String iFlowName,
         byte[] payload
     ) {
-        CreateOrUpdateIFlowRequest createIFlowRequest = CreateOrUpdateIFlowRequest.builder()
+        CreateIFlowRequest createIFlowRequest = CreateIFlowRequest.builder()
             .id(iFlowName)
             .name(iFlowName)
             .description("IFlow for api tests")
+            .packageExternalId(packageExternalId)
+            .bundledModel(payload)
             .build();
-        cpiIntegrationFlowClient.createIFlow(
-            requestContext,
-            packageExternalId,
-            createIFlowRequest,
-            payload
-        );
+        cpiIntegrationFlowClient.createIFlow(requestContext, createIFlowRequest);
         return findIFlowIfExist(
             requestContext,
             packageTechnicalName,

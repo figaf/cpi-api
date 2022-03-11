@@ -3,7 +3,8 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateValueMappingRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateValueMappingRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateValueMappingRequest;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
@@ -51,19 +52,15 @@ public class CpiValueMappingClient extends CpiRuntimeArtifactClient {
         return downloadArtifact(requestContext, packageExternalId, valueMappingExternalId);
     }
 
-    public void createValueMapping(RequestContext requestContext, String packageExternalId, CreateOrUpdateValueMappingRequest request, byte[] model) {
-        log.debug("#createValueMapping(RequestContext requestContext, String packageExternalId, CreateValueMappingRequest request, byte[] model): " +
-                "{}, {}, {}", requestContext, packageExternalId, request);
-
+    public void createValueMapping(RequestContext requestContext, CreateValueMappingRequest request) {
+        log.debug("#createValueMapping(RequestContext requestContext, CreateValueMappingRequest request): {}, {}", requestContext, request);
         executeMethod(
             requestContext,
-            String.format(API_UPLOAD_VALUE_MAPPING, packageExternalId),
+            String.format(API_UPLOAD_VALUE_MAPPING, request.getPackageExternalId()),
             (url, token, restTemplateWrapper) -> {
                 createArtifact(
                     requestContext.getConnectionProperties(),
-                    packageExternalId,
                     request,
-                    model,
                     "vmBrowse-data",
                     url,
                     token,
@@ -75,17 +72,9 @@ public class CpiValueMappingClient extends CpiRuntimeArtifactClient {
 
     }
 
-    public void updateValueMapping(
-            RequestContext requestContext,
-            String packageExternalId,
-            String valueMappingExternalId,
-            CreateOrUpdateValueMappingRequest request,
-            byte[] model
-    ) {
-        log.debug("#updateValueMapping(RequestContext requestContext, String packageExternalId, String valueMappingExternalId, " +
-                "CreateOrUpdateValueMappingRequest request, byte[] model): {}, {}, {}, {}",
-            requestContext, packageExternalId, valueMappingExternalId, request);
-        updateArtifact(requestContext, packageExternalId, valueMappingExternalId, request, model, false, null);
+    public void updateValueMapping(RequestContext requestContext, UpdateValueMappingRequest request) {
+        log.debug("#updateValueMapping(RequestContext requestContext, UpdateValueMappingRequest request): {}, {}", requestContext, request);
+        updateArtifact(requestContext, request);
     }
 
     public String deployValueMapping(RequestContext requestContext, String packageExternalId, String valueMappingExternalId) {

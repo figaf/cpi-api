@@ -3,7 +3,8 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateRestApiRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateRestApiRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateRestApiRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -52,19 +53,15 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
         return downloadArtifact(requestContext, packageExternalId, restApiExternalId);
     }
 
-    public void createRestApi(RequestContext requestContext, String packageExternalId, CreateOrUpdateRestApiRequest request, byte[] model) {
-        log.debug("#createRestApi(RequestContext requestContext, String packageExternalId, CreateOrUpdateRestApiRequest request, byte[] model): " +
-                "{}, {}, {}", requestContext, packageExternalId, request);
-
+    public void createRestApi(RequestContext requestContext, CreateRestApiRequest request) {
+        log.debug("#createRestApi(RequestContext requestContext, CreateRestApiRequest request): {}, {}", requestContext, request);
         executeMethod(
             requestContext,
-            String.format(API_UPLOAD_REST_API, packageExternalId),
+            String.format(API_UPLOAD_REST_API, request.getPackageExternalId()),
             (url, token, restTemplateWrapper) -> {
                 createArtifact(
                     requestContext.getConnectionProperties(),
-                    packageExternalId,
                     request,
-                    model,
                     "iflowBrowse-data",
                     url,
                     token,
@@ -76,17 +73,9 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
 
     }
 
-    public void updateRestApi(
-            RequestContext requestContext,
-            String packageExternalId,
-            String restApiExternalId,
-            CreateOrUpdateRestApiRequest request,
-            byte[] model
-    ) {
-        log.debug("#updateRestApi(RequestContext requestContext, String packageExternalId, String restApiExternalId, " +
-                "CreateOrUpdateRestApiRequest request, byte[] model): {}, {}, {}, {}",
-            requestContext, packageExternalId, restApiExternalId, request);
-        updateArtifact(requestContext, packageExternalId, restApiExternalId, request, model, false, null);
+    public void updateRestApi(RequestContext requestContext, UpdateRestApiRequest request) {
+        log.debug("#updateRestApi(RequestContext requestContext, UpdateRestApiRequest request): {}, {}", requestContext, request);
+        updateArtifact(requestContext, request);
     }
 
     public String deployRestApi(RequestContext requestContext, String packageExternalId, String restApiExternalId, String restApiTechnicalName) {

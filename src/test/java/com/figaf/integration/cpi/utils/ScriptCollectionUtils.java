@@ -3,7 +3,7 @@ package com.figaf.integration.cpi.utils;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.cpi.client.CpiScriptCollectionClient;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateScriptCollectionRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateScriptCollectionRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,17 +111,14 @@ public class ScriptCollectionUtils {
         String scriptCollectionName,
         byte[] payload
     ) {
-        CreateOrUpdateScriptCollectionRequest createScriptCollectionRequest = CreateOrUpdateScriptCollectionRequest.builder()
+        CreateScriptCollectionRequest createScriptCollectionRequest = CreateScriptCollectionRequest.builder()
             .id(scriptCollectionName)
             .name(scriptCollectionName)
             .description("Script Collection for api tests")
+            .packageExternalId(packageExternalId)
+            .bundledModel(payload)
             .build();
-        cpiScriptCollectionClient.createScriptCollection(
-            requestContext,
-            packageExternalId,
-            createScriptCollectionRequest,
-            payload
-        );
+        cpiScriptCollectionClient.createScriptCollection(requestContext, createScriptCollectionRequest);
         return findScriptCollectionIfExist(
             requestContext,
             packageTechnicalName,
