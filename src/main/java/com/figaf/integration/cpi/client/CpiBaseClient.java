@@ -101,7 +101,7 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_MSG_PROC_LOGS_ERROR_INFORMATION_VALUE = "/api/v1/MessageProcessingLogs('%s')/ErrorInformation/$value";
     protected static final String API_MSG_PROC_LOG_ATTACHMENT = "/api/v1/MessageProcessingLogAttachments('%s')/$value";
     protected static final String API_MSG_PROC_LOGS_RUNS = "/api/v1/MessageProcessingLogs('%s')/Runs?$format=json";
-    protected static final String API_MSG_PROC_LOG_RUN_STEPS = "/api/v1/MessageProcessingLogRuns('%s')/RunSteps?$format=json&$expand=RunStepProperties";
+    protected static final String API_MSG_PROC_LOG_RUN_STEPS = "/api/v1/MessageProcessingLogRuns('%s')/RunSteps?$format=json&$expand=RunStepProperties&$inlinecount=allpages&$top=%d&$skip=%d";
     protected static final String API_MSG_PROC_LOG_RUN_STEP_PROPERTIES = "/api/v1/MessageProcessingLogRunSteps(RunId='%s',ChildCount=%d)/RunStepProperties?$format=json";
     protected static final String API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES = "/api/v1/MessageProcessingLogRunSteps(RunId='%s',ChildCount=%d)/TraceMessages?$format=json";
     protected static final String API_TRACE_MESSAGE_PAYLOAD = "/api/v1/TraceMessages(%sL)/$value";

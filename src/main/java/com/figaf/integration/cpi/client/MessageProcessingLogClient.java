@@ -31,6 +31,8 @@ import java.util.TimeZone;
 @Slf4j
 public class MessageProcessingLogClient extends CpiBaseClient {
 
+    private final static int MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION = 500;
+
     public MessageProcessingLogClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
     }
@@ -399,24 +401,15 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         }
     }
 
-    public List<MessageProcessingLogRunStep> getRunSteps(RequestContext requestContext, String runId, MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria) {
-        log.debug("#getRunWithSteps(RequestContext requestContext, String runId, MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria): {}, {}, {}",
-                requestContext, runId, runStepSearchCriteria
-        );
-
+    public List<MessageProcessingLogRunStep> getRunSteps(RequestContext requestContext, String runId) {
+        log.debug("#getRunSteps(RequestContext requestContext, String runId): {}, {}", requestContext, runId);
         try {
 
-            JSONArray runStepsJsonArray = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_PROC_LOG_RUN_STEPS, runId),
-                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-            );
+            List<JSONObject> jsonObjectRunSteps = getRunStepJsonObjects(requestContext, runId);
 
             List<MessageProcessingLogRunStep> runSteps = new ArrayList<>();
-
-            boolean firstStepWithPayloadChecked = false;
-            for (int ind = runStepsJsonArray.length() - 1; ind >= 0; ind--) {
-                JSONObject runStepElement = runStepsJsonArray.getJSONObject(ind);
+            for (int ind = jsonObjectRunSteps.size() - 1; ind >= 0; ind--) {
+                JSONObject runStepElement = jsonObjectRunSteps.get(ind);
 
                 MessageProcessingLogRunStep runStep = new MessageProcessingLogRunStep();
                 runStep.setRunId(optString(runStepElement, "RunId"));
@@ -433,126 +426,33 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 runStep.setActivity(optString(runStepElement, "Activity"));
 
                 JSONArray runStepPropertiesJsonArray = runStepElement.getJSONObject("RunStepProperties").getJSONArray("results");
+                String traceId = null;
                 for (int runStepPropertyInd = 0; runStepPropertyInd < runStepPropertiesJsonArray.length(); runStepPropertyInd++) {
                     JSONObject runStepPropertyElement = runStepPropertiesJsonArray.getJSONObject(runStepPropertyInd);
 
+                    String name = optString(runStepPropertyElement, "Name");
+                    String value = optString(runStepPropertyElement, "Value");
+                    //getRunStepProperties is not used anywhere
                     runStep.getRunStepProperties().add(new MessageRunStepProperty(
                             PropertyType.RUN_STEP_PROPERTY,
-                            optString(runStepPropertyElement, "Name"),
-                            optString(runStepPropertyElement, "Value")
+                            name,
+                            value
                     ));
+                    if ("TraceIds".equals(name) && StringUtils.isNotBlank(value)) {
+                        //This regex means that we want to find only the first value of the list
+                        // since we rely on only one first trace message everywhere in the logic.
+                        // In other words, we don't support multiple trace messages for a single run step
+                        traceId = value.replaceAll("\\[(\\d*).*]", "$1");
+                        if (StringUtils.isNotBlank(traceId)) {
+                            runStep.setTraceId(traceId);
+                        }
+                    }
                 }
 
-
-                if (runStep.matches(runStepSearchCriteria) || runStep.getModelStepId().startsWith("EndEvent") || !firstStepWithPayloadChecked) {
-
-                    JSONArray traceMessagesJsonArray = callRestWs(
-                            requestContext,
-                            String.format(API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES, runId, runStep.getChildCount()),
-                            response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-                    );
-
-                    if (traceMessagesJsonArray.length() == 0) {
-                        continue;
-                    }
-
-                    firstStepWithPayloadChecked = true;
-
-                    /*If traceMessagesJsonArray has multiple messages, we need to find the most appropriate one.
-                    Its SAP_TRACE_HEADER_<some digits>_MessageType property should be equal to "STEP". If it's not found, we just take the first one.
-                    Maybe later we will need to download and handle all the messages.*/
-                    JSONObject traceMessageElement = null;
-                    JSONArray foundTraceMessagePropertiesJsonArray = null;
-                    if (traceMessagesJsonArray.length() > 1) {
-                        for (int i = 0; i < traceMessagesJsonArray.length() && traceMessageElement == null; i++) {
-                            JSONObject currentTraceMessage = traceMessagesJsonArray.getJSONObject(i);
-                            JSONArray traceMessagePropertiesJsonArray = callRestWs(
-                                    requestContext,
-                                    String.format(API_TRACE_MESSAGE_PROPERTIES, optString(currentTraceMessage, "TraceId")),
-                                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-                            );
-                            for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
-                                JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
-                                String name = optString(traceMessagePropertyElement, "Name");
-                                if (name.startsWith("SAP_TRACE_HEADER_") && name.endsWith("_MessageType")) {
-                                    String value = optString(traceMessagePropertyElement, "Value");
-                                    if (value.equals("STEP")) {
-                                        traceMessageElement = currentTraceMessage;
-                                        foundTraceMessagePropertiesJsonArray = traceMessagePropertiesJsonArray;
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if (traceMessageElement == null) {
-                        traceMessageElement = traceMessagesJsonArray.getJSONObject(0);
-                    }
-
-                    MessageProcessingLogRunStep.TraceMessage traceMessage = new MessageProcessingLogRunStep.TraceMessage();
-                    traceMessage.setTraceId(optString(traceMessageElement, "TraceId"));
-                    traceMessage.setMessageId(optString(traceMessageElement, "MplId"));
-                    traceMessage.setModelStepId(optString(traceMessageElement, "ModelStepId"));
-                    String payloadSize = optString(traceMessageElement, "PayloadSize");
-                    if (payloadSize != null) {
-                        traceMessage.setPayloadSize(Long.parseLong(payloadSize));
-                    }
-                    traceMessage.setMimeType(optString(traceMessageElement, "MimeType"));
-                    traceMessage.setProcessingDate(runStep.getStepStop());
-
-                    if (runStepSearchCriteria.isInitTraceMessagePayload()) {
-                        byte[] payloadForMessage = getPayloadForMessage(requestContext, traceMessage.getTraceId());
-                        traceMessage.setPayload(payloadForMessage);
-                    }
-
-                    if (runStepSearchCriteria.isInitTraceMessageProperties()) {
-
-                        JSONArray traceMessagePropertiesJsonArray;
-                        /*We could already have traceMessagePropertiesJsonArray if there are multiple trace messages.
-                         In this case we don't need to make the same request twice.*/
-                        if (foundTraceMessagePropertiesJsonArray != null) {
-                            traceMessagePropertiesJsonArray = foundTraceMessagePropertiesJsonArray;
-                        } else {
-                            traceMessagePropertiesJsonArray = callRestWs(
-                                    requestContext,
-                                    String.format(API_TRACE_MESSAGE_PROPERTIES, traceMessage.getTraceId()),
-                                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-                            );
-                        }
-
-                        for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
-                            JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
-
-                            traceMessage.getProperties().add(new MessageRunStepProperty(
-                                    PropertyType.TRACE_MESSAGE_HEADER,
-                                    optString(traceMessagePropertyElement, "Name"),
-                                    optString(traceMessagePropertyElement, "Value")
-                            ));
-                        }
-
-                        JSONArray traceMessageExchangePropertiesJsonArray = callRestWs(
-                                requestContext,
-                                String.format(API_TRACE_MESSAGE_EXCHANGE_PROPERTIES, traceMessage.getTraceId()),
-                                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-                        );
-
-                        for (int traceMessageExchangePropertyInd = 0; traceMessageExchangePropertyInd < traceMessageExchangePropertiesJsonArray.length(); traceMessageExchangePropertyInd++) {
-                            JSONObject traceMessageExchangePropertyElement = traceMessageExchangePropertiesJsonArray.getJSONObject(traceMessageExchangePropertyInd);
-
-                            traceMessage.getProperties().add(new MessageRunStepProperty(
-                                    PropertyType.TRACE_MESSAGE_EXCHANGE,
-                                    optString(traceMessageExchangePropertyElement, "Name"),
-                                    optString(traceMessageExchangePropertyElement, "Value")
-                            ));
-                        }
-
-                    }
-
-                    runStep.getTraceMessages().add(traceMessage);
+                //If traceId == null it means that this run step doesn't have payload. We don't need such messages at all.
+                if (traceId != null) {
                     runSteps.add(runStep);
-
                 }
-
             }
 
             return runSteps;
@@ -560,6 +460,154 @@ public class MessageProcessingLogClient extends CpiBaseClient {
             log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
         }
+    }
+
+    public MessageProcessingLogRunStep.TraceMessage getTraceMessage(
+            RequestContext requestContext,
+            MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria,
+            MessageProcessingLogRunStep runStep
+    ) {
+        log.debug("#getTraceMessage(RequestContext requestContext, MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria, MessageProcessingLogRunStep runStep): {}, {}, {}",
+                requestContext, runStepSearchCriteria, runStep
+        );
+        String runId = runStep.getRunId();
+
+        JSONArray traceMessagesJsonArray = callRestWs(
+                requestContext,
+                String.format(API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES, runId, runStep.getChildCount()),
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+        );
+
+        if (traceMessagesJsonArray.length() == 0) {
+            return null;
+        }
+
+        /*If traceMessagesJsonArray has multiple messages, we need to find the most appropriate one.
+        Its SAP_TRACE_HEADER_<some digits>_MessageType property should be equal to "STEP". If it's not found, we just take the first one.
+        Maybe later we will need to download and handle all the messages.*/
+        JSONObject traceMessageElement = null;
+        JSONArray foundTraceMessagePropertiesJsonArray = null;
+        if (traceMessagesJsonArray.length() > 1) {
+            for (int i = 0; i < traceMessagesJsonArray.length() && traceMessageElement == null; i++) {
+                JSONObject currentTraceMessage = traceMessagesJsonArray.getJSONObject(i);
+                JSONArray traceMessagePropertiesJsonArray = callRestWs(
+                        requestContext,
+                        String.format(API_TRACE_MESSAGE_PROPERTIES, optString(currentTraceMessage, "TraceId")),
+                        response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                );
+                for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
+                    JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
+                    String name = optString(traceMessagePropertyElement, "Name");
+                    if (name.startsWith("SAP_TRACE_HEADER_") && name.endsWith("_MessageType")) {
+                        String value = optString(traceMessagePropertyElement, "Value");
+                        if (value.equals("STEP")) {
+                            traceMessageElement = currentTraceMessage;
+                            foundTraceMessagePropertiesJsonArray = traceMessagePropertiesJsonArray;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        if (traceMessageElement == null) {
+            traceMessageElement = traceMessagesJsonArray.getJSONObject(0);
+        }
+
+        MessageProcessingLogRunStep.TraceMessage traceMessage = new MessageProcessingLogRunStep.TraceMessage();
+        traceMessage.setTraceId(optString(traceMessageElement, "TraceId"));
+        traceMessage.setMessageId(optString(traceMessageElement, "MplId"));
+        traceMessage.setModelStepId(optString(traceMessageElement, "ModelStepId"));
+        String payloadSize = optString(traceMessageElement, "PayloadSize");
+        if (payloadSize != null) {
+            traceMessage.setPayloadSize(Long.parseLong(payloadSize));
+        }
+        traceMessage.setMimeType(optString(traceMessageElement, "MimeType"));
+        traceMessage.setProcessingDate(runStep.getStepStop());
+
+        if (runStepSearchCriteria.isInitTraceMessagePayload()) {
+            byte[] payloadForMessage = getPayloadForMessage(requestContext, traceMessage.getTraceId());
+            traceMessage.setPayload(payloadForMessage);
+        }
+
+        if (runStepSearchCriteria.isInitTraceMessageProperties()) {
+
+            JSONArray traceMessagePropertiesJsonArray;
+            /*We could already have traceMessagePropertiesJsonArray if there are multiple trace messages.
+             In this case we don't need to make the same request twice.*/
+            if (foundTraceMessagePropertiesJsonArray != null) {
+                traceMessagePropertiesJsonArray = foundTraceMessagePropertiesJsonArray;
+            } else {
+                traceMessagePropertiesJsonArray = callRestWs(
+                        requestContext,
+                        String.format(API_TRACE_MESSAGE_PROPERTIES, traceMessage.getTraceId()),
+                        response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                );
+            }
+
+            for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
+                JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
+
+                traceMessage.getProperties().add(new MessageRunStepProperty(
+                        PropertyType.TRACE_MESSAGE_HEADER,
+                        optString(traceMessagePropertyElement, "Name"),
+                        optString(traceMessagePropertyElement, "Value")
+                ));
+            }
+
+            JSONArray traceMessageExchangePropertiesJsonArray = callRestWs(
+                    requestContext,
+                    String.format(API_TRACE_MESSAGE_EXCHANGE_PROPERTIES, traceMessage.getTraceId()),
+                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+            );
+
+            for (int traceMessageExchangePropertyInd = 0; traceMessageExchangePropertyInd < traceMessageExchangePropertiesJsonArray.length(); traceMessageExchangePropertyInd++) {
+                JSONObject traceMessageExchangePropertyElement = traceMessageExchangePropertiesJsonArray.getJSONObject(traceMessageExchangePropertyInd);
+
+                traceMessage.getProperties().add(new MessageRunStepProperty(
+                        PropertyType.TRACE_MESSAGE_EXCHANGE,
+                        optString(traceMessageExchangePropertyElement, "Name"),
+                        optString(traceMessageExchangePropertyElement, "Value")
+                ));
+            }
+
+        }
+        return traceMessage;
+    }
+
+    private List<JSONObject> getRunStepJsonObjects(RequestContext requestContext, String runId) {
+        int iterNumber = 0;
+        Integer numberOfIterations = null;
+
+        List<JSONObject> jsonObjectRunSteps = new ArrayList<>();
+        do {
+            int skip = MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION * iterNumber;
+            JSONObject dObject = callRestWs(
+                    requestContext,
+                    String.format(API_MSG_PROC_LOG_RUN_STEPS, runId, MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION, skip),
+                    response -> new JSONObject(response).getJSONObject("d")
+            );
+
+            if (numberOfIterations == null) {
+                numberOfIterations = defineNumberOfIterations(dObject);
+            }
+
+            JSONArray runStepsJsonArray = dObject.getJSONArray("results");
+            for (int i = 0; i < runStepsJsonArray.length(); i++) {
+                jsonObjectRunSteps.add(runStepsJsonArray.getJSONObject(i));
+            }
+            iterNumber++;
+        } while (iterNumber < numberOfIterations);
+        return jsonObjectRunSteps;
+    }
+
+    private Integer defineNumberOfIterations(JSONObject dObject) {
+        Integer numberOfIterations;
+        String totalCountStr = dObject.getString("__count");
+        int totalCount = Integer.parseInt(totalCountStr);
+        numberOfIterations = totalCount % MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION == 0
+                ? totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION
+                : totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION + 1;
+        return numberOfIterations;
     }
 
     public byte[] getPayloadForMessage(RequestContext requestContext, String traceId) {

@@ -26,27 +26,17 @@ public class MessageProcessingLogRunStep {
     private String error;
     private String activity;
 
+    //for now, we support only a single traceId per runStep
+    private String traceId;
     private List<MessageRunStepProperty> runStepProperties;
-    private List<TraceMessage> traceMessages;
 
     private boolean relatesToFirstMpl;
-
-    public boolean matches(MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria) {
-        return !runStepSearchCriteria.getModelStepsToIgnore().contains(modelStepId);
-    }
 
     public List<MessageRunStepProperty> getRunStepProperties() {
         if (runStepProperties == null) {
             runStepProperties = new ArrayList<>();
         }
         return runStepProperties;
-    }
-
-    public List<TraceMessage> getTraceMessages() {
-        if (traceMessages == null) {
-            traceMessages = new ArrayList<>();
-        }
-        return traceMessages;
     }
 
     @Getter
