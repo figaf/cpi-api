@@ -21,7 +21,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok:1.18.8'
 
-    api 'com.github.figaf:integration-commons:1.11'
+    api 'com.github.figaf:integration-commons:1.12'
     implementation 'org.slf4j:slf4j-api:1.7.25'
     implementation 'org.apache.httpcomponents:httpmime:4.5.3'
 
