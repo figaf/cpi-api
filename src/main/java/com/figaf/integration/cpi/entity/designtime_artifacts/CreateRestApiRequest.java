@@ -12,7 +12,7 @@ import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactT
  */
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 public class CreateRestApiRequest extends CreateOrUpdateCpiArtifactRequest {
 
     @Builder

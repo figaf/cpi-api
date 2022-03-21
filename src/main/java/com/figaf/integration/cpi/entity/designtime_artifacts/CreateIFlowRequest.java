@@ -8,7 +8,7 @@ import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactT
 /**
  * @author Nesterov Ilya
  */
-@ToString
+@ToString(callSuper = true)
 public class CreateIFlowRequest extends CreateOrUpdateCpiArtifactRequest {
 
     @Builder
