@@ -6,6 +6,7 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactReference;
 import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResource;
+import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResources;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.utils.IFlowUtils;
 import com.figaf.integration.cpi.utils.PackageUtils;
@@ -15,7 +16,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.figaf.integration.cpi.utils.IFlowUtils.API_TEST_DUMMY_IFLOW_NAME;
@@ -48,35 +48,19 @@ class IFlowResourcesClientTest {
         CpiArtifact iFlow = iFlowUtils.getOrCreateDummyIFlow(requestContext);
         assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_DUMMY_IFLOW_NAME).isNotNull();
 
-        List<ArtifactResource> resources = iFlowResourcesClient.getIFlowResources(
+        ArtifactResources allResources = iFlowResourcesClient.getIFlowResources(
             requestContext,
             iFlow.getPackageExternalId(),
             iFlow.getExternalId()
         );
         Set<ArtifactResource> expectedResources = getExpectedResources();
-        assertEquals(resources.size(), expectedResources.size());
-        resources.forEach(resource -> assertThat(expectedResources).contains(resource));
-
-        iFlowUtils.deleteIFlow(requestContext, iFlow);
-        iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);
-        assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
-    }
-
-    @ParameterizedTest
-    @ArgumentsSource(AgentTestDataProvider.class)
-    void test_getIFlowReferences(AgentTestData agentTestData) throws Exception {
-        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        CpiArtifact iFlow = iFlowUtils.getOrCreateDummyIFlow(requestContext);
-        assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_DUMMY_IFLOW_NAME).isNotNull();
-
-        List<ArtifactReference> references = iFlowResourcesClient.getIFlowReferences(
-            requestContext,
-            iFlow.getPackageExternalId(),
-            iFlow.getExternalId()
-        );
         Set<ArtifactReference> expectedReferences = getExpectedReferences();
-        assertEquals(references.size(), expectedReferences.size());
-        references.forEach(resource -> assertThat(expectedReferences).contains(resource));
+
+        assertEquals(allResources.getResourceList().size(), expectedResources.size());
+        allResources.getResourceList().forEach(resource -> assertThat(expectedResources).contains(resource));
+
+        assertEquals(allResources.getReferenceList().size(), expectedReferences.size());
+        allResources.getReferenceList().forEach(reference -> assertThat(expectedReferences).contains(reference));
 
         iFlowUtils.deleteIFlow(requestContext, iFlow);
         iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);

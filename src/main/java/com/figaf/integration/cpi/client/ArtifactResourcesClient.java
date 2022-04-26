@@ -5,13 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
-import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResource;
+import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResources;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
-import java.util.List;
-
-import static com.figaf.integration.cpi.response_parser.ArtifactResourcesParser.buildIFlowResources;
+import static com.figaf.integration.cpi.response_parser.ArtifactResourcesParser.buildArtifactResources;
 
 /**
  * @author Klochkov Sergey
@@ -30,7 +28,7 @@ public abstract class ArtifactResourcesClient extends CpiBaseClient {
         jsonMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    public List<ArtifactResource> getArtifactResources(
+    protected ArtifactResources getArtifactResources(
         RequestContext requestContext,
         String externalPackageId,
         String externalIFlowId,
@@ -39,7 +37,7 @@ public abstract class ArtifactResourcesClient extends CpiBaseClient {
         log.debug("#IFlowResourcesClient(RequestContext requestContext, String externalPackageId, String externalIFlowId, String artifactType): " +
             "{}, {}, {}, {}", requestContext, externalPackageId, externalIFlowId, artifactType);
         String path = String.format(API_ARTIFACT_RESOURCES, externalPackageId, externalIFlowId, externalIFlowId, artifactType);
-        return executeGet(requestContext, path, body -> buildIFlowResources(body, jsonMapper));
+        return executeGet(requestContext, path, body -> buildArtifactResources(body, jsonMapper));
     }
 
     @Override

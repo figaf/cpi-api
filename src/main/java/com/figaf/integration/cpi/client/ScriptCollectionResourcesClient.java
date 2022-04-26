@@ -2,10 +2,8 @@ package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
-import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResource;
+import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResources;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
 
 /**
  * @author Klochkov Sergey
@@ -17,7 +15,7 @@ public class ScriptCollectionResourcesClient extends ArtifactResourcesClient {
         super(httpClientsFactory);
     }
 
-    public List<ArtifactResource> getScriptCollectionResources(
+    public ArtifactResources getScriptCollectionResources(
         RequestContext requestContext,
         String externalPackageId,
         String externalScriptCollectionId

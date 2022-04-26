@@ -4,8 +4,7 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
-import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactReference;
-import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResource;
+import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResources;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,9 +20,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static com.figaf.integration.cpi.response_parser.ArtifactResourcesParser.buildIFlowReferences;
 
 /**
  * @author Arsenii Istlentev
@@ -35,17 +31,10 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
         super(httpClientsFactory);
     }
 
-    public List<ArtifactResource> getIFlowResources(RequestContext requestContext, String externalPackageId, String externalIFlowId) {
+    public ArtifactResources getIFlowResources(RequestContext requestContext, String externalPackageId, String externalIFlowId) {
         log.debug("#getIFlowResources(RequestContext requestContext, String externalPackageId, String externalIFlowId): " +
             "{}, {}, {}", requestContext, externalPackageId, externalIFlowId);
         return getArtifactResources(requestContext, externalPackageId, externalIFlowId, "IFlow");
-    }
-
-    public List<ArtifactReference> getIFlowReferences(RequestContext requestContext, String externalPackageId, String externalIFlowId) {
-        log.debug("#getIFlowReferences(RequestContext requestContext, String externalPackageId, String externalIFlowId): " +
-            "{}, {}, {}", requestContext, externalPackageId, externalIFlowId);
-        String path = String.format(API_ARTIFACT_RESOURCES, externalPackageId, externalIFlowId, externalIFlowId, "IFlow");
-        return executeGet(requestContext, path, body -> buildIFlowReferences(body, jsonMapper));
     }
 
     public void createResourceForIFlow(ConnectionProperties connectionProperties, String iFlowName, String resourceName, String resourceExtension, String base64ResourceContent) {

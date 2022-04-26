@@ -51,7 +51,7 @@ class ScriptCollectionResourcesClientTest {
             requestContext,
             scriptCollection.getPackageExternalId(),
             scriptCollection.getExternalId()
-        );
+        ).getResourceList();
         Set<ArtifactResource> expectedResources = getExpectedResources();
         assertEquals(resources.size(), expectedResources.size());
         resources.forEach(resource -> assertThat(expectedResources).contains(resource));
