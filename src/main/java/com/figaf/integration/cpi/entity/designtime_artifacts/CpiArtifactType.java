@@ -11,7 +11,7 @@ public enum CpiArtifactType {
     SOAP_API("CPI_SOAP_API", "SOAPPIProvider"),
     ODATA_API("CPI_ODATA_API", "OData Service"),
     SCRIPT_COLLECTION("SCRIPT_COLLECTION", "ScriptCollection"),
-    SHARED_MESSAGE_MAPPING("SHARED_MESSAGE_MAPPING", "MessageMapping");
+    MESSAGE_MAPPING("CPI_MESSAGE_MAPPING", "MessageMapping");
 
     private final String title;
     private final String queryTitle;

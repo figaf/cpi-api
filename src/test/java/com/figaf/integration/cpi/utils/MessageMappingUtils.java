@@ -1,9 +1,9 @@
 package com.figaf.integration.cpi.utils;
 
 import com.figaf.integration.common.entity.RequestContext;
-import com.figaf.integration.cpi.client.CpiSharedMessageMappingClient;
+import com.figaf.integration.cpi.client.CpiMessageMappingClient;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateSharedMessageMappingRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateMessageMappingRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,111 +20,111 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @AllArgsConstructor
 @Slf4j
-public class SharedMessageMappingUtils {
+public class MessageMappingUtils {
 
-    public static final String API_TEST_SHARED_MESSAGE_MAPPING_NAME = "FigafApiTestMessageMapping";
-    public static final String API_TEST_DUMMY_SHARED_MESSAGE_MAPPING_NAME = "FigafApiTestDummyMessageMapping";
+    public static final String API_TEST_MESSAGE_MAPPING_NAME = "FigafApiTestMessageMapping";
+    public static final String API_TEST_DUMMY_MESSAGE_MAPPING_NAME = "FigafApiTestDummyMessageMapping";
 
     private final PackageUtils packageUtils;
-    private final CpiSharedMessageMappingClient cpiSharedMessageMappingClient;
+    private final CpiMessageMappingClient cpiMessageMappingClient;
 
-    public CpiArtifact findTestSharedMessageMappingInTestPackageIfExist(RequestContext requestContext) {
+    public CpiArtifact findTestMessageMappingInTestPackageIfExist(RequestContext requestContext) {
         IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-        return findSharedMessageMappingIfExist(
+        return findMessageMappingIfExist(
             requestContext,
             API_TEST_PACKAGE_NAME,
             API_TEST_PACKAGE_NAME,
             integrationPackage.getExternalId(),
-            API_TEST_SHARED_MESSAGE_MAPPING_NAME
+            API_TEST_MESSAGE_MAPPING_NAME
         );
     }
 
-    public CpiArtifact findDummySharedMessageMappingInTestPackageIfExist(RequestContext requestContext) {
+    public CpiArtifact findDummyMessageMappingInTestPackageIfExist(RequestContext requestContext) {
         IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-        return findSharedMessageMappingIfExist(
+        return findMessageMappingIfExist(
             requestContext,
             API_TEST_PACKAGE_NAME,
             API_TEST_PACKAGE_NAME,
             integrationPackage.getExternalId(),
-            API_TEST_DUMMY_SHARED_MESSAGE_MAPPING_NAME
+            API_TEST_DUMMY_MESSAGE_MAPPING_NAME
         );
     }
 
-    public CpiArtifact createDummySharedMessageMappingInTestPackage(RequestContext requestContext) throws IOException {
+    public CpiArtifact createDummyMessageMappingInTestPackage(RequestContext requestContext) throws IOException {
         IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
         byte[] payload = IOUtils.toByteArray(
             this.getClass().getClassLoader().getResource("client/FigafApiTestDummyMessageMapping.zip")
         );
-        return createSharedMessageMapping(
+        return createMessageMapping(
             requestContext,
             integrationPackage.getTechnicalName(),
             integrationPackage.getDisplayedName(),
             integrationPackage.getExternalId(),
-            API_TEST_DUMMY_SHARED_MESSAGE_MAPPING_NAME,
+            API_TEST_DUMMY_MESSAGE_MAPPING_NAME,
             payload
         );
     }
 
-    public CpiArtifact getOrCreateDummySharedMessageMapping(RequestContext requestContext) throws IOException {
-        CpiArtifact sharedMessageMapping = findDummySharedMessageMappingInTestPackageIfExist(requestContext);
-        if (sharedMessageMapping == null) {
-            sharedMessageMapping = createDummySharedMessageMappingInTestPackage(requestContext);
+    public CpiArtifact getOrCreateDummyMessageMapping(RequestContext requestContext) throws IOException {
+        CpiArtifact messageMapping = findDummyMessageMappingInTestPackageIfExist(requestContext);
+        if (messageMapping == null) {
+            messageMapping = createDummyMessageMappingInTestPackage(requestContext);
         }
-        return sharedMessageMapping;
+        return messageMapping;
     }
 
-    public void deleteSharedMessageMapping(RequestContext requestContext, CpiArtifact sharedMessageMapping) {
-        cpiSharedMessageMappingClient.deleteSharedMessageMapping(
-            sharedMessageMapping.getPackageExternalId(),
-            sharedMessageMapping.getExternalId(),
-            sharedMessageMapping.getTechnicalName(),
+    public void deleteMessageMapping(RequestContext requestContext, CpiArtifact messageMapping) {
+        cpiMessageMappingClient.deleteMessageMapping(
+            messageMapping.getPackageExternalId(),
+            messageMapping.getExternalId(),
+            messageMapping.getTechnicalName(),
             requestContext
         );
     }
 
-    private CpiArtifact findSharedMessageMappingIfExist(
+    private CpiArtifact findMessageMappingIfExist(
         RequestContext requestContext,
         String packageTechnicalName,
         String packageDisplayedName,
         String packageExternalId,
-        String sharedMessageMappingName
+        String messageMappingName
     ) {
-        List<CpiArtifact> artifacts = cpiSharedMessageMappingClient.getSharedMessageMappingByPackage(
+        List<CpiArtifact> artifacts = cpiMessageMappingClient.getMessageMappingsByPackage(
             requestContext,
             packageTechnicalName,
             packageDisplayedName,
             packageExternalId
         );
 
-        return artifacts.stream().filter(cpiArtifact -> sharedMessageMappingName.equals(cpiArtifact.getTechnicalName()))
+        return artifacts.stream().filter(cpiArtifact -> messageMappingName.equals(cpiArtifact.getTechnicalName()))
             .findFirst().orElse(null);
     }
 
-    private CpiArtifact createSharedMessageMapping(
+    private CpiArtifact createMessageMapping(
         RequestContext requestContext,
         String packageTechnicalName,
         String packageDisplayedName,
         String packageExternalId,
-        String sharedMessageMappingName,
+        String messageMappingName,
         byte[] payload
     ) {
-        CreateSharedMessageMappingRequest createMessageMappingRequest = CreateSharedMessageMappingRequest.builder()
-            .id(sharedMessageMappingName)
-            .name(sharedMessageMappingName)
+        CreateMessageMappingRequest createMessageMappingRequest = CreateMessageMappingRequest.builder()
+            .id(messageMappingName)
+            .name(messageMappingName)
             .description("Message mapping for api tests")
             .packageExternalId(packageExternalId)
             .bundledModel(payload)
             .build();
-        cpiSharedMessageMappingClient.createSharedMessageMapping(requestContext, createMessageMappingRequest);
-        return findSharedMessageMappingIfExist(
+        cpiMessageMappingClient.createMessageMapping(requestContext, createMessageMappingRequest);
+        return findMessageMappingIfExist(
             requestContext,
             packageTechnicalName,
             packageDisplayedName,
             packageExternalId,
-            sharedMessageMappingName
+            messageMappingName
         );
     }
 

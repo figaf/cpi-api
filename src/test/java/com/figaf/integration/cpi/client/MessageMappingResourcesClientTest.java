@@ -7,7 +7,7 @@ import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResource;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.utils.PackageUtils;
-import com.figaf.integration.cpi.utils.SharedMessageMappingUtils;
+import com.figaf.integration.cpi.utils.MessageMappingUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.figaf.integration.cpi.utils.SharedMessageMappingUtils.API_TEST_DUMMY_SHARED_MESSAGE_MAPPING_NAME;
+import static com.figaf.integration.cpi.utils.MessageMappingUtils.API_TEST_DUMMY_MESSAGE_MAPPING_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -25,29 +25,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author Klochkov Sergey
  */
 @Slf4j
-class SharedMessageMappingResourcesClientTest {
+class MessageMappingResourcesClientTest {
 
-    private static SharedMessageMappingResourcesClient sharedMessageMappingResourcesClient;
-    private static SharedMessageMappingUtils sharedMessageMappingUtils;
+    private static MessageMappingResourcesClient messageMappingResourcesClient;
+    private static MessageMappingUtils messageMappingUtils;
 
     @BeforeAll
     static void setUp() {
-        sharedMessageMappingResourcesClient = new SharedMessageMappingResourcesClient(new HttpClientsFactory());
+        messageMappingResourcesClient = new MessageMappingResourcesClient(new HttpClientsFactory());
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        sharedMessageMappingUtils = new SharedMessageMappingUtils(
+        messageMappingUtils = new MessageMappingUtils(
             new PackageUtils(integrationPackageClient),
-            new CpiSharedMessageMappingClient(integrationPackageClient, new HttpClientsFactory())
+            new CpiMessageMappingClient(integrationPackageClient, new HttpClientsFactory())
         );
     }
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_getSharedMessageMappingResources(AgentTestData agentTestData) throws Exception {
+    void test_getMessageMappingResources(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        CpiArtifact messageMapping = sharedMessageMappingUtils.getOrCreateDummySharedMessageMapping(requestContext);
-        assertThat(messageMapping).as("message mapping %s wasn't found", API_TEST_DUMMY_SHARED_MESSAGE_MAPPING_NAME).isNotNull();
+        CpiArtifact messageMapping = messageMappingUtils.getOrCreateDummyMessageMapping(requestContext);
+        assertThat(messageMapping).as("message mapping %s wasn't found", API_TEST_DUMMY_MESSAGE_MAPPING_NAME).isNotNull();
 
-        List<ArtifactResource> resources = sharedMessageMappingResourcesClient.getSharedMessageMappingResources(
+        List<ArtifactResource> resources = messageMappingResourcesClient.getMessageMappingResources(
             requestContext,
             messageMapping.getPackageExternalId(),
             messageMapping.getExternalId()
@@ -56,9 +56,9 @@ class SharedMessageMappingResourcesClientTest {
         assertEquals(resources.size(), expectedResources.size());
         resources.forEach(resource -> assertThat(expectedResources).contains(resource));
 
-        sharedMessageMappingUtils.deleteSharedMessageMapping(requestContext, messageMapping);
-        messageMapping = sharedMessageMappingUtils.findDummySharedMessageMappingInTestPackageIfExist(requestContext);
-        assertThat(messageMapping).as("message mapping %s was not deleted", API_TEST_DUMMY_SHARED_MESSAGE_MAPPING_NAME).isNull();
+        messageMappingUtils.deleteMessageMapping(requestContext, messageMapping);
+        messageMapping = messageMappingUtils.findDummyMessageMappingInTestPackageIfExist(requestContext);
+        assertThat(messageMapping).as("message mapping %s was not deleted", API_TEST_DUMMY_MESSAGE_MAPPING_NAME).isNull();
     }
 
     private Set<ArtifactResource> getExpectedResources() {

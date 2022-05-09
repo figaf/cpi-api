@@ -9,18 +9,18 @@ import lombok.extern.slf4j.Slf4j;
  * @author Klochkov Sergey
  */
 @Slf4j
-public class SharedMessageMappingResourcesClient extends ArtifactResourcesClient {
+public class MessageMappingResourcesClient extends ArtifactResourcesClient {
 
-    public SharedMessageMappingResourcesClient(HttpClientsFactory httpClientsFactory) {
+    public MessageMappingResourcesClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
     }
 
-    public ArtifactResources getSharedMessageMappingResources(
+    public ArtifactResources getMessageMappingResources(
         RequestContext requestContext,
         String externalPackageId,
         String externalMessageMappingId
     ) {
-        log.debug("#getSharedMessageMappingResources(RequestContext requestContext, String externalPackageId, String externalMessageMappingId): " +
+        log.debug("#getMessageMappingResources(RequestContext requestContext, String externalPackageId, String externalMessageMappingId): " +
             "{}, {}, {}", requestContext, externalPackageId, externalMessageMappingId);
         return getArtifactResources(requestContext, externalPackageId, externalMessageMappingId, "messagemappings");
     }

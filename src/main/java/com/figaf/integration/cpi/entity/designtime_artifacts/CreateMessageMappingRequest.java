@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.SHARED_MESSAGE_MAPPING;
+import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.MESSAGE_MAPPING;
 
 /**
  * @author Klochkov Sergey
@@ -13,10 +13,10 @@ import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactT
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class CreateSharedMessageMappingRequest extends CreateOrUpdateCpiArtifactRequest {
+public class CreateMessageMappingRequest extends CreateOrUpdateCpiArtifactRequest {
 
     @Builder
-    public CreateSharedMessageMappingRequest(
+    public CreateMessageMappingRequest(
         String id,
         String name,
         String description,
@@ -30,7 +30,7 @@ public class CreateSharedMessageMappingRequest extends CreateOrUpdateCpiArtifact
 
     @Override
     public String getType() {
-        return SHARED_MESSAGE_MAPPING.getQueryTitle();
+        return MESSAGE_MAPPING.getQueryTitle();
     }
 
 }
