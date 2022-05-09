@@ -9,9 +9,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author Klochkov Sergey
  */
 @Slf4j
-public class MessageMappingResourcesClient extends ArtifactResourcesClient {
+public class CpiMessageMappingResourcesClient extends ArtifactResourcesClient {
 
-    public MessageMappingResourcesClient(HttpClientsFactory httpClientsFactory) {
+    public CpiMessageMappingResourcesClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
     }
 

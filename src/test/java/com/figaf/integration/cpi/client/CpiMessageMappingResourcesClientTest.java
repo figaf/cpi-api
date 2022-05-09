@@ -25,14 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author Klochkov Sergey
  */
 @Slf4j
-class MessageMappingResourcesClientTest {
+class CpiMessageMappingResourcesClientTest {
 
-    private static MessageMappingResourcesClient messageMappingResourcesClient;
+    private static CpiMessageMappingResourcesClient cpiMessageMappingResourcesClient;
     private static MessageMappingUtils messageMappingUtils;
 
     @BeforeAll
     static void setUp() {
-        messageMappingResourcesClient = new MessageMappingResourcesClient(new HttpClientsFactory());
+        cpiMessageMappingResourcesClient = new CpiMessageMappingResourcesClient(new HttpClientsFactory());
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
         messageMappingUtils = new MessageMappingUtils(
             new PackageUtils(integrationPackageClient),
@@ -47,7 +47,7 @@ class MessageMappingResourcesClientTest {
         CpiArtifact messageMapping = messageMappingUtils.getOrCreateDummyMessageMapping(requestContext);
         assertThat(messageMapping).as("message mapping %s wasn't found", API_TEST_DUMMY_MESSAGE_MAPPING_NAME).isNotNull();
 
-        List<ArtifactResource> resources = messageMappingResourcesClient.getMessageMappingResources(
+        List<ArtifactResource> resources = cpiMessageMappingResourcesClient.getMessageMappingResources(
             requestContext,
             messageMapping.getPackageExternalId(),
             messageMapping.getExternalId()
