@@ -10,11 +10,13 @@ import com.figaf.integration.cpi.utils.PackageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 
+import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
 import static com.figaf.integration.cpi.utils.IFlowUtils.API_TEST_DUMMY_IFLOW_NAME;
 import static com.figaf.integration.cpi.utils.IFlowUtils.API_TEST_IFLOW_NAME;
 import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
@@ -55,7 +57,7 @@ class CpiIntegrationFlowClientTest {
         assertThat(iFlows).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_downloadIFlow(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -70,7 +72,7 @@ class CpiIntegrationFlowClientTest {
         assertThat(iFlowPayload).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_createAndDeleteIFlow(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -84,7 +86,7 @@ class CpiIntegrationFlowClientTest {
         assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_updateIFlow(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -110,7 +112,7 @@ class CpiIntegrationFlowClientTest {
         assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_deployIFlowAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -134,7 +136,7 @@ class CpiIntegrationFlowClientTest {
         assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_setTraceLogLevelForIFlows(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());

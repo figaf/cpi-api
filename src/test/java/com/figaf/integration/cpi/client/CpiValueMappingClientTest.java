@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 
+import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
 import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
 import static com.figaf.integration.cpi.utils.ValueMappingUtils.API_TEST_DUMMY_VALUE_MAPPING_NAME;
 import static com.figaf.integration.cpi.utils.ValueMappingUtils.API_TEST_VALUE_MAPPING_NAME;
@@ -40,7 +41,7 @@ class CpiValueMappingClientTest {
         valueMappingUtils = new ValueMappingUtils(packageUtils, cpiValueMappingClient);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_getValueMappingByPackage(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -56,7 +57,7 @@ class CpiValueMappingClientTest {
         assertThat(valueMapping).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_downloadValueMapping(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -71,7 +72,7 @@ class CpiValueMappingClientTest {
         assertThat(valueMappingPayload).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_createAndDeleteValueMapping(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -85,7 +86,7 @@ class CpiValueMappingClientTest {
         assertThat(valueMapping).as("value mapping %s was not deleted", API_TEST_DUMMY_VALUE_MAPPING_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_updateValueMapping(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -110,7 +111,7 @@ class CpiValueMappingClientTest {
         assertThat(valueMapping).as("value mapping %s was not deleted", API_TEST_DUMMY_VALUE_MAPPING_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_deployValueMappingAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());

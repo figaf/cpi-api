@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.*;
 
+import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +37,7 @@ class CommonCpiApiTest {
         integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_privateApiRead(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -45,7 +46,7 @@ class CommonCpiApiTest {
         assertThat(integrationPackages).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_publicApiRead(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -54,7 +55,7 @@ class CommonCpiApiTest {
         assertThat(integrationRuntimeArtifacts).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_testPublicApiRead2(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -63,7 +64,7 @@ class CommonCpiApiTest {
         assertThat(cpiExternalConfigurations).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_testPrivateApiWrite(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -82,7 +83,7 @@ class CommonCpiApiTest {
         integrationPackageClient.updateIntegrationPackage(requestContext, integrationPackage.getExternalId(), createOrUpdatePackageRequest);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_testPublicApiWrite(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -124,7 +125,7 @@ class CommonCpiApiTest {
 
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_privatePackageApiDelete(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());

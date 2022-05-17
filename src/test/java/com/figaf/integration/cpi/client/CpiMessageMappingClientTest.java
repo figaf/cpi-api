@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 
+import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
 import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
 import static com.figaf.integration.cpi.utils.MessageMappingUtils.API_TEST_DUMMY_MESSAGE_MAPPING_NAME;
 import static com.figaf.integration.cpi.utils.MessageMappingUtils.API_TEST_MESSAGE_MAPPING_NAME;
@@ -40,7 +41,7 @@ class CpiMessageMappingClientTest {
         messageMappingUtils = new MessageMappingUtils(packageUtils, cpiMessageMappingClient);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_getMessageMappingByPackage(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -56,7 +57,7 @@ class CpiMessageMappingClientTest {
         assertThat(messageMapping).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_downloadMessageMapping(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -71,7 +72,7 @@ class CpiMessageMappingClientTest {
         assertThat(messageMappingPayload).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_createAndDeleteMessageMapping(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -85,7 +86,7 @@ class CpiMessageMappingClientTest {
         assertThat(messageMapping).as("message mapping %s was not deleted", API_TEST_DUMMY_MESSAGE_MAPPING_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_updateMessageMapping(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -110,7 +111,7 @@ class CpiMessageMappingClientTest {
         assertThat(messageMapping).as("message mapping %s was not deleted", API_TEST_DUMMY_MESSAGE_MAPPING_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_deployMessageMappingAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());

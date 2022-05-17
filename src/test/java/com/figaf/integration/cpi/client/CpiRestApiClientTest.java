@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 
+import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
 import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
 import static com.figaf.integration.cpi.utils.RestApiUtils.API_TEST_DUMMY_REST_API_NAME;
 import static com.figaf.integration.cpi.utils.RestApiUtils.API_TEST_REST_API_NAME;
@@ -38,7 +39,7 @@ class CpiRestApiClientTest {
         restApiUtils = new RestApiUtils(packageUtils, cpiRestApiClient);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_getRestApiByPackage(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -54,7 +55,7 @@ class CpiRestApiClientTest {
         assertThat(restApis).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_downloadRestApi(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -69,7 +70,7 @@ class CpiRestApiClientTest {
         assertThat(restApiPayload).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_createAndDeleteRestApi(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -83,7 +84,7 @@ class CpiRestApiClientTest {
         assertThat(restApi).as("rest api %s was not deleted", API_TEST_DUMMY_REST_API_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_updateRestApi(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -108,7 +109,7 @@ class CpiRestApiClientTest {
         assertThat(restApi).as("rest api %s was not deleted", API_TEST_DUMMY_REST_API_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_deployRestApiAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());

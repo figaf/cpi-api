@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 
+import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
 import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
 import static com.figaf.integration.cpi.utils.ScriptCollectionUtils.API_TEST_DUMMY_SCRIPT_COLLECTION_NAME;
 import static com.figaf.integration.cpi.utils.ScriptCollectionUtils.API_TEST_SCRIPT_COLLECTION_NAME;
@@ -40,7 +41,7 @@ class CpiScriptCollectionClientTest {
         scriptCollectionUtils = new ScriptCollectionUtils(packageUtils, cpiScriptCollectionClient);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_getScriptCollectionByPackage(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -56,7 +57,7 @@ class CpiScriptCollectionClientTest {
         assertThat(scriptCollection).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_downloadScriptCollection(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -71,7 +72,7 @@ class CpiScriptCollectionClientTest {
         assertThat(scriptCollectionPayload).isNotEmpty();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_createAndDeleteScriptCollection(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -85,7 +86,7 @@ class CpiScriptCollectionClientTest {
         assertThat(scriptCollection).as("script collection %s was not deleted", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_updateScriptCollection(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -110,7 +111,7 @@ class CpiScriptCollectionClientTest {
         assertThat(scriptCollection).as("script collection %s was not deleted", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_deployScriptCollectionAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
