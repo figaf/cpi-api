@@ -12,21 +12,85 @@ import java.util.List;
  */
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "bundledModel")
 public abstract class CreateOrUpdateCpiArtifactRequest {
 
     private String id;
     private String name;
     private String description;
-    private String type;
-    private AdditionalAttributes additionalAttrs = new AdditionalAttributes();
+    private AdditionalAttributes additionalAttrs;
     private String fileName;
+
+    //---------------- Additional parameters -----------------
+    private byte[] bundledModel;
+    private String packageExternalId;
+
+    //only for update
+    private boolean uploadDraftVersion;
+    private String newArtifactVersion;
+    private String comment;
+
+    private CreateOrUpdateCpiArtifactRequest() {}
+
+    protected CreateOrUpdateCpiArtifactRequest(
+        String id,
+        String name,
+        String description,
+        AdditionalAttributes additionalAttrs,
+        String fileName,
+        byte[] bundledModel,
+        String packageExternalId
+    ) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.additionalAttrs = additionalAttrs;
+        this.fileName = fileName;
+
+        this.bundledModel = bundledModel;
+        this.packageExternalId = packageExternalId;
+    }
+
+    protected CreateOrUpdateCpiArtifactRequest(
+        String id,
+        String name,
+        String description,
+        AdditionalAttributes additionalAttrs,
+        String fileName,
+        byte[] bundledModel,
+        String packageExternalId,
+        boolean uploadDraftVersion,
+        String newArtifactVersion,
+        String comment
+    ) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.additionalAttrs = additionalAttrs;
+        this.fileName = fileName;
+
+        this.bundledModel = bundledModel;
+        this.packageExternalId = packageExternalId;
+
+        this.uploadDraftVersion = uploadDraftVersion;
+        this.newArtifactVersion = newArtifactVersion;
+        this.comment = comment;
+    }
+
+    public abstract String getType();
+
+    public AdditionalAttributes getAdditionalAttrs() {
+        if (additionalAttrs == null) {
+            additionalAttrs = new AdditionalAttributes();
+        }
+        return additionalAttrs;
+    }
 
     @Getter
     @ToString
     public static class AdditionalAttributes {
 
-        private List<String> source = new ArrayList<>();
-        private List<String> target = new ArrayList<>();
+        private final List<String> source = new ArrayList<>();
+        private final List<String> target = new ArrayList<>();
     }
 }

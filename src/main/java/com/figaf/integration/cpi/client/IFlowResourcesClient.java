@@ -1,14 +1,10 @@
 package com.figaf.integration.cpi.client;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
-import com.figaf.integration.cpi.entity.designtime_artifacts.IFlowResource;
-import com.figaf.integration.cpi.response_parser.IFlowResourcesParser;
+import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResources;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,36 +16,26 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
-import org.slf4j.Logger;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * @author Arsenii Istlentev
  */
 @Slf4j
-public class IFlowResourcesClient extends CpiBaseClient {
-
-    private static final String API_IFLOW_RESOURCES = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/resource?artifactType=IFlow";
-
-    private final ObjectMapper jsonMapper;
+public class IFlowResourcesClient extends ArtifactResourcesClient {
 
     public IFlowResourcesClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
-        this.jsonMapper = new ObjectMapper();
-        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        jsonMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    public List<IFlowResource> getIFlowResources(RequestContext requestContext, String externalPackageId, String externalIFlowId) {
-        log.debug("#getIFlowResources(RequestContext requestContext, String externalPackageId, String externalIFlowId): {}, {}, {}", requestContext, externalPackageId, externalIFlowId);
-        String path = String.format(API_IFLOW_RESOURCES, externalPackageId, externalIFlowId, externalIFlowId);
-        return executeGet(requestContext, path, body -> IFlowResourcesParser.buildIFlowResources(body, jsonMapper));
+    public ArtifactResources getIFlowResources(RequestContext requestContext, String externalPackageId, String externalIFlowId) {
+        log.debug("#getIFlowResources(RequestContext requestContext, String externalPackageId, String externalIFlowId): " +
+            "{}, {}, {}", requestContext, externalPackageId, externalIFlowId);
+        return getArtifactResources(requestContext, externalPackageId, externalIFlowId, "IFlow");
     }
-
 
     public void createResourceForIFlow(ConnectionProperties connectionProperties, String iFlowName, String resourceName, String resourceExtension, String base64ResourceContent) {
         log.debug("#createResource(ConnectionProperties connectionProperties, String iFlowName, String resourceName, String resourceExtension, String base64ResourceContent): " +
@@ -177,8 +163,4 @@ public class IFlowResourcesClient extends CpiBaseClient {
 
     }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
 }
