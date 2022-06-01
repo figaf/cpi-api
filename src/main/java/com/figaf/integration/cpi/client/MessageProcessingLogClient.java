@@ -3,6 +3,7 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
+import com.figaf.integration.cpi.entity.AdditionalPayloadType;
 import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
 import com.figaf.integration.cpi.entity.message_processing.*;
 import com.figaf.integration.cpi.response_parser.MessageProcessingLogParser;
@@ -282,7 +283,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 attachment.setMessageStoreId(optString(attachmentElement, "MessageStoreId"));
                 attachment.setName(String.format("%s-%s", attachment.getMessageStoreId(), attachment.getId().replace("sap-it-res:msg:", "")));
                 attachment.setContentType("Persisted payload");
-                attachment.setAttachmentType(MessageProcessingLogAttachmentType.PERSISTED);
+                attachment.setAttachmentType(AdditionalPayloadType.PERSISTED_MESSAGE);
 
                 attachments.add(attachment);
             }
