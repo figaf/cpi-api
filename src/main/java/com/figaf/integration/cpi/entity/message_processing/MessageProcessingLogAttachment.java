@@ -1,5 +1,7 @@
 package com.figaf.integration.cpi.entity.message_processing;
 
+import com.figaf.integration.cpi.entity.AdditionalPayloadEntry;
+import com.figaf.integration.cpi.entity.AdditionalPayloadType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +12,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-public class MessageProcessingLogAttachment {
+public class MessageProcessingLogAttachment implements AdditionalPayloadEntry {
 
     private String id;
     private String messageGuid;
@@ -22,6 +24,36 @@ public class MessageProcessingLogAttachment {
     //only for PERSISTED attachmentType
     private String messageStoreId;
 
-    private MessageProcessingLogAttachmentType attachmentType = MessageProcessingLogAttachmentType.LOGGED;
+    private AdditionalPayloadType attachmentType = AdditionalPayloadType.MPL_ATTACHMENT;
+
+    @Override
+    public String getUniqueId() {
+        return id;
+    }
+
+    @Override
+    public String getMessageId() {
+        return messageGuid;
+    }
+
+    @Override
+    public String getModelStepId() {
+        return AdditionalPayloadType.PERSISTED_MESSAGE.equals(attachmentType) ? messageStoreId : name;
+    }
+
+    @Override
+    public String getActivity() {
+        return attachmentType.toString().toLowerCase();
+    }
+
+    @Override
+    public Date getDate() {
+        return date;
+    }
+
+    @Override
+    public AdditionalPayloadType getPayloadType() {
+        return attachmentType;
+    }
 
 }
