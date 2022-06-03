@@ -1,5 +1,6 @@
 package com.figaf.integration.cpi.entity.message_processing;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -12,6 +13,7 @@ import java.util.List;
  * @author Nesterov Ilya
  */
 
+@EqualsAndHashCode(of = "messageGuid")
 @Getter
 @Setter
 @ToString(exclude = "runs")
