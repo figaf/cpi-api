@@ -21,10 +21,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * @author Arsenii Istlentev
@@ -72,6 +69,18 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                         dateFormat.format(DateUtils.addMinutes(new Date(), -55))
                 )
         );
+        return getMessageProcessingLogs(requestContext, resourcePath);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids) {
+        log.debug("#getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids): {}, {}", requestContext, messageGuids);
+
+        List<String> params = new ArrayList<>();
+        for (String messageGuid : messageGuids) {
+            params.add(String.format("MessageGuid eq '%s'", messageGuid));
+        }
+
+        String resourcePath = String.format(API_MSG_PROC_LOGS, StringUtils.join(params, " or "));
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
