@@ -68,11 +68,11 @@ public class DataStoreEntriesClient extends CpiBaseClient {
                 requestContext, dataStoreEntryId, dataStoreEntryName, integrationFlow, type
         );
         try {
-            byte[] fullArchive = executeGet(
+            byte[] fullArchive = callRestWs(
                     requestContext,
                     String.format(
                             API_DATA_STORE_ENTRY_PAYLOAD,
-                            dataStoreEntryId.replace(" ", "%20"),
+                            dataStoreEntryId,
                             dataStoreEntryName,
                             integrationFlow,
                             StringUtils.defaultString(type, "")

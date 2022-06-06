@@ -175,11 +175,20 @@ public abstract class CpiBaseClient extends BaseClient {
             String resourcePath,
             CheckedFunction<String, R, JSONException> responseExtractor
     ) {
+        return callRestWs(requestContext, resourcePath, responseExtractor, String.class);
+    }
+
+    protected <R, T> R callRestWs(
+            RequestContext requestContext,
+            String resourcePath,
+            CheckedFunction<T, R, JSONException> responseExtractor,
+            Class<T> bodyType
+    ) {
         try {
             ConnectionProperties connectionProperties = requestContext.getConnectionProperties();
             RestTemplate restTemplate = getOrCreateRestTemplateWrapperSingletonWithInterceptors(requestContext);
             final String url = connectionProperties.getUrlRemovingDefaultPortIfNecessary() + resourcePath;
-            String response = restTemplate.getForObject(url, String.class);
+            T response = restTemplate.getForObject(url, bodyType);
             return responseExtractor.apply(response);
         } catch (JSONException ex) {
             getLogger().error("Error occurred while parsing response: " + ex.getMessage(), ex);
