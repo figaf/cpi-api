@@ -1,19 +1,26 @@
 package com.figaf.integration.cpi.client;
 
+import com.figaf.integration.common.entity.CloudPlatformType;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
+import com.figaf.integration.cpi.entity.DeleteAndUndeployIFlowResult;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateIFlowRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.IFLOW;
+import static java.lang.String.format;
 
 /**
  * @author Arsenii Istlentev
@@ -107,6 +114,15 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         );
     }
 
+    public boolean undeployIFlow(RequestContext requestContext, String iFlowTechnicalName) {
+        log.debug("#undeployIFlow(RequestContext requestContext, String iFlowTechnicalName): {}, {}", requestContext, iFlowTechnicalName);
+        return executeDeletePublicApi(
+                requestContext,
+                format("/api/v1/IntegrationRuntimeArtifacts('%s')", iFlowTechnicalName),
+                Objects::nonNull
+        );
+    }
+
     public void setTraceLogLevelForIFlows(RequestContext commonClientWrapperEntity, List<String> iFlows) {
         log.debug("#setTraceLogLevelForIFlows(RequestContext commonClientWrapperEntity, List<String> iFlows): {}, {}",
             commonClientWrapperEntity, iFlows);
@@ -121,15 +137,29 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         );
     }
 
-    public void deleteIFlow(
-        String packageExternalId,
-        String iFlowExternalId,
-        String iFlowName,
-        RequestContext requestContext
-    ) {
-        log.debug("#deleteArtifact(String packageExternalId, String iFlowExternalId, RequestContext requestContext): {}, {}, {}",
-            packageExternalId, iFlowExternalId, requestContext);
-        deleteArtifact(packageExternalId, iFlowExternalId, iFlowName, requestContext);
+    public boolean deleteIFlow(RequestContext requestContext, String iFlowTechnicalName) {
+        log.debug("#deleteIFlow(RequestContext requestContext, String iFlowTechnicalName): {}, {}", iFlowTechnicalName, requestContext);
+        return executeDeletePublicApi(
+                requestContext,
+                format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')", iFlowTechnicalName),
+                Objects::nonNull
+        );
+    }
+
+    public DeleteAndUndeployIFlowResult deleteAndUndeployIFlow(RequestContext requestContext, String iFlowTechnicalName) {
+        log.debug("#deleteAndUndeployIFlow(RequestContext requestContext, String iFlowTechnicalName): {}, {}", requestContext, iFlowTechnicalName);
+        DeleteAndUndeployIFlowResult deleteAndUndeployIFlowResult = new DeleteAndUndeployIFlowResult(iFlowTechnicalName);
+
+        boolean deletedSuccessfully = deleteIFlow(requestContext, iFlowTechnicalName);
+        deleteAndUndeployIFlowResult.setDeleted(deletedSuccessfully);
+
+        //It doesn't work for NEO due to a SAP bug
+        if (CloudPlatformType.CLOUD_FOUNDRY.equals(requestContext.getCloudPlatformType())) {
+            boolean undeployedSuccessfully = undeployIFlow(requestContext, iFlowTechnicalName);
+            deleteAndUndeployIFlowResult.setUndeployed(undeployedSuccessfully);
+        }
+
+        return deleteAndUndeployIFlowResult;
     }
 
     private void setTraceLogLevelForIFlows(
