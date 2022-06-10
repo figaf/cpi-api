@@ -77,12 +77,7 @@ public class IFlowUtils {
     }
 
     public void deleteIFlow(RequestContext requestContext, CpiArtifact iFlow) {
-        cpiIntegrationFlowClient.deleteIFlow(
-            iFlow.getPackageExternalId(),
-            iFlow.getExternalId(),
-            iFlow.getTechnicalName(),
-            requestContext
-        );
+        cpiIntegrationFlowClient.deleteAndUndeployIFlow(requestContext, iFlow.getTechnicalName());
     }
 
     private CpiArtifact findIFlowIfExist(
