@@ -72,16 +72,27 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
-    public List<MessageProcessingLog> getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids) {
-        log.debug("#getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids): {}, {}", requestContext, messageGuids);
+    public List<MessageProcessingLog> getMessageProcessingLogsByMessageGuids(
+            RequestContext requestContext,
+            Set<String> messageGuids,
+            boolean expandCustomHeaders
+    ) {
+        log.debug(
+                "#getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids, boolean expandCustomHeaders): {}, {}, {}",
+                requestContext, messageGuids, expandCustomHeaders
+        );
 
         List<String> params = new ArrayList<>();
         for (String messageGuid : messageGuids) {
             params.add(String.format("MessageGuid eq '%s'", messageGuid));
         }
 
-        String resourcePath = String.format(API_MSG_PROC_LOGS, StringUtils.join(params, " or "));
-        return getMessageProcessingLogs(requestContext, resourcePath);
+        String resourcePath = expandCustomHeaders ? API_MSG_PROC_LOGS + "&$expand=CustomHeaderProperties" : API_MSG_PROC_LOGS;
+
+        return getMessageProcessingLogs(
+                requestContext,
+                String.format(resourcePath, StringUtils.join(params, " or "))
+        );
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date startDate) {
@@ -105,15 +116,22 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
-    public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilter(RequestContext requestContext, int top, int skip, String filter) {
-        log.debug("getMessageProcessingLogsByFilter(RequestContext requestContext, int top, int skip, String filter): {}, {}, {}, {}", requestContext, top, skip, filter);
-        String resourcePath = String.format("/api/v1/MessageProcessingLogs?$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s", top, skip, filter);
-
+    public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilter(
+            RequestContext requestContext,
+            int top,
+            int skip,
+            String filter,
+            boolean expandCustomHeaders
+    ) {
+        log.debug(
+                "getMessageProcessingLogsByFilter(RequestContext requestContext, int top, int skip, String filter, boolean expandCustomHeaders): {}, {}, {}, {}, {}",
+                requestContext, top, skip, filter, expandCustomHeaders
+        );
+        String resourcePath = expandCustomHeaders ? API_MSG_PROC_LOGS_PAGINATED + "&$expand=CustomHeaderProperties" : API_MSG_PROC_LOGS_PAGINATED;
         try {
-
             JSONObject jsonObjectD = callRestWs(
                     requestContext,
-                    resourcePath,
+                    String.format(resourcePath, top, skip, filter),
                     response -> new JSONObject(response).getJSONObject("d")
             );
 

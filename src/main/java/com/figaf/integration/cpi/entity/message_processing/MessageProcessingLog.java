@@ -32,5 +32,6 @@ public class MessageProcessingLog implements Serializable {
     private String receiver;
     private String alternateWebLink;
 
+    private List<CustomHeaderProperty> customHeaderProperties;
     private List<MessageProcessingLogRun> runs;
 }

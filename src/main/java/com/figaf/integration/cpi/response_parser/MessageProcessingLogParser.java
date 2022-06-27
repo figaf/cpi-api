@@ -9,7 +9,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +53,7 @@ public class MessageProcessingLogParser {
         messageProcessingLog.setAlternateWebLink(Utils.optString(messageProcessingLogElement, "AlternateWebLink"));
         messageProcessingLog.setLogStart(CpiApiUtils.parseDate(Utils.optString(messageProcessingLogElement, "LogStart")));
         messageProcessingLog.setLogEnd(CpiApiUtils.parseDate(Utils.optString(messageProcessingLogElement, "LogEnd")));
+        messageProcessingLog.setCustomHeaderProperties(CpiApiUtils.parseCustomerHeaderProperties(messageProcessingLogElement));
         return messageProcessingLog;
     }
 }
