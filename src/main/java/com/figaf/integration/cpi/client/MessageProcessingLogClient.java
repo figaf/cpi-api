@@ -10,6 +10,7 @@ import com.figaf.integration.cpi.response_parser.MessageProcessingLogParser;
 import com.figaf.integration.cpi.utils.CpiApiUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -19,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -241,8 +243,10 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                     String.format(API_MSG_PROC_LOGS_ID, messageGuid),
                     response -> new JSONObject(response).getJSONObject("d")
             );
-            MessageProcessingLog messageProcessingLog = MessageProcessingLogParser.fillMessageProcessingLog(messageProcessingLogsObject);
-            return messageProcessingLog;
+            return MessageProcessingLogParser.fillMessageProcessingLog(messageProcessingLogsObject);
+        } catch (HttpClientErrorException.NotFound ex) {
+            log.error("Message processing log is not found by {}: {}", messageGuid, ExceptionUtils.getMessage(ex));
+            return null;
         } catch (Exception ex) {
             log.error("Error occurred while collecting message processing log: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while collecting message processing log : " + ex.getMessage(), ex);
