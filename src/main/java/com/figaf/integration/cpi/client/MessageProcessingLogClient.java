@@ -378,7 +378,11 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                     response -> response
             );
 
-            return responseText.getBytes(StandardCharsets.UTF_8);
+            if (StringUtils.isNotBlank(responseText)) {
+                return responseText.getBytes(StandardCharsets.UTF_8);
+            } else {
+                return null;
+            }
         } catch (Exception ex) {
             throw new ClientIntegrationException(ex);
         }
@@ -393,7 +397,12 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                     String.format(API_MSG_STORE_ENTRIES_VALUE, attachmentId),
                     response -> response
             );
-            return responseText.getBytes(StandardCharsets.UTF_8);
+
+            if (StringUtils.isNotBlank(responseText)) {
+                return responseText.getBytes(StandardCharsets.UTF_8);
+            } else {
+                return null;
+            }
         } catch (Exception ex) {
             throw new ClientIntegrationException(ex);
         }
