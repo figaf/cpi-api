@@ -58,14 +58,14 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
-    public List<MessageProcessingLog> getMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
-        log.debug("#getMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
+    public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
+        log.debug("#getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
         FastDateFormat dateFormat = FastDateFormat.getInstance(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS",
                 TimeZone.getTimeZone("GMT")
         );
         String resourcePath = String.format(API_MSG_PROC_LOGS,
-                String.format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s'",
+                String.format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
                         integrationFlowName,
                         dateFormat.format(startDate),
                         dateFormat.format(DateUtils.addMinutes(new Date(), -55))
@@ -94,6 +94,20 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         return getMessageProcessingLogs(
                 requestContext,
                 String.format(resourcePath, StringUtils.join(params, " or "))
+        );
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIds(RequestContext requestContext, Set<String> correlationIds) {
+        log.debug("#getMessageProcessingLogsByCorrelationIds(RequestContext requestContext, Set<String> correlationIds): {}, {}", requestContext, correlationIds);
+
+        List<String> params = new ArrayList<>();
+        for (String correlationId : correlationIds) {
+            params.add(String.format("CorrelationId eq '%s'", correlationId));
+        }
+
+        return getMessageProcessingLogs(
+                requestContext,
+                String.format(API_MSG_PROC_LOGS, StringUtils.join(params, " or "))
         );
     }
 
