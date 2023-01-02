@@ -106,14 +106,14 @@ public class CpiIntegrationDocumentClient extends BaseClient {
         httpHeaders.add(X_CSRF_TOKEN, userApiCsrfToken);
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
-        ResponseEntity<String> deleteDocumentResp = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(httpHeaders), String.class);
-        if (NO_CONTENT.equals(deleteDocumentResp.getStatusCode())) {
-            log.debug(deleteDocumentResp.getBody());
+        ResponseEntity<String> deleteDocumentResponse = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(httpHeaders), String.class);
+        if (NO_CONTENT.equals(deleteDocumentResponse.getStatusCode())) {
+            log.debug(deleteDocumentResponse.getBody());
         } else {
             throw new ClientIntegrationException(
                     String.format("Couldn't execute delete document:%n Code: %d, Message: %s",
-                            deleteDocumentResp.getStatusCode().value(),
-                            deleteDocumentResp.getBody()
+                            deleteDocumentResponse.getStatusCode().value(),
+                            deleteDocumentResponse.getBody()
                     )
             );
         }
@@ -151,15 +151,15 @@ public class CpiIntegrationDocumentClient extends BaseClient {
             httpHeaders.add(X_CSRF_TOKEN, userApiCsrfToken);
             httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
-            org.springframework.http.HttpEntity<UrlUploadRequest> requestEntity = new org.springframework.http.HttpEntity<>(urlUploadRequest, httpHeaders);
-            ResponseEntity<String> uploadUrlResp = restTemplate.postForEntity(uploadUrlUri, requestEntity, String.class);
-            if (CREATED.equals(uploadUrlResp.getStatusCode())) {
-                log.debug(uploadUrlResp.getBody());
+            org.springframework.http.HttpEntity<UrlUploadRequest> urlUploadRequestEntity = new org.springframework.http.HttpEntity<>(urlUploadRequest, httpHeaders);
+            ResponseEntity<String> uploadUrlResponse = restTemplate.postForEntity(uploadUrlUri, urlUploadRequestEntity, String.class);
+            if (CREATED.equals(uploadUrlResponse.getStatusCode())) {
+                log.debug(uploadUrlResponse.getBody());
             } else {
                 throw new ClientIntegrationException(
                         String.format("Couldn't execute Url upload:%n Code: %d, Message: %s",
-                                uploadUrlResp.getStatusCode().value(),
-                                uploadUrlResp.getBody()
+                                uploadUrlResponse.getStatusCode().value(),
+                                uploadUrlResponse.getBody()
                         )
                 );
             }
@@ -190,9 +190,9 @@ public class CpiIntegrationDocumentClient extends BaseClient {
             String fileMetaData = objectWriter.writeValueAsString(fileUploadRequest.getFileMetaData());
             entityBuilder.addTextBody("simpleUploader-data", fileMetaData, ContentType.APPLICATION_JSON);
 
-            org.apache.http.HttpEntity entity = entityBuilder.build();
+            org.apache.http.HttpEntity uploadFileRequestEntity = entityBuilder.build();
             uploadFileRequest.setHeader(X_CSRF_TOKEN, userApiCsrfToken);
-            uploadFileRequest.setEntity(entity);
+            uploadFileRequest.setEntity(uploadFileRequestEntity);
             uploadFileResponse = httpClient.execute(uploadFileRequest);
 
             if (uploadFileResponse.getStatusLine().getStatusCode() != 201) {
