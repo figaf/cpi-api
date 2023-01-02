@@ -200,8 +200,8 @@ public class CpiIntegrationDocumentClient extends BaseClient {
             }
 
         } catch (Exception ex) {
-            log.error("Error occurred while file document " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while file document: " + ex.getMessage(), ex);
+            log.error("Error occurred while file uploading " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while file uploading: " + ex.getMessage(), ex);
         } finally {
             HttpClientUtils.closeQuietly(uploadFileResponse);
         }
