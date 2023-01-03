@@ -35,13 +35,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 class CpiIntegrationDocumentClientTest {
 
-    private static CpiIntegrationDocumentClient cpiIntegrationFlowClient;
+    private static CpiIntegrationDocumentClient cpiIntegrationDocumentClient;
     private static PackageUtils packageUtils;
 
     @BeforeAll
     static void setUp() {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiIntegrationFlowClient = new CpiIntegrationDocumentClient(new HttpClientsFactory());
+        cpiIntegrationDocumentClient = new CpiIntegrationDocumentClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
 
     }
@@ -54,7 +54,7 @@ class CpiIntegrationDocumentClientTest {
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
         String documentType = "FILE_DOCUMENT";
 
-        List<CpiIntegrationDocument> cpiIntegrationDocuments = cpiIntegrationFlowClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
+        List<CpiIntegrationDocument> cpiIntegrationDocuments = cpiIntegrationDocumentClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
         File testFileToUpload = ResourceUtils.getFile("classpath:upload-test-files-to-sap-cpi-package/testUploadFileToPackage.png");
         Optional<CpiIntegrationDocument> cpiIntegrationDocument = cpiIntegrationDocuments.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getFileName().equals(testFileToUpload.getName())).findFirst();
         assertThat(cpiIntegrationDocument).as("file %s already exists", cpiIntegrationDocument.orElse(new CpiIntegrationDocument()).getFileName()).isEmpty();
@@ -75,15 +75,15 @@ class CpiIntegrationDocumentClientTest {
         }
 
         FileUploadRequest fileUploadRequest = FileUploadRequest.builder().file(byteArrayOutputStream.toByteArray()).fileMetaData(fileMetaData).build();
-        cpiIntegrationFlowClient.uploadFile(requestContext, integrationPackage.getExternalId(), fileUploadRequest);
+        cpiIntegrationDocumentClient.uploadFile(requestContext, integrationPackage.getExternalId(), fileUploadRequest);
 
-        List<CpiIntegrationDocument> cpiIntegrationDocumentsAfterCreation = cpiIntegrationFlowClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
+        List<CpiIntegrationDocument> cpiIntegrationDocumentsAfterCreation = cpiIntegrationDocumentClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
         Optional<CpiIntegrationDocument> cpiIntegrationDocumentAfterCreation = cpiIntegrationDocumentsAfterCreation.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getFileName().equals(testFileToUpload.getName())).findFirst();
         assertThat(cpiIntegrationDocumentAfterCreation).as("file %s wasn't created", cpiIntegrationDocumentAfterCreation.get().getFileName()).isNotEmpty();
 
-        cpiIntegrationFlowClient.deleteDocument(requestContext, documentType, cpiIntegrationDocumentAfterCreation.get().getTechnicalName());
+        cpiIntegrationDocumentClient.deleteDocument(requestContext, documentType, cpiIntegrationDocumentAfterCreation.get().getTechnicalName());
 
-        List<CpiIntegrationDocument> cpiIntegrationDocumentsAfterDeletion = cpiIntegrationFlowClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
+        List<CpiIntegrationDocument> cpiIntegrationDocumentsAfterDeletion = cpiIntegrationDocumentClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
         Optional<CpiIntegrationDocument> cpiIntegrationDocumentAfterDeletion = cpiIntegrationDocumentsAfterDeletion.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getFileName().equals(testFileToUpload.getName())).findFirst();
         assertThat(cpiIntegrationDocumentAfterDeletion).as("file %s exists after deletion", cpiIntegrationDocumentAfterDeletion.orElse(new CpiIntegrationDocument()).getFileName()).isEmpty();
     }
@@ -96,21 +96,21 @@ class CpiIntegrationDocumentClientTest {
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
         String documentType = "URL_DOCUMENT";
 
-        List<CpiIntegrationDocument> cpiIntegrationDocuments = cpiIntegrationFlowClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
+        List<CpiIntegrationDocument> cpiIntegrationDocuments = cpiIntegrationDocumentClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
         AdditionalAttributes additionalAttributes = AdditionalAttributes.builder().url(Lists.newArrayList("https://www.google.com")).build();
         UrlUploadRequest urlUploadRequest = UrlUploadRequest.builder().type("Url").name("URL").description("url description").additionalAttrs(additionalAttributes).build();
         Optional<CpiIntegrationDocument> cpiIntegrationDocument = cpiIntegrationDocuments.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getDisplayedName().equals(urlUploadRequest.getName())).findFirst();
         assertThat(cpiIntegrationDocument).as("url %s already exists", cpiIntegrationDocument.orElse(new CpiIntegrationDocument()).getDisplayedName()).isEmpty();
 
-        cpiIntegrationFlowClient.uploadUrl(requestContext, integrationPackage.getExternalId(), urlUploadRequest);
+        cpiIntegrationDocumentClient.uploadUrl(requestContext, integrationPackage.getExternalId(), urlUploadRequest);
 
-        List<CpiIntegrationDocument> cpiIntegrationDocumentsAfterCreation = cpiIntegrationFlowClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
+        List<CpiIntegrationDocument> cpiIntegrationDocumentsAfterCreation = cpiIntegrationDocumentClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
         Optional<CpiIntegrationDocument> cpiIntegrationDocumentAfterCreation = cpiIntegrationDocumentsAfterCreation.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getDisplayedName().equals(urlUploadRequest.getName())).findFirst();
         assertThat(cpiIntegrationDocumentAfterCreation).as("url %s wasn't created", cpiIntegrationDocumentAfterCreation.get().getDisplayedName()).isNotEmpty();
 
-        cpiIntegrationFlowClient.deleteDocument(requestContext, documentType, cpiIntegrationDocumentAfterCreation.get().getTechnicalName());
+        cpiIntegrationDocumentClient.deleteDocument(requestContext, documentType, cpiIntegrationDocumentAfterCreation.get().getTechnicalName());
 
-        List<CpiIntegrationDocument> cpiIntegrationDocumentsAfterDeletion = cpiIntegrationFlowClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
+        List<CpiIntegrationDocument> cpiIntegrationDocumentsAfterDeletion = cpiIntegrationDocumentClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
         Optional<CpiIntegrationDocument> cpiIntegrationDocumentAfterDeletion = cpiIntegrationDocumentsAfterDeletion.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getDisplayedName().equals(urlUploadRequest.getName())).findFirst();
         assertThat(cpiIntegrationDocumentAfterDeletion).as("url %s exists after deletion", cpiIntegrationDocumentAfterDeletion.orElse(new CpiIntegrationDocument()).getDisplayedName()).isEmpty();
 
