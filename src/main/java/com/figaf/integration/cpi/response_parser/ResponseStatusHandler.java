@@ -15,7 +15,7 @@ public class ResponseStatusHandler {
             case 200:
             case 201:
             case 202: {
-                log.debug("operation {} was successful {}", operation, responseEntity.getBody());
+                log.debug("operation {} was successful, responseBody {}", operation, responseEntity.getBody());
                 break;
             }
             default: {
