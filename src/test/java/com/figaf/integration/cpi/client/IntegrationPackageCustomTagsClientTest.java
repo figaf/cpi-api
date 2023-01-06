@@ -47,7 +47,7 @@ class IntegrationPackageCustomTagsClientTest {
         Optional<CustomTag> tag = customTags.stream().filter(customTag -> customTag.getName().equalsIgnoreCase(nameOfTag)).findFirst();
         String customTagNotFoundError = String.format("custom tag %s is not present", nameOfTag);
         assertThat(tag).as(customTagNotFoundError).isNotEmpty();
-        String customTagFailedToUpdateError = String.format("custom tag %s didnt update with new value %s", nameOfTag, delimiterSeparatedTagValues);
+        String customTagFailedToUpdateError = String.format("custom tag %s wasn't updated with new value %s", nameOfTag, delimiterSeparatedTagValues);
         assertThat(tag.get().getValue()).as(customTagFailedToUpdateError).isEqualTo(delimiterSeparatedTagValues);
     }
 }
