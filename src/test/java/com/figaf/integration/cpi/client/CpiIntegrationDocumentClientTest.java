@@ -11,7 +11,6 @@ import com.figaf.integration.cpi.entity.cpi_api_package.document.UrlUploadReques
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiIntegrationDocument;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import com.figaf.integration.cpi.utils.PackageUtils;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.assertj.core.util.Lists;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
-import static com.figaf.integration.cpi.utils.RestApiUtils.API_TEST_DUMMY_REST_API_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -43,7 +41,6 @@ class CpiIntegrationDocumentClientTest {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
         cpiIntegrationDocumentClient = new CpiIntegrationDocumentClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
-
     }
 
     @ParameterizedTest
@@ -55,10 +52,10 @@ class CpiIntegrationDocumentClientTest {
         String documentType = "FILE_DOCUMENT";
 
         List<CpiIntegrationDocument> cpiIntegrationDocuments = cpiIntegrationDocumentClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
+
         File testFileToUpload = ResourceUtils.getFile("classpath:upload-test-files-to-sap-cpi-package/testUploadFileToPackage.png");
         Optional<CpiIntegrationDocument> cpiIntegrationDocument = cpiIntegrationDocuments.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getFileName().equals(testFileToUpload.getName())).findFirst();
         assertThat(cpiIntegrationDocument).as("file %s already exists", cpiIntegrationDocument.orElse(new CpiIntegrationDocument()).getFileName()).isEmpty();
-
         FileMetaData fileMetaData = FileMetaData
                 .builder()
                 .name(FilenameUtils.removeExtension(testFileToUpload.getName()))

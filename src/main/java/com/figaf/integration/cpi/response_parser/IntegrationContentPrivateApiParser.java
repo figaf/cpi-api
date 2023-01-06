@@ -9,12 +9,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.*;
+
+import static com.figaf.integration.cpi.utils.CpiApiUtils.loadXMLFromString;
 
 /**
  * @author Arsenii Istlentev
@@ -70,17 +68,6 @@ public class IntegrationContentPrivateApiParser {
                 String paramValue = childNode.getTextContent();
                 errorMessages.add(paramValue);
             }
-        }
-    }
-
-    private static Document loadXMLFromString(String xml) {
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            return builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception ex) {
-            throw new ClientIntegrationException(String.format("Can't load XML from string %s: ", xml), ex);
         }
     }
 
