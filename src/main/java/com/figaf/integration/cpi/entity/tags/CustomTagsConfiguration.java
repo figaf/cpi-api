@@ -1,14 +1,12 @@
 package com.figaf.integration.cpi.entity.tags;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Builder
 @EqualsAndHashCode
+@ToString
 public class CustomTagsConfiguration {
 
     private String tagName;
