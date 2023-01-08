@@ -23,8 +23,13 @@ import static com.figaf.integration.cpi.utils.CpiApiUtils.loadXMLFromString;
 @Slf4j
 public class IntegrationPackageCustomTagsClient extends BaseClient {
 
-    private static final String API_UPDATE_CUSTOM_TAGS_IN_PACKAGE_URL = "/api/v1/IntegrationPackages('%s')/$links/CustomTags('%s')";
-    private static final String API_GET_CUSTOM_TAGS_OF_PACKAGE_URL = "/api/v1/IntegrationPackages('%s')/CustomTags";
+    private static final String API_UPDATE_CUSTOM_TAGS_IN_PACKAGE = "/api/v1/IntegrationPackages('%s')/$links/CustomTags('%s')";
+    private static final String API_GET_CUSTOM_TAGS_OF_PACKAGE = "/api/v1/IntegrationPackages('%s')/CustomTags";
+    private static final String VALUE = "Value";
+    private static final String UPDATE_CUSTOM_TAGS_IN_INTEGRATION_PACKAGE_OPERATION = "updateCustomTagsInIntegrationPackage";
+    private static final String GET_CUSTOM_TAGS_OF_INTEGRATION_PACKAGE_OPERATION = "getCustomTagsOfIntegrationPackage";
+    private static final String PROPERTIES = "m:properties";
+    private static final String UPDATE_CUSTOM_TAGS_IN_INTEGRATION_PACKAGE_MESSAGE = "Tag with name {} has been updated with new value(s) {}";
 
     public IntegrationPackageCustomTagsClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -36,8 +41,8 @@ public class IntegrationPackageCustomTagsClient extends BaseClient {
             String nameOfTag,
             String delimiterSeparatedTagValues) {
         log.debug("start updateCustomTags");
-        JSONObject requestUpdateTag = new JSONObject().put("Value", delimiterSeparatedTagValues);
-        String updateCustomTagsUrl = String.format(API_UPDATE_CUSTOM_TAGS_IN_PACKAGE_URL, packageId, nameOfTag);
+        JSONObject requestUpdateTag = new JSONObject().put(VALUE, delimiterSeparatedTagValues);
+        String updateCustomTagsUrl = String.format(API_UPDATE_CUSTOM_TAGS_IN_PACKAGE, packageId, nameOfTag);
 
         executeMethodPublicApi(
                 requestContext,
@@ -45,8 +50,8 @@ public class IntegrationPackageCustomTagsClient extends BaseClient {
                 requestUpdateTag.toString(),
                 HttpMethod.PUT,
                 responseEntity -> {
-                    ResponseStatusHandler.handleResponseStatus(responseEntity,"updateCustomTagsIntegrationPackage");
-                    log.debug("Tag with name {} has been updated with new value(s) {}", nameOfTag, delimiterSeparatedTagValues);
+                    ResponseStatusHandler.handleResponseStatus(responseEntity, UPDATE_CUSTOM_TAGS_IN_INTEGRATION_PACKAGE_OPERATION);
+                    log.debug(UPDATE_CUSTOM_TAGS_IN_INTEGRATION_PACKAGE_MESSAGE, nameOfTag, delimiterSeparatedTagValues);
                     return null;
                 }
         );
@@ -54,22 +59,22 @@ public class IntegrationPackageCustomTagsClient extends BaseClient {
 
     public List<CustomTag> getCustomTags(RequestContext requestContext, String packageId) {
         log.debug("start getCustomTags");
-        String getCustomTagsUrl = String.format(API_GET_CUSTOM_TAGS_OF_PACKAGE_URL, packageId);
+        String getCustomTagsUrl = String.format(API_GET_CUSTOM_TAGS_OF_PACKAGE, packageId);
         return executeMethodPublicApi(
                 requestContext,
                 getCustomTagsUrl,
                 "",
                 HttpMethod.GET,
                 responseEntity -> {
-                    ResponseStatusHandler.handleResponseStatus(responseEntity,"getCustomTagsInIntegrationPackage");
-                    return parseCustomTagEntries(responseEntity.getBody());
+                    ResponseStatusHandler.handleResponseStatus(responseEntity, GET_CUSTOM_TAGS_OF_INTEGRATION_PACKAGE_OPERATION);
+                    return parseCustomTagsFromResponse(responseEntity.getBody());
                 }
         );
     }
 
-    private List<CustomTag> parseCustomTagEntries(String xml) {
+    private List<CustomTag> parseCustomTagsFromResponse(String xml) {
         Document document = loadXMLFromString(xml);
-        NodeList entries = document.getElementsByTagName("m:properties");
+        NodeList entries = document.getElementsByTagName(PROPERTIES);
         return IntStream.range(0, entries.getLength()).mapToObj(index -> {
             String tagName = Optional.ofNullable(entries.item(index).getFirstChild()).isPresent() ? entries.item(index).getFirstChild().getTextContent() : "";
             String tagValue = Optional.ofNullable(entries.item(index).getLastChild()).isPresent() ? entries.item(index).getLastChild().getTextContent() : "";
