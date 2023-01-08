@@ -6,7 +6,7 @@ import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.tags.CustomTagsConfiguration;
 import com.figaf.integration.cpi.entity.tags.RetrieveCustomTagsResponse;
-import com.figaf.integration.cpi.response_parser.ResponseStatusHandler;
+import com.figaf.integration.cpi.client.response.ResponseStatusHandler;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;

@@ -4,7 +4,7 @@ import com.figaf.integration.common.client.BaseClient;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.tags.CustomTag;
-import com.figaf.integration.cpi.response_parser.ResponseStatusHandler;
+import com.figaf.integration.cpi.client.response.ResponseStatusHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.http.HttpMethod;

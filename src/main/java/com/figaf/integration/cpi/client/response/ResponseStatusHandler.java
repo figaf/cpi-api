@@ -1,4 +1,4 @@
-package com.figaf.integration.cpi.response_parser;
+package com.figaf.integration.cpi.client.response;
 
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import lombok.AccessLevel;
