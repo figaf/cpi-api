@@ -1,13 +1,15 @@
 package com.figaf.integration.cpi.entity.tags;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+
+import java.io.Serializable;
 
 @Getter
 @Setter
 @Builder
-public class CustomTag {
+@NoArgsConstructor
+@AllArgsConstructor
+public class CustomTag implements Serializable {
 
     private String name;
     private String value;
