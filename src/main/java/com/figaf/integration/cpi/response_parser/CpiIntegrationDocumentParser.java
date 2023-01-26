@@ -37,7 +37,7 @@ public class CpiIntegrationDocumentParser {
             document.setCreatedBy(Utils.optString(documentElement, "CreatedBy"));
             document.setModificationDate(CpiApiUtils.parseDate(Utils.optString(documentElement, "ModifiedAt")));
             document.setModifiedBy(documentElement.getString("ModifiedBy"));
-            document.setDescription(documentElement.getString("Description"));
+            document.setDescription(Utils.optString(documentElement, "Description"));
 
             switch (documentType) {
                 case "FILE_DOCUMENT":

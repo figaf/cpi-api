@@ -91,13 +91,13 @@ public class IntegrationPackageClient extends BaseClient {
         log.debug("#deletePackage(String packageName, RequestContext requestContext): {}, {}", packageName, requestContext);
 
         executeMethod(
-            requestContext,
-            API_PACKAGES,
-            format(API_PACKAGES_WITH_NAME, packageName),
-            (url, token, restTemplateWrapper) -> {
-                deletePackage(packageName, url, token, restTemplateWrapper.getRestTemplate());
-                return null;
-            }
+                requestContext,
+                API_PACKAGES,
+                format(API_PACKAGES_WITH_NAME, packageName),
+                (url, token, restTemplateWrapper) -> {
+                    deletePackage(packageName, url, token, restTemplateWrapper.getRestTemplate());
+                    return null;
+                }
         );
     }
 
@@ -182,6 +182,11 @@ public class IntegrationPackageClient extends BaseClient {
         requestBody.put("Version", request.getVersion());
         requestBody.put("Category", "Integration");
         requestBody.put("SupportedPlatforms", "SAP HANA Cloud Integration");
+        requestBody.put("Products", request.getProduct());
+        requestBody.put("Industries", request.getIndustry());
+        requestBody.put("LineOfBusiness", request.getLineOfBusiness());
+        requestBody.put("Keywords", request.getKeyword());
+        requestBody.put("Countries", request.getCountry());
         return requestBody;
     }
 
@@ -250,10 +255,10 @@ public class IntegrationPackageClient extends BaseClient {
     }
 
     private void deletePackage(
-        String packageName,
-        String url,
-        String token,
-        RestTemplate restTemplate
+            String packageName,
+            String url,
+            String token,
+            RestTemplate restTemplate
     ) {
         HttpHeaders httpHeaders = createHttpHeadersWithCSRFToken(token);
         HttpEntity<Void> httpEntity = new HttpEntity<>(httpHeaders);
@@ -261,10 +266,10 @@ public class IntegrationPackageClient extends BaseClient {
 
         if (!NO_CONTENT.equals(responseEntity.getStatusCode())) {
             throw new ClientIntegrationException(format(
-                "Couldn't delete package %s: Code: %d, Message: %s",
-                packageName,
-                responseEntity.getStatusCode().value(),
-                responseEntity.getBody())
+                    "Couldn't delete package %s: Code: %d, Message: %s",
+                    packageName,
+                    responseEntity.getStatusCode().value(),
+                    responseEntity.getBody())
             );
         }
     }
