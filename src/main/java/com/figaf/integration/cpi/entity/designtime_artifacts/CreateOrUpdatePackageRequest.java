@@ -16,4 +16,9 @@ public class CreateOrUpdatePackageRequest {
     private String shortDescription;
     private String vendor;
     private String version;
+    private String keyword;
+    private String product;
+    private String industry;
+    private String country;
+    private String lineOfBusiness;
 }
