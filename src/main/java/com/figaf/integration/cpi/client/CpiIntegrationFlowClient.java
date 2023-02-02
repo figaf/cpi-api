@@ -33,8 +33,8 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     private static final String API_DEPLOY_IFLOW = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY";
     private static final String API_SET_TRACE_LOG_LEVEL_FOR_IFLOWS = "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentSetMplLogLevelCommand";
 
-    public CpiIntegrationFlowClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiIntegrationFlowClient( HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getIFlowsByPackage(

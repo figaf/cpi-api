@@ -20,8 +20,8 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
     private static final String API_UPLOAD_SCRIPT_COLLECTION = "/itspaces/api/1.0/workspace/%s/scriptcollections/?isImport=true";
     private static final String API_DEPLOY_SCRIPT_COLLECTION = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/scriptcollections/%s?action=DEPLOY";
 
-    public CpiScriptCollectionClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiScriptCollectionClient( HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getScriptCollectionsByPackage(

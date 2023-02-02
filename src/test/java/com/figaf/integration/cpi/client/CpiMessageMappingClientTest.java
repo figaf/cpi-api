@@ -36,7 +36,7 @@ class CpiMessageMappingClientTest {
     @BeforeAll
     static void setUp() {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiMessageMappingClient = new CpiMessageMappingClient(integrationPackageClient, new HttpClientsFactory());
+        cpiMessageMappingClient = new CpiMessageMappingClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
         messageMappingUtils = new MessageMappingUtils(packageUtils, cpiMessageMappingClient);
     }
@@ -49,10 +49,10 @@ class CpiMessageMappingClientTest {
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
 
         List<CpiArtifact> messageMapping = cpiMessageMappingClient.getMessageMappingsByPackage(
-            requestContext,
-            API_TEST_PACKAGE_NAME,
-            API_TEST_PACKAGE_NAME,
-            integrationPackage.getExternalId()
+                requestContext,
+                API_TEST_PACKAGE_NAME,
+                API_TEST_PACKAGE_NAME,
+                integrationPackage.getExternalId()
         );
         assertThat(messageMapping).isNotEmpty();
     }
@@ -65,9 +65,9 @@ class CpiMessageMappingClientTest {
         assertThat(messageMapping).as("message mapping %s wasn't found", API_TEST_MESSAGE_MAPPING_NAME).isNotNull();
 
         byte[] messageMappingPayload = cpiMessageMappingClient.downloadMessageMapping(
-            requestContext,
-            messageMapping.getPackageExternalId(),
-            messageMapping.getExternalId()
+                requestContext,
+                messageMapping.getPackageExternalId(),
+                messageMapping.getExternalId()
         );
         assertThat(messageMappingPayload).isNotEmpty();
     }
@@ -95,15 +95,15 @@ class CpiMessageMappingClientTest {
 
         String messageMappingExternalId = messageMapping.getExternalId();
         byte[] payload = IOUtils.toByteArray(
-            this.getClass().getClassLoader().getResource("client/FigafApiTestDummyMessageMappingUpdated.zip")
+                this.getClass().getClassLoader().getResource("client/FigafApiTestDummyMessageMappingUpdated.zip")
         );
         UpdateMessageMappingRequest updateMessageMappingRequest = UpdateMessageMappingRequest.builder()
-            .id(messageMappingExternalId)
-            .name(API_TEST_DUMMY_MESSAGE_MAPPING_NAME)
-            .description("Message Mapping for api tests")
-            .packageExternalId(messageMapping.getPackageExternalId())
-            .bundledModel(payload)
-            .build();
+                .id(messageMappingExternalId)
+                .name(API_TEST_DUMMY_MESSAGE_MAPPING_NAME)
+                .description("Message Mapping for api tests")
+                .packageExternalId(messageMapping.getPackageExternalId())
+                .bundledModel(payload)
+                .build();
         cpiMessageMappingClient.updateMessageMapping(requestContext, updateMessageMappingRequest);
 
         messageMappingUtils.deleteMessageMapping(requestContext, messageMapping);
@@ -120,9 +120,9 @@ class CpiMessageMappingClientTest {
 
         String messageMappingExternalId = messageMapping.getExternalId();
         String taskId = cpiMessageMappingClient.deployMessageMapping(
-            requestContext,
-            messageMapping.getPackageExternalId(),
-            messageMappingExternalId
+                requestContext,
+                messageMapping.getPackageExternalId(),
+                messageMappingExternalId
         );
         assertThat(taskId).isNotBlank();
 

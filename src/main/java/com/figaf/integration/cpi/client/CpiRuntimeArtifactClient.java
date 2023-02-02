@@ -52,11 +52,8 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     private static final String FILE_NAME = "model.zip";
     private static final String X_CSRF_TOKEN = "X-CSRF-Token";
 
-    protected final IntegrationPackageClient integrationPackageClient;
-
-    CpiRuntimeArtifactClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
+    CpiRuntimeArtifactClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
-        this.integrationPackageClient = integrationPackageClient;
     }
 
     public String checkDeploymentStatus(RequestContext requestContext, String taskId) {

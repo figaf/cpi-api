@@ -37,8 +37,8 @@ class IFlowResourcesClientTest {
         iFlowResourcesClient = new IFlowResourcesClient(new HttpClientsFactory());
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
         iFlowUtils = new IFlowUtils(
-            new PackageUtils(integrationPackageClient),
-            new CpiIntegrationFlowClient(integrationPackageClient, new HttpClientsFactory())
+                new PackageUtils(integrationPackageClient),
+                new CpiIntegrationFlowClient(new HttpClientsFactory())
         );
     }
 
@@ -50,9 +50,9 @@ class IFlowResourcesClientTest {
         assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_DUMMY_IFLOW_NAME).isNotNull();
 
         ArtifactResources allResources = iFlowResourcesClient.getIFlowResources(
-            requestContext,
-            iFlow.getPackageExternalId(),
-            iFlow.getExternalId()
+                requestContext,
+                iFlow.getPackageExternalId(),
+                iFlow.getExternalId()
         );
         Set<ArtifactResource> expectedResources = getExpectedResources();
         Set<ArtifactReference> expectedReferences = getExpectedReferences();
@@ -71,49 +71,49 @@ class IFlowResourcesClientTest {
     private Set<ArtifactResource> getExpectedResources() {
         Set<ArtifactResource> expectedResources = new HashSet<>();
         expectedResources.add(
-            ArtifactResource.builder()
-                .resourceName("FigafApiTestDummyMessageMapping")
-                .resourceLocation("mapping")
-                .resourceType("mmap")
-                .resourceExtension("mmap")
-                .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_MAPPINGS}")
-                .build()
+                ArtifactResource.builder()
+                        .resourceName("FigafApiTestDummyMessageMapping")
+                        .resourceLocation("mapping")
+                        .resourceType("mmap")
+                        .resourceExtension("mmap")
+                        .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_MAPPINGS}")
+                        .build()
         );
         expectedResources.add(
-            ArtifactResource.builder()
-                .resourceName("receiver-default")
-                .resourceLocation("mapping")
-                .resourceType("xslt")
-                .resourceExtension("xslt")
-                .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_MAPPINGS}")
-                .build()
+                ArtifactResource.builder()
+                        .resourceName("receiver-default")
+                        .resourceLocation("mapping")
+                        .resourceType("xslt")
+                        .resourceExtension("xslt")
+                        .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_MAPPINGS}")
+                        .build()
         );
         expectedResources.add(
-            ArtifactResource.builder()
-                .resourceName("firstGroovy")
-                .resourceLocation("script")
-                .resourceType("groovy")
-                .resourceExtension("groovy")
-                .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_SCRIPTS}")
-                .build()
+                ArtifactResource.builder()
+                        .resourceName("firstGroovy")
+                        .resourceLocation("script")
+                        .resourceType("groovy")
+                        .resourceExtension("groovy")
+                        .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_SCRIPTS}")
+                        .build()
         );
         expectedResources.add(
-            ArtifactResource.builder()
-                .resourceName("Firstjs")
-                .resourceLocation("script")
-                .resourceType("js")
-                .resourceExtension("js")
-                .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_SCRIPTS}")
-                .build()
+                ArtifactResource.builder()
+                        .resourceName("Firstjs")
+                        .resourceLocation("script")
+                        .resourceType("js")
+                        .resourceExtension("js")
+                        .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_SCRIPTS}")
+                        .build()
         );
         expectedResources.add(
-            ArtifactResource.builder()
-                .resourceName("Address")
-                .resourceLocation("xsd")
-                .resourceType("xsd")
-                .resourceExtension("xsd")
-                .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_SCHEMAS}")
-                .build()
+                ArtifactResource.builder()
+                        .resourceName("Address")
+                        .resourceLocation("xsd")
+                        .resourceType("xsd")
+                        .resourceExtension("xsd")
+                        .resourceCategory("{com.sap.it.spc.myproj.i18n>CATEGORY_SCHEMAS}")
+                        .build()
         );
         return expectedResources;
     }
@@ -121,26 +121,26 @@ class IFlowResourcesClientTest {
     private Set<ArtifactReference> getExpectedReferences() {
         Set<ArtifactReference> expectedReferences = new HashSet<>();
         expectedReferences.add(
-            ArtifactReference.builder()
-                .packageName("FigafApiTestPackage")
-                .packageTechnicalName("FigafApiTestPackage")
-                .type("ScriptCollection")
-                .resourceTypes(new Object[0])
-                .resources(new Object[0])
-                .name("FigafApiTestScriptCollection")
-                .bundleSymbolicName("FigafApiTestScriptCollection")
-                .build()
+                ArtifactReference.builder()
+                        .packageName("FigafApiTestPackage")
+                        .packageTechnicalName("FigafApiTestPackage")
+                        .type("ScriptCollection")
+                        .resourceTypes(new Object[0])
+                        .resources(new Object[0])
+                        .name("FigafApiTestScriptCollection")
+                        .bundleSymbolicName("FigafApiTestScriptCollection")
+                        .build()
         );
         expectedReferences.add(
-            ArtifactReference.builder()
-                .packageName("FigafApiTestPackage")
-                .packageTechnicalName("FigafApiTestPackage")
-                .type("MessageMapping")
-                .resourceTypes(new Object[0])
-                .resources(new Object[0])
-                .name("FigafApiTestMessageMapping")
-                .bundleSymbolicName("FigafApiTestMessageMapping")
-                .build()
+                ArtifactReference.builder()
+                        .packageName("FigafApiTestPackage")
+                        .packageTechnicalName("FigafApiTestPackage")
+                        .type("MessageMapping")
+                        .resourceTypes(new Object[0])
+                        .resources(new Object[0])
+                        .name("FigafApiTestMessageMapping")
+                        .bundleSymbolicName("FigafApiTestMessageMapping")
+                        .build()
         );
         return expectedReferences;
     }

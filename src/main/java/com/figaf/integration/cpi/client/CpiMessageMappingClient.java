@@ -20,8 +20,8 @@ public class CpiMessageMappingClient extends CpiRuntimeArtifactClient {
     private static final String API_UPLOAD_MESSAGE_MAPPING = "/itspaces/api/1.0/workspace/%s/messagemappings/";
     private static final String API_DEPLOY_MESSAGE_MAPPING = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/messagemappings/%s?webdav=DEPLOY";
 
-    public CpiMessageMappingClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiMessageMappingClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getMessageMappingsByPackage(

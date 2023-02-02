@@ -34,7 +34,7 @@ class CpiRestApiClientTest {
     @BeforeAll
     static void setUp() {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiRestApiClient = new CpiRestApiClient(integrationPackageClient, new HttpClientsFactory());
+        cpiRestApiClient = new CpiRestApiClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
         restApiUtils = new RestApiUtils(packageUtils, cpiRestApiClient);
     }
@@ -47,10 +47,10 @@ class CpiRestApiClientTest {
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
 
         List<CpiArtifact> restApis = cpiRestApiClient.getRestApiObjectsByPackage(
-            requestContext,
-            API_TEST_PACKAGE_NAME,
-            API_TEST_PACKAGE_NAME,
-            integrationPackage.getExternalId()
+                requestContext,
+                API_TEST_PACKAGE_NAME,
+                API_TEST_PACKAGE_NAME,
+                integrationPackage.getExternalId()
         );
         assertThat(restApis).isNotEmpty();
     }
@@ -63,9 +63,9 @@ class CpiRestApiClientTest {
         assertThat(restApi).as("rest api %s wasn't found", API_TEST_REST_API_NAME).isNotNull();
 
         byte[] restApiPayload = cpiRestApiClient.downloadRestApi(
-            requestContext,
-            restApi.getPackageExternalId(),
-            restApi.getExternalId()
+                requestContext,
+                restApi.getPackageExternalId(),
+                restApi.getExternalId()
         );
         assertThat(restApiPayload).isNotEmpty();
     }
@@ -93,15 +93,15 @@ class CpiRestApiClientTest {
 
         String restApiExternalId = restApi.getExternalId();
         byte[] payload = IOUtils.toByteArray(
-            this.getClass().getClassLoader().getResource("client/FigafApiTestDummyRestApiUpdated.zip")
+                this.getClass().getClassLoader().getResource("client/FigafApiTestDummyRestApiUpdated.zip")
         );
         UpdateRestApiRequest updateRestApiRequest = UpdateRestApiRequest.builder()
-            .id(restApiExternalId)
-            .name(API_TEST_DUMMY_REST_API_NAME)
-            .description("Rest Api for api tests")
-            .packageExternalId(restApi.getPackageExternalId())
-            .bundledModel(payload)
-            .build();
+                .id(restApiExternalId)
+                .name(API_TEST_DUMMY_REST_API_NAME)
+                .description("Rest Api for api tests")
+                .packageExternalId(restApi.getPackageExternalId())
+                .bundledModel(payload)
+                .build();
         cpiRestApiClient.updateRestApi(requestContext, updateRestApiRequest);
 
         restApiUtils.deleteRestApi(requestContext, restApi);
@@ -118,10 +118,10 @@ class CpiRestApiClientTest {
 
         String restApiExternalId = restApi.getExternalId();
         String taskId = cpiRestApiClient.deployRestApi(
-            requestContext,
-            restApi.getPackageExternalId(),
-            restApiExternalId,
-            API_TEST_DUMMY_REST_API_NAME
+                requestContext,
+                restApi.getPackageExternalId(),
+                restApiExternalId,
+                API_TEST_DUMMY_REST_API_NAME
         );
         assertThat(taskId).isNotBlank();
 

@@ -20,8 +20,8 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
     private static final String API_UPLOAD_REST_API = "/itspaces/api/1.0/workspace/%s/restapis/";
     private static final String API_DEPLOY_REST_API = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY";
 
-    public CpiRestApiClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiRestApiClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getRestApiObjectsByPackage(
@@ -31,14 +31,14 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
             String packageExternalId
     ) {
         log.debug("#getRestApisByPackage(RequestContext requestContext, String packageTechnicalName, String packageDisplayedName, " +
-            "String packageExternalId): {}, {}, {}, {}",
-            requestContext, packageTechnicalName, packageDisplayedName, packageExternalId);
+                        "String packageExternalId): {}, {}, {}, {}",
+                requestContext, packageTechnicalName, packageDisplayedName, packageExternalId);
         return getArtifactsByPackage(
-            requestContext,
-            packageTechnicalName,
-            packageDisplayedName,
-            packageExternalId,
-            REST_API
+                requestContext,
+                packageTechnicalName,
+                packageDisplayedName,
+                packageExternalId,
+                REST_API
         );
     }
 
@@ -56,19 +56,19 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
     public void createRestApi(RequestContext requestContext, CreateRestApiRequest request) {
         log.debug("#createRestApi(RequestContext requestContext, CreateRestApiRequest request): {}, {}", requestContext, request);
         executeMethod(
-            requestContext,
-            String.format(API_UPLOAD_REST_API, request.getPackageExternalId()),
-            (url, token, restTemplateWrapper) -> {
-                createArtifact(
-                    requestContext.getConnectionProperties(),
-                    request,
-                    "iflowBrowse-data",
-                    url,
-                    token,
-                    restTemplateWrapper
-                );
-                return null;
-            }
+                requestContext,
+                String.format(API_UPLOAD_REST_API, request.getPackageExternalId()),
+                (url, token, restTemplateWrapper) -> {
+                    createArtifact(
+                            requestContext.getConnectionProperties(),
+                            request,
+                            "iflowBrowse-data",
+                            url,
+                            token,
+                            restTemplateWrapper
+                    );
+                    return null;
+                }
         );
 
     }
@@ -80,28 +80,28 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
 
     public String deployRestApi(RequestContext requestContext, String packageExternalId, String restApiExternalId, String restApiTechnicalName) {
         log.debug("#deployRestApi(RequestContext commonClientWrapperEntity, String packageExternalId, String restApiExternalId): {}, {}, {}, {}",
-            requestContext, packageExternalId, restApiExternalId, restApiTechnicalName
+                requestContext, packageExternalId, restApiExternalId, restApiTechnicalName
         );
 
         return executeMethod(
-            requestContext,
-            String.format(API_DEPLOY_REST_API, packageExternalId, restApiExternalId, restApiExternalId, restApiTechnicalName),
-            (url, token, restTemplateWrapper) -> deployArtifact(
-                requestContext.getConnectionProperties(),
-                packageExternalId,
-                REST_API,
-                url,
-                token,
-                restTemplateWrapper.getRestTemplate()
-            )
+                requestContext,
+                String.format(API_DEPLOY_REST_API, packageExternalId, restApiExternalId, restApiExternalId, restApiTechnicalName),
+                (url, token, restTemplateWrapper) -> deployArtifact(
+                        requestContext.getConnectionProperties(),
+                        packageExternalId,
+                        REST_API,
+                        url,
+                        token,
+                        restTemplateWrapper.getRestTemplate()
+                )
         );
     }
 
     public void deleteRestApi(
-        String packageExternalId,
-        String restApiExternalId,
-        String restApiTechnicalName,
-        RequestContext requestContext
+            String packageExternalId,
+            String restApiExternalId,
+            String restApiTechnicalName,
+            RequestContext requestContext
     ) {
         log.debug("#deleteRestApi(String packageExternalId, String restApiExternalId, String restApiTechnicalName, RequestContext requestContext): " +
                 "{}, {}, {}, {}", packageExternalId, restApiExternalId, restApiTechnicalName, requestContext);

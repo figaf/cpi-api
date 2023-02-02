@@ -19,8 +19,8 @@ public class CpiValueMappingClient extends CpiRuntimeArtifactClient {
     private static final String API_UPLOAD_VALUE_MAPPING = "/itspaces/api/1.0/workspace/%s/valuemappings/";
     private static final String API_DEPLOY_VALUE_MAPPING = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/valuemappings/%s?webdav=DEPLOY";
 
-    public CpiValueMappingClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiValueMappingClient( HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getValueMappingsByPackage(
