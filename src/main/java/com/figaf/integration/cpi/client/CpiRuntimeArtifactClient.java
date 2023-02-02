@@ -7,10 +7,11 @@ import com.figaf.integration.common.entity.RestTemplateWrapper;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.*;
+import com.figaf.integration.cpi.entity.lock.Locker;
 import com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser;
+import com.figaf.integration.cpi.version.CpiObjectVersionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -22,13 +23,9 @@ import org.json.JSONObject;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.buildCpiArtifacts;
 import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.retrieveDeployingResult;
@@ -52,7 +49,6 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     private static final String API_DOWNLOAD_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s";
     private static final String API_UPDATE_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts";
     private static final String API_LOCK_AND_UNLOCK_ARTIFACT = "itspaces/api/1.0/workspace/{0}/artifacts/{1}";
-
     private static final String FILE_NAME = "model.zip";
     private static final String X_CSRF_TOKEN = "X-CSRF-Token";
 
@@ -66,9 +62,9 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     public String checkDeploymentStatus(RequestContext requestContext, String taskId) {
         String path = String.format(API_ARTIFACT_DEPLOY_STATUS, taskId);
         return executeGet(
-            requestContext,
-            path,
-            CpiRuntimeArtifactParser::retrieveDeployStatus
+                requestContext,
+                path,
+                CpiRuntimeArtifactParser::retrieveDeployStatus
         );
     }
 
@@ -113,11 +109,11 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 String.format(API_UPDATE_ARTIFACT, request.getPackageExternalId()),
                 (url, token, restTemplateWrapper) -> {
                     uploadArtifact(
-                        requestContext.getConnectionProperties(),
-                        request,
-                        url,
-                        token,
-                        restTemplateWrapper
+                            requestContext.getConnectionProperties(),
+                            request,
+                            url,
+                            token,
+                            restTemplateWrapper
                     );
                     return null;
                 }
@@ -125,26 +121,26 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     }
 
     protected void deleteArtifact(
-        String packageExternalId,
-        String artifactExternalId,
-        String artifactName,
-        RequestContext requestContext
+            String packageExternalId,
+            String artifactExternalId,
+            String artifactName,
+            RequestContext requestContext
     ) {
         executeMethod(
-            requestContext,
-            API_PACKAGES,
-            format(API_DELETE_ARTIFACT, packageExternalId, artifactExternalId),
-            (url, token, restTemplateWrapper) -> {
-                deleteArtifact(
-                    requestContext.getConnectionProperties(),
-                    packageExternalId,
-                    artifactName,
-                    url,
-                    token,
-                    restTemplateWrapper.getRestTemplate()
-                );
-                return null;
-            }
+                requestContext,
+                API_PACKAGES,
+                format(API_DELETE_ARTIFACT, packageExternalId, artifactExternalId),
+                (url, token, restTemplateWrapper) -> {
+                    deleteArtifact(
+                            requestContext.getConnectionProperties(),
+                            packageExternalId,
+                            artifactName,
+                            url,
+                            token,
+                            restTemplateWrapper.getRestTemplate()
+                    );
+                    return null;
+                }
         );
     }
 
@@ -161,7 +157,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
         boolean locked = false;
         String packageExternalId = request.getPackageExternalId();
         try {
-            integrationPackageClient.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), true);
+            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), true);
             locked = true;
 
             HttpPost uploadArtifactRequest = new HttpPost(uploadArtifactUri);
@@ -198,23 +194,23 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
         } finally {
             HttpClientUtils.closeQuietly(uploadArtifactResponse);
             if (locked) {
-                integrationPackageClient.unlockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
+                Locker.unlockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
             }
         }
 
     }
 
     protected String deployArtifact(
-        ConnectionProperties connectionProperties,
-        String packageExternalId,
-        CpiArtifactType objectType,
-        String deployArtifactUri,
-        String userApiCsrfToken,
-        RestTemplate restTemplate
+            ConnectionProperties connectionProperties,
+            String packageExternalId,
+            CpiArtifactType objectType,
+            String deployArtifactUri,
+            String userApiCsrfToken,
+            RestTemplate restTemplate
     ) {
         boolean locked = false;
         try {
-            integrationPackageClient.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplate, true);
+            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplate, true);
             locked = true;
 
             HttpHeaders httpHeaders = new HttpHeaders();
@@ -223,10 +219,10 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
             HttpEntity<Void> httpEntity = new HttpEntity<>(httpHeaders);
 
             ResponseEntity<String> responseEntity = restTemplate.exchange(
-                deployArtifactUri,
-                HttpMethod.PUT,
-                httpEntity,
-                String.class
+                    deployArtifactUri,
+                    HttpMethod.PUT,
+                    httpEntity,
+                    String.class
             );
 
             if (OK.equals(responseEntity.getStatusCode())) {
@@ -234,30 +230,30 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 return retrieveDeployingResult(result, objectType);
             } else {
                 throw new ClientIntegrationException(
-                    String.format("Couldn't execute Artifact deployment:%n Code: %d, Message: %s",
-                        responseEntity.getStatusCode().value(),
-                        responseEntity.getBody()
-                    )
+                        String.format("Couldn't execute Artifact deployment:%n Code: %d, Message: %s",
+                                responseEntity.getStatusCode().value(),
+                                responseEntity.getBody()
+                        )
                 );
             }
         } finally {
             if (locked) {
-                integrationPackageClient.unlockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplate);
+                Locker.unlockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplate);
             }
         }
     }
 
     private void deleteArtifact(
-        ConnectionProperties connectionProperties,
-        String packageExternalId,
-        String artifactName,
-        String url,
-        String token,
-        RestTemplate restTemplate
+            ConnectionProperties connectionProperties,
+            String packageExternalId,
+            String artifactName,
+            String url,
+            String token,
+            RestTemplate restTemplate
     ) {
         boolean locked = false;
         try {
-            integrationPackageClient.lockPackage(connectionProperties, packageExternalId, token, restTemplate, true);
+            Locker.lockPackage(connectionProperties, packageExternalId, token, restTemplate, true);
             locked = true;
 
             HttpHeaders httpHeaders = createHttpHeadersWithCSRFToken(token);
@@ -266,10 +262,10 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
 
             if (!OK.equals(responseEntity.getStatusCode())) {
                 throw new ClientIntegrationException(format(
-                    "Couldn't delete artifact %s: Code: %d, Message: %s",
-                    artifactName,
-                    responseEntity.getStatusCode().value(),
-                    responseEntity.getBody())
+                        "Couldn't delete artifact %s: Code: %d, Message: %s",
+                        artifactName,
+                        responseEntity.getStatusCode().value(),
+                        responseEntity.getBody())
                 );
             }
 
@@ -278,7 +274,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
             throw new ClientIntegrationException("Error occurred while deleting artifact: " + ex.getMessage(), ex);
         } finally {
             if (locked) {
-                integrationPackageClient.unlockPackage(connectionProperties, packageExternalId, token, restTemplate);
+                Locker.unlockPackage(connectionProperties, packageExternalId, token, restTemplate);
             }
         }
 
@@ -296,9 +292,9 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
         String packageExternalId = request.getPackageExternalId();
         String artifactExternalId = request.getId();
         try {
-            lockOrUnlockArtifact(connectionProperties, packageExternalId, artifactExternalId, "LOCK", true, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
+            Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", true, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
             try {
-                lockOrUnlockArtifact(connectionProperties, packageExternalId, artifactExternalId, "LOCK", false, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
+                Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", false, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
             } catch (HttpClientErrorException ex) {
                 if (HttpStatus.LOCKED.equals(ex.getStatusCode())) {
                     log.warn("artifact {} is already locked", artifactExternalId);
@@ -338,14 +334,14 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
             if (uploadArtifactResponse.getStatusLine().getStatusCode() == 201) {
                 JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
                 if (!request.isUploadDraftVersion()) {
-                    setVersionToArtifact(
-                        connectionProperties,
-                        packageExternalId,
-                        artifactExternalId,
-                        !isBlank(request.getNewArtifactVersion()) ? request.getNewArtifactVersion() : jsonObject.getString("bundleVersion"),
-                        userApiCsrfToken,
-                        request.getComment(),
-                        restTemplateWrapper.getRestTemplate()
+                    CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
+                            packageExternalId,
+                            artifactExternalId,
+                            !isBlank(request.getNewArtifactVersion()) ? request.getNewArtifactVersion() : jsonObject.getString("bundleVersion"),
+                            userApiCsrfToken,
+                            request.getComment(),
+                            restTemplateWrapper.getRestTemplate(),
+                            API_LOCK_AND_UNLOCK_ARTIFACT
                     );
                 }
             } else {
@@ -360,108 +356,10 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 HttpClientUtils.closeQuietly(uploadArtifactResponse);
             }
             if (locked) {
-                lockOrUnlockArtifact(connectionProperties, packageExternalId, artifactExternalId, "UNLOCK", false, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
+                Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "UNLOCK", false, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
             }
         }
     }
 
-    private void lockOrUnlockArtifact(
-        ConnectionProperties connectionProperties,
-        String packageExternalId,
-        String artifactExternalId,
-        String webdav,
-        boolean lockinfo,
-        String userApiCsrfToken,
-        RestTemplate restTemplate
-    ) {
-
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                .scheme(connectionProperties.getProtocol())
-                .host(connectionProperties.getHost())
-                .path(API_LOCK_AND_UNLOCK_ARTIFACT);
-        if (lockinfo) {
-            uriBuilder.queryParam("lockinfo", "true");
-        }
-        uriBuilder.queryParam("webdav", webdav);
-
-        if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
-            uriBuilder.port(connectionProperties.getPort());
-        }
-
-        URI lockOrUnlockArtifactUri = uriBuilder
-                .buildAndExpand(packageExternalId, artifactExternalId)
-                .encode()
-                .toUri();
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(X_CSRF_TOKEN, userApiCsrfToken);
-
-        HttpEntity<Void> requestEntity = new HttpEntity<>(httpHeaders);
-        ResponseEntity<String> responseEntity = restTemplate.exchange(
-                lockOrUnlockArtifactUri,
-                HttpMethod.PUT,
-                requestEntity,
-                String.class
-        );
-
-        if (!OK.equals(responseEntity.getStatusCode())) {
-            throw new RuntimeException("Couldn't lock or unlock artifact\n" + responseEntity.getBody());
-        }
-
-    }
-
-    private void setVersionToArtifact(
-        ConnectionProperties connectionProperties,
-        String packageExternalId,
-        String artifactExternalId,
-        String version,
-        String userApiCsrfToken,
-        String comment,
-        RestTemplate restTemplate
-    ) {
-        try {
-
-            UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                    .scheme(connectionProperties.getProtocol())
-                    .host(connectionProperties.getHost())
-                    .path(API_LOCK_AND_UNLOCK_ARTIFACT)
-                    .queryParam("notifications", "true")
-                    .queryParam("webdav", "CHECKIN");
-
-            if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
-                uriBuilder.port(connectionProperties.getPort());
-            }
-
-            URI lockOrUnlockArtifactUri = uriBuilder
-                    .buildAndExpand(packageExternalId, artifactExternalId)
-                    .encode()
-                    .toUri();
-
-            Map<String, String> requestBody = new HashMap<>();
-            requestBody.put("comment", !isBlank(comment) ? comment : "");
-            requestBody.put("semanticVersion", version);
-
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add(X_CSRF_TOKEN, userApiCsrfToken);
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, httpHeaders);
-
-            ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    lockOrUnlockArtifactUri,
-                    HttpMethod.PUT,
-                    entity,
-                    String.class
-            );
-
-            if (!OK.equals(responseEntity.getStatusCode())) {
-                throw new RuntimeException("Couldn't set version to Artifact:\n" + responseEntity.getBody());
-
-            }
-
-        } catch (Exception ex) {
-            throw new RuntimeException("Error occurred while setting version Artifact: " + ex.getMessage(), ex);
-        }
-    }
 
 }

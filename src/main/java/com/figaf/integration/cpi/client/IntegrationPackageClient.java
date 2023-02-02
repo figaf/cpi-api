@@ -7,16 +7,14 @@ import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdatePackageRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
+import com.figaf.integration.cpi.entity.lock.Locker;
 import com.figaf.integration.cpi.response_parser.IntegrationPackageParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.http.*;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +45,7 @@ public class IntegrationPackageClient extends BaseClient {
     public byte[] downloadPackage(RequestContext requestContext, String packageTechnicalName) {
         log.debug("#downloadPackage(RequestContext requestContext, String packageTechnicalName): {}, {}", requestContext, packageTechnicalName);
 
-        String path = String.format("/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')", packageTechnicalName);
+        String path = String.format(API_PACKAGES_WITH_NAME, packageTechnicalName);
         return executeGet(requestContext, path, resolvedBody -> resolvedBody, byte[].class);
     }
 
@@ -79,13 +77,6 @@ public class IntegrationPackageClient extends BaseClient {
 
     }
 
-    public void lockPackage(ConnectionProperties connectionProperties, String externalPackageId, String csrfToken, RestTemplate restTemplate, boolean forceLock) {
-        lockOrUnlockPackage(connectionProperties, externalPackageId, "LOCK", forceLock, csrfToken, restTemplate);
-    }
-
-    public void unlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String csrfToken, RestTemplate restTemplate) {
-        lockOrUnlockPackage(connectionProperties, externalPackageId, "UNLOCK", false, csrfToken, restTemplate);
-    }
 
     public void deletePackage(String packageName, RequestContext requestContext) {
         log.debug("#deletePackage(String packageName, RequestContext requestContext): {}, {}", packageName, requestContext);
@@ -137,7 +128,7 @@ public class IntegrationPackageClient extends BaseClient {
         boolean locked = false;
         try {
 
-            lockPackage(connectionProperties, externalId, userApiCsrfToken, restTemplate, true);
+            Locker.lockPackage(connectionProperties, externalId, userApiCsrfToken, restTemplate, true);
             locked = true;
 
             Map<String, String> requestBody = prepareRequestBodyForPackageUpload(request);
@@ -168,7 +159,7 @@ public class IntegrationPackageClient extends BaseClient {
 
         } finally {
             if (locked) {
-                unlockPackage(connectionProperties, externalId, userApiCsrfToken, restTemplate);
+                Locker.unlockPackage(connectionProperties, externalId, userApiCsrfToken, restTemplate);
             }
         }
     }
@@ -188,63 +179,6 @@ public class IntegrationPackageClient extends BaseClient {
         requestBody.put("Keywords", request.getKeyword());
         requestBody.put("Countries", request.getCountry());
         return requestBody;
-    }
-
-    private void lockOrUnlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String webdav, boolean forceLock, String csrfToken, RestTemplate restTemplate) {
-        log.debug("#lockOrUnlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String webdav, boolean forceLock, String csrfToken, RestTemplate restTemplate): " +
-                "{}, {}, {}, {}", connectionProperties, externalPackageId, webdav, forceLock);
-
-        Assert.notNull(connectionProperties, "connectionProperties must be not null!");
-        Assert.notNull(externalPackageId, "externalPackageId must be not null!");
-        Assert.notNull(csrfToken, "csrfToken must be not null!");
-        Assert.notNull(restTemplate, "restTemplate must be not null!");
-
-        try {
-
-            UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                    .scheme(connectionProperties.getProtocol())
-                    .host(connectionProperties.getHost())
-                    .path("/itspaces/api/1.0/workspace/{0}");
-
-            if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
-                uriBuilder.port(connectionProperties.getPort());
-            }
-
-            uriBuilder.queryParam("webdav", webdav);
-            if (forceLock) {
-                uriBuilder.queryParam("forcelock", true);
-            }
-
-            URI uri = uriBuilder
-                    .buildAndExpand(externalPackageId)
-                    .encode()
-                    .toUri();
-
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("X-CSRF-Token", csrfToken);
-
-            HttpEntity<Void> requestEntity = new HttpEntity<>(null, httpHeaders);
-
-            ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    uri,
-                    HttpMethod.PUT,
-                    requestEntity,
-                    String.class
-            );
-
-            if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-                throw new ClientIntegrationException(String.format(
-                        "Couldn't lock package %s: Code: %d, Message: %s",
-                        externalPackageId,
-                        responseEntity.getStatusCode().value(),
-                        responseEntity.getBody())
-                );
-            }
-
-        } catch (Exception ex) {
-            log.error("Error occurred while locking package: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while locking package: " + ex.getMessage(), ex);
-        }
     }
 
     private void validateInputParameters(RequestContext requestContext, CreateOrUpdatePackageRequest request) {

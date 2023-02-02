@@ -15,4 +15,10 @@ public class DocumentUploadMetaData {
 
     private String type;
 
+    private String version;
+
+    private String comment;
+
+    private String artifactExternalId;
+
 }
