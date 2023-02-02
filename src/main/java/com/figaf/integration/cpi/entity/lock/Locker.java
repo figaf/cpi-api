@@ -69,7 +69,7 @@ public class Locker {
         );
 
         if (!OK.equals(responseEntity.getStatusCode())) {
-            throw new RuntimeException("Couldn't lock or unlock artifact\n" + responseEntity.getBody());
+            throw new RuntimeException("Couldn't lock or unlock cpiObject\n" + responseEntity.getBody());
         }
     }
 
@@ -104,7 +104,7 @@ public class Locker {
                     .toUri();
 
             HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("X-CSRF-Token", csrfToken);
+            httpHeaders.add(X_CSRF_TOKEN, csrfToken);
 
             HttpEntity<Void> requestEntity = new HttpEntity<>(null, httpHeaders);
 
