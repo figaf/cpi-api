@@ -88,11 +88,11 @@ class CommonCpiApiTest {
     void test_testPublicApiWrite(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         int numberOfUploadedConfigurations = integrationContentClient.uploadCpiExternalConfiguration(
-                requestContext,
-                "Figaf_iflow_1",
-                Collections.singletonList(
-                        new CpiExternalConfiguration("endpoint", "/figaf_iflow_3", "xsd:string")
-                )
+            requestContext,
+            "Figaf_iflow_1",
+            Collections.singletonList(
+                new CpiExternalConfiguration("endpoint", "/figaf_iflow_3", "xsd:string")
+            )
         );
         assertThat(numberOfUploadedConfigurations).isEqualTo(1);
     }

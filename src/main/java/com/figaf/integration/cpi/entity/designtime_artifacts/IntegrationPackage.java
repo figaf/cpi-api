@@ -12,7 +12,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@ToString(of={"externalId", "technicalName", "version"})
+@ToString(of = {"externalId", "technicalName", "version"})
 public class IntegrationPackage implements Serializable {
 
     private String externalId;

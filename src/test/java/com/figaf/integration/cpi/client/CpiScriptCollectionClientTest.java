@@ -49,10 +49,10 @@ class CpiScriptCollectionClientTest {
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
 
         List<CpiArtifact> scriptCollection = cpiScriptCollectionClient.getScriptCollectionsByPackage(
-                requestContext,
-                API_TEST_PACKAGE_NAME,
-                API_TEST_PACKAGE_NAME,
-                integrationPackage.getExternalId()
+            requestContext,
+            API_TEST_PACKAGE_NAME,
+            API_TEST_PACKAGE_NAME,
+            integrationPackage.getExternalId()
         );
         assertThat(scriptCollection).isNotEmpty();
     }
@@ -65,9 +65,9 @@ class CpiScriptCollectionClientTest {
         assertThat(scriptCollection).as("script collection %s wasn't found", API_TEST_SCRIPT_COLLECTION_NAME).isNotNull();
 
         byte[] scriptCollectionPayload = cpiScriptCollectionClient.downloadScriptCollection(
-                requestContext,
-                scriptCollection.getPackageExternalId(),
-                scriptCollection.getExternalId()
+            requestContext,
+            scriptCollection.getPackageExternalId(),
+            scriptCollection.getExternalId()
         );
         assertThat(scriptCollectionPayload).isNotEmpty();
     }
@@ -95,15 +95,15 @@ class CpiScriptCollectionClientTest {
 
         String scriptCollectionExternalId = scriptCollection.getExternalId();
         byte[] payload = IOUtils.toByteArray(
-                this.getClass().getClassLoader().getResource("client/FigafApiTestDummyScriptCollectionUpdated.zip")
+            this.getClass().getClassLoader().getResource("client/FigafApiTestDummyScriptCollectionUpdated.zip")
         );
         UpdateScriptCollectionRequest updateScriptCollectionRequest = UpdateScriptCollectionRequest.builder()
-                .id(scriptCollectionExternalId)
-                .name(API_TEST_DUMMY_SCRIPT_COLLECTION_NAME)
-                .description("Script Collection for api tests")
-                .packageExternalId(scriptCollection.getPackageExternalId())
-                .bundledModel(payload)
-                .build();
+            .id(scriptCollectionExternalId)
+            .name(API_TEST_DUMMY_SCRIPT_COLLECTION_NAME)
+            .description("Script Collection for api tests")
+            .packageExternalId(scriptCollection.getPackageExternalId())
+            .bundledModel(payload)
+            .build();
         cpiScriptCollectionClient.updateScriptCollection(requestContext, updateScriptCollectionRequest);
 
         scriptCollectionUtils.deleteScriptCollection(requestContext, scriptCollection);
@@ -120,10 +120,10 @@ class CpiScriptCollectionClientTest {
 
         String scriptCollectionExternalId = scriptCollection.getExternalId();
         String taskId = cpiScriptCollectionClient.deployScriptCollection(
-                requestContext,
-                scriptCollection.getPackageExternalId(),
-                scriptCollectionExternalId,
-                scriptCollection.getTechnicalName()
+            requestContext,
+            scriptCollection.getPackageExternalId(),
+            scriptCollectionExternalId,
+            scriptCollection.getTechnicalName()
         );
         assertThat(taskId).isNotBlank();
 

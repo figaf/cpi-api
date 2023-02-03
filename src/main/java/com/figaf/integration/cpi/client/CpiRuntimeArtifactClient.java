@@ -59,95 +59,95 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     public String checkDeploymentStatus(RequestContext requestContext, String taskId) {
         String path = String.format(API_ARTIFACT_DEPLOY_STATUS, taskId);
         return executeGet(
-                requestContext,
-                path,
-                CpiRuntimeArtifactParser::retrieveDeployStatus
+            requestContext,
+            path,
+            CpiRuntimeArtifactParser::retrieveDeployStatus
         );
     }
 
     protected List<CpiArtifact> getArtifactsByPackage(
-            RequestContext requestContext,
-            String packageTechnicalName,
-            String packageDisplayedName,
-            String packageExternalId,
-            CpiArtifactType artifactType
+        RequestContext requestContext,
+        String packageTechnicalName,
+        String packageDisplayedName,
+        String packageExternalId,
+        CpiArtifactType artifactType
     ) {
         String path = String.format(API_ARTIFACTS, packageTechnicalName);
         return executeGet(
-                requestContext,
-                path,
-                body -> buildCpiArtifacts(
-                        packageTechnicalName,
-                        packageDisplayedName,
-                        packageExternalId,
-                        hashSet(artifactType),
-                        body
-                )
+            requestContext,
+            path,
+            body -> buildCpiArtifacts(
+                packageTechnicalName,
+                packageDisplayedName,
+                packageExternalId,
+                hashSet(artifactType),
+                body
+            )
         );
     }
 
     protected byte[] downloadArtifact(
-            RequestContext requestContext,
-            String packageExternalId,
-            String artifactExternalId
+        RequestContext requestContext,
+        String packageExternalId,
+        String artifactExternalId
     ) {
         String path = String.format(API_DOWNLOAD_ARTIFACT, packageExternalId, artifactExternalId, artifactExternalId);
         return executeGet(
-                requestContext,
-                path,
-                resolvedBody -> resolvedBody,
-                byte[].class
+            requestContext,
+            path,
+            resolvedBody -> resolvedBody,
+            byte[].class
         );
     }
 
     protected void updateArtifact(RequestContext requestContext, CreateOrUpdateCpiArtifactRequest request) {
         executeMethod(
-                requestContext,
-                String.format(API_UPDATE_ARTIFACT, request.getPackageExternalId()),
-                (url, token, restTemplateWrapper) -> {
-                    uploadArtifact(
-                            requestContext.getConnectionProperties(),
-                            request,
-                            url,
-                            token,
-                            restTemplateWrapper
-                    );
-                    return null;
-                }
+            requestContext,
+            String.format(API_UPDATE_ARTIFACT, request.getPackageExternalId()),
+            (url, token, restTemplateWrapper) -> {
+                uploadArtifact(
+                    requestContext.getConnectionProperties(),
+                    request,
+                    url,
+                    token,
+                    restTemplateWrapper
+                );
+                return null;
+            }
         );
     }
 
     protected void deleteArtifact(
-            String packageExternalId,
-            String artifactExternalId,
-            String artifactName,
-            RequestContext requestContext
+        String packageExternalId,
+        String artifactExternalId,
+        String artifactName,
+        RequestContext requestContext
     ) {
         executeMethod(
-                requestContext,
-                API_PACKAGES,
-                format(API_DELETE_ARTIFACT, packageExternalId, artifactExternalId),
-                (url, token, restTemplateWrapper) -> {
-                    deleteArtifact(
-                            requestContext.getConnectionProperties(),
-                            packageExternalId,
-                            artifactName,
-                            url,
-                            token,
-                            restTemplateWrapper.getRestTemplate()
-                    );
-                    return null;
-                }
+            requestContext,
+            API_PACKAGES,
+            format(API_DELETE_ARTIFACT, packageExternalId, artifactExternalId),
+            (url, token, restTemplateWrapper) -> {
+                deleteArtifact(
+                    requestContext.getConnectionProperties(),
+                    packageExternalId,
+                    artifactName,
+                    url,
+                    token,
+                    restTemplateWrapper.getRestTemplate()
+                );
+                return null;
+            }
         );
     }
 
     protected void createArtifact(
-            ConnectionProperties connectionProperties,
-            CreateOrUpdateCpiArtifactRequest request,
-            String textBodyAttrName,
-            String uploadArtifactUri,
-            String userApiCsrfToken,
-            RestTemplateWrapper restTemplateWrapper
+        ConnectionProperties connectionProperties,
+        CreateOrUpdateCpiArtifactRequest request,
+        String textBodyAttrName,
+        String uploadArtifactUri,
+        String userApiCsrfToken,
+        RestTemplateWrapper restTemplateWrapper
     ) {
 
         HttpResponse uploadArtifactResponse = null;
@@ -198,12 +198,12 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     }
 
     protected String deployArtifact(
-            ConnectionProperties connectionProperties,
-            String packageExternalId,
-            CpiArtifactType objectType,
-            String deployArtifactUri,
-            String userApiCsrfToken,
-            RestTemplate restTemplate
+        ConnectionProperties connectionProperties,
+        String packageExternalId,
+        CpiArtifactType objectType,
+        String deployArtifactUri,
+        String userApiCsrfToken,
+        RestTemplate restTemplate
     ) {
         boolean locked = false;
         try {
@@ -216,10 +216,10 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
             HttpEntity<Void> httpEntity = new HttpEntity<>(httpHeaders);
 
             ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    deployArtifactUri,
-                    HttpMethod.PUT,
-                    httpEntity,
-                    String.class
+                deployArtifactUri,
+                HttpMethod.PUT,
+                httpEntity,
+                String.class
             );
 
             if (OK.equals(responseEntity.getStatusCode())) {
@@ -227,10 +227,10 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 return retrieveDeployingResult(result, objectType);
             } else {
                 throw new ClientIntegrationException(
-                        String.format("Couldn't execute Artifact deployment:%n Code: %d, Message: %s",
-                                responseEntity.getStatusCode().value(),
-                                responseEntity.getBody()
-                        )
+                    String.format("Couldn't execute Artifact deployment:%n Code: %d, Message: %s",
+                        responseEntity.getStatusCode().value(),
+                        responseEntity.getBody()
+                    )
                 );
             }
         } finally {
@@ -241,12 +241,12 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     }
 
     private void deleteArtifact(
-            ConnectionProperties connectionProperties,
-            String packageExternalId,
-            String artifactName,
-            String url,
-            String token,
-            RestTemplate restTemplate
+        ConnectionProperties connectionProperties,
+        String packageExternalId,
+        String artifactName,
+        String url,
+        String token,
+        RestTemplate restTemplate
     ) {
         boolean locked = false;
         try {
@@ -259,10 +259,10 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
 
             if (!OK.equals(responseEntity.getStatusCode())) {
                 throw new ClientIntegrationException(format(
-                        "Couldn't delete artifact %s: Code: %d, Message: %s",
-                        artifactName,
-                        responseEntity.getStatusCode().value(),
-                        responseEntity.getBody())
+                    "Couldn't delete artifact %s: Code: %d, Message: %s",
+                    artifactName,
+                    responseEntity.getStatusCode().value(),
+                    responseEntity.getBody())
                 );
             }
 
@@ -278,11 +278,11 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     }
 
     private void uploadArtifact(
-            ConnectionProperties connectionProperties,
-            CreateOrUpdateCpiArtifactRequest request,
-            String uploadArtifactUri,
-            String userApiCsrfToken,
-            RestTemplateWrapper restTemplateWrapper
+        ConnectionProperties connectionProperties,
+        CreateOrUpdateCpiArtifactRequest request,
+        String uploadArtifactUri,
+        String userApiCsrfToken,
+        RestTemplateWrapper restTemplateWrapper
     ) {
         HttpResponse uploadArtifactResponse = null;
         boolean locked = false;
@@ -332,13 +332,13 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
                 if (!request.isUploadDraftVersion()) {
                     CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
-                            packageExternalId,
-                            artifactExternalId,
-                            !isBlank(request.getNewArtifactVersion()) ? request.getNewArtifactVersion() : jsonObject.getString("bundleVersion"),
-                            userApiCsrfToken,
-                            request.getComment(),
-                            restTemplateWrapper.getRestTemplate(),
-                            API_LOCK_AND_UNLOCK_ARTIFACT
+                        packageExternalId,
+                        artifactExternalId,
+                        !isBlank(request.getNewArtifactVersion()) ? request.getNewArtifactVersion() : jsonObject.getString("bundleVersion"),
+                        userApiCsrfToken,
+                        request.getComment(),
+                        restTemplateWrapper.getRestTemplate(),
+                        API_LOCK_AND_UNLOCK_ARTIFACT
                     );
                 }
             } else {

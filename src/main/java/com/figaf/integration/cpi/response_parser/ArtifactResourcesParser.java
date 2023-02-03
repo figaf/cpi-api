@@ -13,14 +13,16 @@ import java.util.List;
  */
 public class ArtifactResourcesParser {
 
-    private ArtifactResourcesParser() {}
+    private ArtifactResourcesParser() {
+    }
 
-    private static final TypeReference<List<ArtifactResources>> LIST_ARTIFACT_RESOURCES_TYPE_REFERENCE = new TypeReference<List<ArtifactResources>>() {};
+    private static final TypeReference<List<ArtifactResources>> LIST_ARTIFACT_RESOURCES_TYPE_REFERENCE = new TypeReference<List<ArtifactResources>>() {
+    };
 
     public static ArtifactResources buildArtifactResources(String body, ObjectMapper objectMapper) throws IOException {
         List<ArtifactResources> resourcesResponse = objectMapper.readValue(body, LIST_ARTIFACT_RESOURCES_TYPE_REFERENCE);
         ArtifactResources allResources = new ArtifactResources(new ArrayList<>(), new ArrayList<>());
-        for (ArtifactResources resources: resourcesResponse) {
+        for (ArtifactResources resources : resourcesResponse) {
             allResources.getResourceList().addAll(resources.getResourceList());
             allResources.getReferenceList().addAll(resources.getReferenceList());
         }

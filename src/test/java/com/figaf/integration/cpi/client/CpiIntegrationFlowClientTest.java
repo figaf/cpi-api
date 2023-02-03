@@ -49,10 +49,10 @@ class CpiIntegrationFlowClientTest {
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
 
         List<CpiArtifact> iFlows = cpiIntegrationFlowClient.getIFlowsByPackage(
-                requestContext,
-                API_TEST_PACKAGE_NAME,
-                API_TEST_PACKAGE_NAME,
-                integrationPackage.getExternalId()
+            requestContext,
+            API_TEST_PACKAGE_NAME,
+            API_TEST_PACKAGE_NAME,
+            integrationPackage.getExternalId()
         );
         assertThat(iFlows).isNotEmpty();
     }
@@ -65,9 +65,9 @@ class CpiIntegrationFlowClientTest {
         assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_IFLOW_NAME).isNotNull();
 
         byte[] iFlowPayload = cpiIntegrationFlowClient.downloadIFlow(
-                requestContext,
-                iFlow.getPackageExternalId(),
-                iFlow.getExternalId()
+            requestContext,
+            iFlow.getPackageExternalId(),
+            iFlow.getExternalId()
         );
         assertThat(iFlowPayload).isNotEmpty();
     }
@@ -95,16 +95,16 @@ class CpiIntegrationFlowClientTest {
 
         String iFlowExternalId = iFlow.getExternalId();
         byte[] payload = IOUtils.toByteArray(
-                this.getClass().getClassLoader().getResource("client/FigafApiTestDummyIFlowUpdated.zip")
+            this.getClass().getClassLoader().getResource("client/FigafApiTestDummyIFlowUpdated.zip")
         );
         UpdateIFlowRequest updateIFlowRequest = UpdateIFlowRequest.builder()
-                .id(iFlowExternalId)
-                .name(API_TEST_DUMMY_IFLOW_NAME)
-                .description("IFlow for api tests")
-                .bundledModel(payload)
-                .packageExternalId(iFlow.getPackageExternalId())
-                .comment("Comment")
-                .build();
+            .id(iFlowExternalId)
+            .name(API_TEST_DUMMY_IFLOW_NAME)
+            .description("IFlow for api tests")
+            .bundledModel(payload)
+            .packageExternalId(iFlow.getPackageExternalId())
+            .comment("Comment")
+            .build();
         cpiIntegrationFlowClient.updateIFlow(requestContext, updateIFlowRequest);
 
         iFlowUtils.deleteIFlow(requestContext, iFlow);
@@ -121,10 +121,10 @@ class CpiIntegrationFlowClientTest {
 
         String iFlowExternalId = iFlow.getExternalId();
         String taskId = cpiIntegrationFlowClient.deployIFlow(
-                requestContext,
-                iFlow.getPackageExternalId(),
-                iFlowExternalId,
-                API_TEST_DUMMY_IFLOW_NAME
+            requestContext,
+            iFlow.getPackageExternalId(),
+            iFlowExternalId,
+            API_TEST_DUMMY_IFLOW_NAME
         );
         assertThat(taskId).isNotBlank();
 

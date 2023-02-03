@@ -32,19 +32,19 @@ public class SecurityContentClient extends CpiBaseClient {
         log.debug("#getUserCredentialsList(RequestContext requestContext): {}", requestContext);
         try {
             return executeGetPublicApiAndReturnResponseBody(
-                    requestContext,
-                    "/api/v1/UserCredentials?$format=json",
-                    (body) -> {
-                        JSONObject responseModel = new JSONObject(body);
-                        JSONArray results = responseModel.getJSONObject("d").getJSONArray("results");
+                requestContext,
+                "/api/v1/UserCredentials?$format=json",
+                (body) -> {
+                    JSONObject responseModel = new JSONObject(body);
+                    JSONArray results = responseModel.getJSONObject("d").getJSONArray("results");
 
-                        List<UserCredentials> userCredentialsList = new ArrayList<>();
-                        for (int ind = 0; ind < results.length(); ind++) {
-                            JSONObject userCredentialsJsonObject = results.getJSONObject(ind);
-                            userCredentialsList.add(getUserCredentialsFromJson(userCredentialsJsonObject));
-                        }
-                        return userCredentialsList;
+                    List<UserCredentials> userCredentialsList = new ArrayList<>();
+                    for (int ind = 0; ind < results.length(); ind++) {
+                        JSONObject userCredentialsJsonObject = results.getJSONObject(ind);
+                        userCredentialsList.add(getUserCredentialsFromJson(userCredentialsJsonObject));
                     }
+                    return userCredentialsList;
+                }
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching user credentials list " + ex.getMessage(), ex);
@@ -56,13 +56,13 @@ public class SecurityContentClient extends CpiBaseClient {
         log.debug("#getUserCredentials(RequestContext requestContext, String name): {}, {}", requestContext, name);
         try {
             return executeGetPublicApiAndReturnResponseBody(
-                    requestContext,
-                    String.format("/api/v1/UserCredentials('%s')$format=json", name),
-                    (body) -> {
-                        JSONObject responseModel = new JSONObject(body);
-                        JSONObject userCredentialsJsonObject = responseModel.getJSONObject("d");
-                        return getUserCredentialsFromJson(userCredentialsJsonObject);
-                    }
+                requestContext,
+                String.format("/api/v1/UserCredentials('%s')$format=json", name),
+                (body) -> {
+                    JSONObject responseModel = new JSONObject(body);
+                    JSONObject userCredentialsJsonObject = responseModel.getJSONObject("d");
+                    return getUserCredentialsFromJson(userCredentialsJsonObject);
+                }
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching user credentials " + ex.getMessage(), ex);
@@ -77,20 +77,20 @@ public class SecurityContentClient extends CpiBaseClient {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Accept", "application/json");
             return executeGetPublicApiAndReturnResponseBody(
-                    requestContext,
-                    "/api/v1/KeystoreEntries",
-                    httpHeaders,
-                    (body) -> {
-                        JSONObject responseModel = new JSONObject(body);
-                        JSONArray results = responseModel.getJSONObject("d").getJSONArray("results");
+                requestContext,
+                "/api/v1/KeystoreEntries",
+                httpHeaders,
+                (body) -> {
+                    JSONObject responseModel = new JSONObject(body);
+                    JSONArray results = responseModel.getJSONObject("d").getJSONArray("results");
 
-                        List<KeystoreEntry> keystoreEntries = new ArrayList<>();
-                        for (int ind = 0; ind < results.length(); ind++) {
-                            JSONObject keystoreEntryJsonObject = results.getJSONObject(ind);
-                            keystoreEntries.add(getKeystoreEntryFromJson(keystoreEntryJsonObject));
-                        }
-                        return keystoreEntries;
+                    List<KeystoreEntry> keystoreEntries = new ArrayList<>();
+                    for (int ind = 0; ind < results.length(); ind++) {
+                        JSONObject keystoreEntryJsonObject = results.getJSONObject(ind);
+                        keystoreEntries.add(getKeystoreEntryFromJson(keystoreEntryJsonObject));
                     }
+                    return keystoreEntries;
+                }
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching keystore entries " + ex.getMessage(), ex);
@@ -105,14 +105,14 @@ public class SecurityContentClient extends CpiBaseClient {
         try {
             String hexName = Hex.encodeHexString(name.getBytes(StandardCharsets.UTF_8));
             return executeGetPublicApiAndReturnResponseBody(
-                    requestContext,
-                    String.format("/api/v1/KeystoreEntries('%s')?keystoreName=system", hexName),
-                    (body) -> {
-                        JSONObject responseModel = new JSONObject(body);
-                        JSONObject keystoreEntryJsonObject = responseModel.getJSONObject("d");
-                        KeystoreEntry keystoreEntry = getKeystoreEntryFromJson(keystoreEntryJsonObject);
-                        return keystoreEntry;
-                    }
+                requestContext,
+                String.format("/api/v1/KeystoreEntries('%s')?keystoreName=system", hexName),
+                (body) -> {
+                    JSONObject responseModel = new JSONObject(body);
+                    JSONObject keystoreEntryJsonObject = responseModel.getJSONObject("d");
+                    KeystoreEntry keystoreEntry = getKeystoreEntryFromJson(keystoreEntryJsonObject);
+                    return keystoreEntry;
+                }
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching keystore entry " + ex.getMessage(), ex);

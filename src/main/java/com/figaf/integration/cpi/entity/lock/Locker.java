@@ -29,20 +29,20 @@ public class Locker {
     }
 
     public static void lockOrUnlockCpiObject(
-            ConnectionProperties connectionProperties,
-            String packageExternalId,
-            String artifactExternalId,
-            String webdav,
-            boolean lockinfo,
-            String userApiCsrfToken,
-            RestTemplate restTemplate,
-            String urlOfLockOrUnlockCpiObject
+        ConnectionProperties connectionProperties,
+        String packageExternalId,
+        String artifactExternalId,
+        String webdav,
+        boolean lockinfo,
+        String userApiCsrfToken,
+        RestTemplate restTemplate,
+        String urlOfLockOrUnlockCpiObject
     ) {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                .scheme(connectionProperties.getProtocol())
-                .host(connectionProperties.getHost())
-                .path(urlOfLockOrUnlockCpiObject);
+            .scheme(connectionProperties.getProtocol())
+            .host(connectionProperties.getHost())
+            .path(urlOfLockOrUnlockCpiObject);
         if (lockinfo) {
             uriBuilder.queryParam("lockinfo", "true");
         }
@@ -53,19 +53,19 @@ public class Locker {
         }
 
         URI lockOrUnlockArtifactUri = uriBuilder
-                .buildAndExpand(packageExternalId, artifactExternalId)
-                .encode()
-                .toUri();
+            .buildAndExpand(packageExternalId, artifactExternalId)
+            .encode()
+            .toUri();
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(X_CSRF_TOKEN, userApiCsrfToken);
 
         HttpEntity<Void> requestEntity = new HttpEntity<>(httpHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                lockOrUnlockArtifactUri,
-                HttpMethod.PUT,
-                requestEntity,
-                String.class
+            lockOrUnlockArtifactUri,
+            HttpMethod.PUT,
+            requestEntity,
+            String.class
         );
 
         if (!OK.equals(responseEntity.getStatusCode())) {
@@ -75,7 +75,7 @@ public class Locker {
 
     private static void lockOrUnlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String webdav, boolean forceLock, String csrfToken, RestTemplate restTemplate) {
         log.debug("#lockOrUnlockPackage(ConnectionProperties connectionProperties, String externalPackageId, String webdav, boolean forceLock, String csrfToken, RestTemplate restTemplate): " +
-                "{}, {}, {}, {}", connectionProperties, externalPackageId, webdav, forceLock);
+            "{}, {}, {}, {}", connectionProperties, externalPackageId, webdav, forceLock);
 
         Assert.notNull(connectionProperties, "connectionProperties must be not null!");
         Assert.notNull(externalPackageId, "externalPackageId must be not null!");
@@ -85,9 +85,9 @@ public class Locker {
         try {
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                    .scheme(connectionProperties.getProtocol())
-                    .host(connectionProperties.getHost())
-                    .path("/itspaces/api/1.0/workspace/{0}");
+                .scheme(connectionProperties.getProtocol())
+                .host(connectionProperties.getHost())
+                .path("/itspaces/api/1.0/workspace/{0}");
 
             if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
@@ -99,9 +99,9 @@ public class Locker {
             }
 
             URI uri = uriBuilder
-                    .buildAndExpand(externalPackageId)
-                    .encode()
-                    .toUri();
+                .buildAndExpand(externalPackageId)
+                .encode()
+                .toUri();
 
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(X_CSRF_TOKEN, csrfToken);
@@ -109,18 +109,18 @@ public class Locker {
             HttpEntity<Void> requestEntity = new HttpEntity<>(null, httpHeaders);
 
             ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    uri,
-                    HttpMethod.PUT,
-                    requestEntity,
-                    String.class
+                uri,
+                HttpMethod.PUT,
+                requestEntity,
+                String.class
             );
 
             if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
                 throw new ClientIntegrationException(String.format(
-                        "Couldn't lock package %s: Code: %d, Message: %s",
-                        externalPackageId,
-                        responseEntity.getStatusCode().value(),
-                        responseEntity.getBody())
+                    "Couldn't lock package %s: Code: %d, Message: %s",
+                    externalPackageId,
+                    responseEntity.getStatusCode().value(),
+                    responseEntity.getBody())
                 );
             }
 

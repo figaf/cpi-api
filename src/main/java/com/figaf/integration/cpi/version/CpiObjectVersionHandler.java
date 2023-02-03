@@ -18,33 +18,34 @@ import static org.springframework.http.HttpStatus.OK;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CpiObjectVersionHandler {
     private static final String X_CSRF_TOKEN = "X-CSRF-Token";
+
     public static void setVersionToCpiObject(
-            ConnectionProperties connectionProperties,
-            String packageExternalId,
-            String artifactExternalId,
-            String version,
-            String userApiCsrfToken,
-            String comment,
-            RestTemplate restTemplate,
-            String updateUrl
+        ConnectionProperties connectionProperties,
+        String packageExternalId,
+        String artifactExternalId,
+        String version,
+        String userApiCsrfToken,
+        String comment,
+        RestTemplate restTemplate,
+        String updateUrl
     ) {
         try {
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                    .scheme(connectionProperties.getProtocol())
-                    .host(connectionProperties.getHost())
-                    .path(updateUrl)
-                    .queryParam("notifications", "true")
-                    .queryParam("webdav", "CHECKIN");
+                .scheme(connectionProperties.getProtocol())
+                .host(connectionProperties.getHost())
+                .path(updateUrl)
+                .queryParam("notifications", "true")
+                .queryParam("webdav", "CHECKIN");
 
             if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
             }
 
             URI lockOrUnlockArtifactUri = uriBuilder
-                    .buildAndExpand(packageExternalId, artifactExternalId)
-                    .encode()
-                    .toUri();
+                .buildAndExpand(packageExternalId, artifactExternalId)
+                .encode()
+                .toUri();
 
             Map<String, String> requestBody = new HashMap<>();
             requestBody.put("comment", !isBlank(comment) ? comment : "");
@@ -57,10 +58,10 @@ public class CpiObjectVersionHandler {
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, httpHeaders);
 
             ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    lockOrUnlockArtifactUri,
-                    HttpMethod.PUT,
-                    entity,
-                    String.class
+                lockOrUnlockArtifactUri,
+                HttpMethod.PUT,
+                entity,
+                String.class
             );
 
             if (!OK.equals(responseEntity.getStatusCode())) {

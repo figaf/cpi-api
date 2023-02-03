@@ -54,14 +54,14 @@ public class CpiIntegrationDocumentClient extends BaseClient {
     }
 
     public List<CpiIntegrationDocument> getDocumentsByPackage(
-            RequestContext requestContext,
-            String packageTechnicalName,
-            String packageDisplayedName,
-            String packagePackageExternalId,
-            String documentType
+        RequestContext requestContext,
+        String packageTechnicalName,
+        String packageDisplayedName,
+        String packagePackageExternalId,
+        String documentType
     ) {
         log.debug("#getDocumentsByPackage(RequestContext requestContext, String packageTechnicalName, String packageDisplayedName, String packagePackageExternalId, TrackedObjectType documentType): " +
-                "{}, {}, {}, {}, {}", requestContext, packageTechnicalName, packageDisplayedName, packagePackageExternalId, documentType);
+            "{}, {}, {}, {}, {}", requestContext, packageTechnicalName, packageDisplayedName, packagePackageExternalId, documentType);
 
         String path;
         switch (documentType) {
@@ -76,9 +76,9 @@ public class CpiIntegrationDocumentClient extends BaseClient {
         }
 
         return executeGet(
-                requestContext,
-                path,
-                body -> CpiIntegrationDocumentParser.buildCpiIntegrationDocuments(documentType, body)
+            requestContext,
+            path,
+            body -> CpiIntegrationDocumentParser.buildCpiIntegrationDocuments(documentType, body)
         );
     }
 
@@ -96,19 +96,19 @@ public class CpiIntegrationDocumentClient extends BaseClient {
     public void deleteDocument(RequestContext requestContext, String documentType, String documentTechnicalName) {
         log.debug("#uploadFile(RequestContext requestContext, String documentType, String documentTechnicalName): {}, {} ,{}", requestContext, documentType, documentTechnicalName);
         executeMethod(requestContext,
-                getRequestPathPerDocumentType(documentType, documentTechnicalName), (url, token, restTemplateWrapper) -> {
-                    deleteDocument(
-                            token,
-                            url,
-                            restTemplateWrapper.getRestTemplate());
-                    return null;
-                });
+            getRequestPathPerDocumentType(documentType, documentTechnicalName), (url, token, restTemplateWrapper) -> {
+                deleteDocument(
+                    token,
+                    url,
+                    restTemplateWrapper.getRestTemplate());
+                return null;
+            });
     }
 
     private void deleteDocument(
-            String userApiCsrfToken,
-            String url,
-            RestTemplate restTemplate) {
+        String userApiCsrfToken,
+        String url,
+        RestTemplate restTemplate) {
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(X_CSRF_TOKEN, userApiCsrfToken);
@@ -119,10 +119,10 @@ public class CpiIntegrationDocumentClient extends BaseClient {
             log.debug(deleteDocumentResponse.getBody());
         } else {
             throw new ClientIntegrationException(
-                    String.format("Couldn't execute delete document:%n Code: %d, Message: %s",
-                            deleteDocumentResponse.getStatusCode().value(),
-                            deleteDocumentResponse.getBody()
-                    )
+                String.format("Couldn't execute delete document:%n Code: %d, Message: %s",
+                    deleteDocumentResponse.getStatusCode().value(),
+                    deleteDocumentResponse.getBody()
+                )
             );
         }
     }
@@ -130,28 +130,28 @@ public class CpiIntegrationDocumentClient extends BaseClient {
     public void uploadFile(RequestContext requestContext, String packageId, FileUploadRequest fileUploadRequest) {
         log.debug("#uploadFile(RequestContext requestContext, FileDocumentRequest fileDocumentRequest): {}, {}", requestContext, fileUploadRequest);
         executeMethod(requestContext,
-                String.format(API_DOCUMENT_UPLOAD, packageId), (url, token, restTemplateWrapper) -> {
-                    uploadFile(fileUploadRequest, packageId, restTemplateWrapper, url, token, requestContext.getConnectionProperties());
-                    return null;
-                });
+            String.format(API_DOCUMENT_UPLOAD, packageId), (url, token, restTemplateWrapper) -> {
+                uploadFile(fileUploadRequest, packageId, restTemplateWrapper, url, token, requestContext.getConnectionProperties());
+                return null;
+            });
     }
 
     public void uploadUrl(RequestContext requestContext, String packageId, UrlUploadRequest urlUploadRequest) {
         log.debug("#uploadUrl(RequestContext requestContext, UrlUploadRequest urlUploadRequest): {}, {}", requestContext, urlUploadRequest);
         executeMethod(requestContext,
-                String.format(API_DOCUMENT_UPLOAD, packageId), (url, token, restTemplateWrapper) -> {
-                    uploadUrl(urlUploadRequest, packageId, restTemplateWrapper.getRestTemplate(), url, token, requestContext.getConnectionProperties());
-                    return null;
-                });
+            String.format(API_DOCUMENT_UPLOAD, packageId), (url, token, restTemplateWrapper) -> {
+                uploadUrl(urlUploadRequest, packageId, restTemplateWrapper.getRestTemplate(), url, token, requestContext.getConnectionProperties());
+                return null;
+            });
     }
 
     private void uploadUrl(
-            UrlUploadRequest urlUploadRequest,
-            String packageExternalId,
-            RestTemplate restTemplate,
-            String uploadUrlUri,
-            String userApiCsrfToken,
-            ConnectionProperties connectionProperties
+        UrlUploadRequest urlUploadRequest,
+        String packageExternalId,
+        RestTemplate restTemplate,
+        String uploadUrlUri,
+        String userApiCsrfToken,
+        ConnectionProperties connectionProperties
     ) {
         log.debug("start uploadUrl");
 
@@ -167,19 +167,19 @@ public class CpiIntegrationDocumentClient extends BaseClient {
             if (CREATED.equals(uploadUrlResponse.getStatusCode())) {
                 if (!CREATION_VERSION.equals(urlUploadRequest.getVersion()) && Optional.ofNullable(uploadUrlResponse.getBody()).isPresent()) {
                     setDocumentVersion(
-                            urlUploadRequest,
-                            packageExternalId,
-                            userApiCsrfToken,
-                            uploadUrlResponse.getBody().getId(),
-                            restTemplate,
-                            connectionProperties);
+                        urlUploadRequest,
+                        packageExternalId,
+                        userApiCsrfToken,
+                        uploadUrlResponse.getBody().getId(),
+                        restTemplate,
+                        connectionProperties);
                 }
             } else {
                 throw new ClientIntegrationException(
-                        String.format("Couldn't execute Url upload:%n Code: %d, Message: %s",
-                                uploadUrlResponse.getStatusCode().value(),
-                                uploadUrlResponse.getBody()
-                        )
+                    String.format("Couldn't execute Url upload:%n Code: %d, Message: %s",
+                        uploadUrlResponse.getStatusCode().value(),
+                        uploadUrlResponse.getBody()
+                    )
                 );
             }
 
@@ -192,12 +192,12 @@ public class CpiIntegrationDocumentClient extends BaseClient {
     }
 
     private void uploadFile(
-            FileUploadRequest fileUploadRequest,
-            String packageExternalId,
-            RestTemplateWrapper restTemplateWrapper,
-            String uploadFileUri,
-            String userApiCsrfToken,
-            ConnectionProperties connectionProperties
+        FileUploadRequest fileUploadRequest,
+        String packageExternalId,
+        RestTemplateWrapper restTemplateWrapper,
+        String uploadFileUri,
+        String userApiCsrfToken,
+        ConnectionProperties connectionProperties
     ) {
         log.debug("start uploadFile");
         HttpResponse uploadFileResponse = null;
@@ -226,12 +226,12 @@ public class CpiIntegrationDocumentClient extends BaseClient {
             } else {
                 if (!CREATION_VERSION.equals(fileUploadRequest.getFileMetaData().getVersion())) {
                     setDocumentVersion(
-                            fileUploadRequest.getFileMetaData(),
-                            packageExternalId,
-                            userApiCsrfToken,
-                            createDocumentResponse.getId(),
-                            restTemplateWrapper.getRestTemplate(),
-                            connectionProperties);
+                        fileUploadRequest.getFileMetaData(),
+                        packageExternalId,
+                        userApiCsrfToken,
+                        createDocumentResponse.getId(),
+                        restTemplateWrapper.getRestTemplate(),
+                        connectionProperties);
                 }
             }
         } catch (Exception ex) {
@@ -256,24 +256,24 @@ public class CpiIntegrationDocumentClient extends BaseClient {
     }
 
     private void setDocumentVersion(
-            DocumentUploadMetaData documentUploadMetaData,
-            String packageExternalId,
-            String userApiCsrfToken,
-            String artifactExternalId,
-            RestTemplate restTemplate,
-            ConnectionProperties connectionProperties) {
+        DocumentUploadMetaData documentUploadMetaData,
+        String packageExternalId,
+        String userApiCsrfToken,
+        String artifactExternalId,
+        RestTemplate restTemplate,
+        ConnectionProperties connectionProperties) {
         try {
             Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", true, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
             Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", false, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
 
             CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
-                    packageExternalId,
-                    artifactExternalId,
-                    documentUploadMetaData.getVersion(),
-                    userApiCsrfToken,
-                    documentUploadMetaData.getComment(),
-                    restTemplate,
-                    API_LOCK_AND_UNLOCK_DOCUMENT
+                packageExternalId,
+                artifactExternalId,
+                documentUploadMetaData.getVersion(),
+                userApiCsrfToken,
+                documentUploadMetaData.getComment(),
+                restTemplate,
+                API_LOCK_AND_UNLOCK_DOCUMENT
             );
         } catch (Exception ex) {
             log.error("Error occurred while uploading document " + ex.getMessage(), ex);

@@ -39,7 +39,7 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
 
     public void createResourceForIFlow(ConnectionProperties connectionProperties, String iFlowName, String resourceName, String resourceExtension, String base64ResourceContent) {
         log.debug("#createResource(ConnectionProperties connectionProperties, String iFlowName, String resourceName, String resourceExtension, String base64ResourceContent): " +
-                "{}, {}, {}, {}, {}", connectionProperties, iFlowName, resourceName, resourceExtension, base64ResourceContent);
+            "{}, {}, {}, {}, {}", connectionProperties, iFlowName, resourceName, resourceExtension, base64ResourceContent);
 
         try {
             HttpClient client = httpClientsFactory.createHttpClient();
@@ -47,9 +47,9 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
             String csrfToken = getCsrfToken(connectionProperties, client);
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                    .scheme(connectionProperties.getProtocol())
-                    .host(connectionProperties.getHost())
-                    .path(String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/Resources", iFlowName));
+                .scheme(connectionProperties.getProtocol())
+                .host(connectionProperties.getHost())
+                .path(String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/Resources", iFlowName));
 
             if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
@@ -57,9 +57,9 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
             URI uri = uriBuilder.build().toUri();
 
             JSONObject requestBody = new JSONObject()
-                    .put("Name", resourceName)
-                    .put("ResourceType", resourceExtension)
-                    .put("ResourceContent", base64ResourceContent);
+                .put("Name", resourceName)
+                .put("ResourceType", resourceExtension)
+                .put("ResourceContent", base64ResourceContent);
 
             HttpPost createIFlowResourceRequest = new HttpPost(uri);
             createIFlowResourceRequest.setHeader(createBasicAuthHeader(connectionProperties));
@@ -81,11 +81,11 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
                     }
                     default: {
                         throw new ClientIntegrationException(String.format(
-                                "Couldn't create resource %s for the iFlow %s: Code: %d, Message: %s",
-                                resourceName,
-                                iFlowName,
-                                createIFlowResourceResponse.getStatusLine().getStatusCode(),
-                                IOUtils.toString(createIFlowResourceResponse.getEntity().getContent(), StandardCharsets.UTF_8))
+                            "Couldn't create resource %s for the iFlow %s: Code: %d, Message: %s",
+                            resourceName,
+                            iFlowName,
+                            createIFlowResourceResponse.getStatusLine().getStatusCode(),
+                            IOUtils.toString(createIFlowResourceResponse.getEntity().getContent(), StandardCharsets.UTF_8))
                         );
                     }
                 }
@@ -102,7 +102,7 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
 
     public void updateIFlowResource(ConnectionProperties connectionProperties, String iFlowName, String resourceName, String resourceExtension, String base64ResourceContent) {
         log.debug("#updateIFlowResource(ConnectionProperties connectionProperties, String iFlowName, String resourceName, String resourceExtension, String base64ResourceContent): " +
-                "{}, {}, {}, {}, {}", connectionProperties, iFlowName, resourceName, resourceExtension, base64ResourceContent);
+            "{}, {}, {}, {}, {}", connectionProperties, iFlowName, resourceName, resourceExtension, base64ResourceContent);
 
         try {
             HttpClient client = httpClientsFactory.createHttpClient();
@@ -110,11 +110,11 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
             String csrfToken = getCsrfToken(connectionProperties, client);
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                    .scheme(connectionProperties.getProtocol())
-                    .host(connectionProperties.getHost())
-                    .path(String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/$links/Resources(Name='%s',ResourceType='%s')",
-                            iFlowName, resourceName, resourceExtension)
-                    );
+                .scheme(connectionProperties.getProtocol())
+                .host(connectionProperties.getHost())
+                .path(String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/$links/Resources(Name='%s',ResourceType='%s')",
+                    iFlowName, resourceName, resourceExtension)
+                );
 
             if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
@@ -122,7 +122,7 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
             URI uri = uriBuilder.build().toUri();
 
             JSONObject requestBody = new JSONObject()
-                    .put("ResourceContent", base64ResourceContent);
+                .put("ResourceContent", base64ResourceContent);
 
             HttpPut updateIFlowResourceRequest = new HttpPut(uri);
             updateIFlowResourceRequest.setHeader(createBasicAuthHeader(connectionProperties));
@@ -144,11 +144,11 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
                     }
                     default: {
                         throw new ClientIntegrationException(String.format(
-                                "Couldn't update resource %s of the iFlow %s: Code: %d, Message: %s",
-                                resourceName,
-                                iFlowName,
-                                updateIFlowResourceResponse.getStatusLine().getStatusCode(),
-                                IOUtils.toString(updateIFlowResourceResponse.getEntity().getContent(), StandardCharsets.UTF_8))
+                            "Couldn't update resource %s of the iFlow %s: Code: %d, Message: %s",
+                            resourceName,
+                            iFlowName,
+                            updateIFlowResourceResponse.getStatusLine().getStatusCode(),
+                            IOUtils.toString(updateIFlowResourceResponse.getEntity().getContent(), StandardCharsets.UTF_8))
                         );
                     }
                 }

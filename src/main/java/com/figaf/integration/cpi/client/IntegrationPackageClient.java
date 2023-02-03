@@ -55,9 +55,9 @@ public class IntegrationPackageClient extends BaseClient {
         validateInputParameters(requestContext, request);
 
         return executeMethod(
-                requestContext,
-                "/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages",
-                (url, token, restTemplateWrapper) -> createIntegrationPackage(request, url, token, restTemplateWrapper.getRestTemplate())
+            requestContext,
+            "/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages",
+            (url, token, restTemplateWrapper) -> createIntegrationPackage(request, url, token, restTemplateWrapper.getRestTemplate())
         );
     }
 
@@ -67,12 +67,12 @@ public class IntegrationPackageClient extends BaseClient {
         validateInputParameters(requestContext, request);
 
         executeMethod(
-                requestContext,
-                String.format("/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages('%s')", request.getTechnicalName()),
-                (url, token, restTemplateWrapper) -> {
-                    updateIntegrationPackage(requestContext.getConnectionProperties(), externalId, request, url, token, restTemplateWrapper.getRestTemplate());
-                    return null;
-                }
+            requestContext,
+            String.format("/itspaces/odata/1.0/workspace.svc/ContentEntities.ContentPackages('%s')", request.getTechnicalName()),
+            (url, token, restTemplateWrapper) -> {
+                updateIntegrationPackage(requestContext.getConnectionProperties(), externalId, request, url, token, restTemplateWrapper.getRestTemplate());
+                return null;
+            }
         );
 
     }
@@ -82,13 +82,13 @@ public class IntegrationPackageClient extends BaseClient {
         log.debug("#deletePackage(String packageName, RequestContext requestContext): {}, {}", packageName, requestContext);
 
         executeMethod(
-                requestContext,
-                API_PACKAGES,
-                format(API_PACKAGES_WITH_NAME, packageName),
-                (url, token, restTemplateWrapper) -> {
-                    deletePackage(packageName, url, token, restTemplateWrapper.getRestTemplate());
-                    return null;
-                }
+            requestContext,
+            API_PACKAGES,
+            format(API_PACKAGES_WITH_NAME, packageName),
+            (url, token, restTemplateWrapper) -> {
+                deletePackage(packageName, url, token, restTemplateWrapper.getRestTemplate());
+                return null;
+            }
         );
     }
 
@@ -104,10 +104,10 @@ public class IntegrationPackageClient extends BaseClient {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, httpHeaders);
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                requestEntity,
-                String.class
+            url,
+            HttpMethod.POST,
+            requestEntity,
+            String.class
         );
 
         if (HttpStatus.CREATED.equals(responseEntity.getStatusCode())) {
@@ -115,10 +115,10 @@ public class IntegrationPackageClient extends BaseClient {
             return createdPackage.getString("reg_id");
         } else {
             throw new ClientIntegrationException(String.format(
-                    "Couldn't create package %s: Code: %d, Message: %s",
-                    request.getTechnicalName(),
-                    responseEntity.getStatusCode().value(),
-                    responseEntity.getBody())
+                "Couldn't create package %s: Code: %d, Message: %s",
+                request.getTechnicalName(),
+                responseEntity.getStatusCode().value(),
+                responseEntity.getBody())
             );
         }
 
@@ -141,19 +141,19 @@ public class IntegrationPackageClient extends BaseClient {
             HttpEntity<Map<String, String>> httpEntity = new HttpEntity<>(requestBody, httpHeaders);
 
             ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    url,
-                    HttpMethod.PUT,
-                    httpEntity,
-                    String.class
+                url,
+                HttpMethod.PUT,
+                httpEntity,
+                String.class
             );
 
 
             if (!NO_CONTENT.equals(responseEntity.getStatusCode())) {
                 throw new ClientIntegrationException(String.format(
-                        "Couldn't update package %s: Code: %d, Message: %s",
-                        request.getTechnicalName(),
-                        responseEntity.getStatusCode().value(),
-                        responseEntity.getBody())
+                    "Couldn't update package %s: Code: %d, Message: %s",
+                    request.getTechnicalName(),
+                    responseEntity.getStatusCode().value(),
+                    responseEntity.getBody())
                 );
             }
 
@@ -189,10 +189,10 @@ public class IntegrationPackageClient extends BaseClient {
     }
 
     private void deletePackage(
-            String packageName,
-            String url,
-            String token,
-            RestTemplate restTemplate
+        String packageName,
+        String url,
+        String token,
+        RestTemplate restTemplate
     ) {
         HttpHeaders httpHeaders = createHttpHeadersWithCSRFToken(token);
         HttpEntity<Void> httpEntity = new HttpEntity<>(httpHeaders);
@@ -200,10 +200,10 @@ public class IntegrationPackageClient extends BaseClient {
 
         if (!NO_CONTENT.equals(responseEntity.getStatusCode())) {
             throw new ClientIntegrationException(format(
-                    "Couldn't delete package %s: Code: %d, Message: %s",
-                    packageName,
-                    responseEntity.getStatusCode().value(),
-                    responseEntity.getBody())
+                "Couldn't delete package %s: Code: %d, Message: %s",
+                packageName,
+                responseEntity.getStatusCode().value(),
+                responseEntity.getBody())
             );
         }
     }

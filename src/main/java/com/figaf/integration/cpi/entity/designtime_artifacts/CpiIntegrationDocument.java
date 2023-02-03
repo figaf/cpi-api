@@ -12,7 +12,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@ToString(of={"externalId", "technicalName", "displayedName", "version"})
+@ToString(of = {"externalId", "technicalName", "displayedName", "version"})
 public class CpiIntegrationDocument implements Serializable {
 
     private String externalId;

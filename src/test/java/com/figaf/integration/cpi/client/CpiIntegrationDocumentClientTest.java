@@ -57,12 +57,12 @@ class CpiIntegrationDocumentClientTest {
         Optional<CpiIntegrationDocument> cpiIntegrationDocument = cpiIntegrationDocuments.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getFileName().equals(testFileToUpload.getName())).findFirst();
         assertThat(cpiIntegrationDocument).as("file %s already exists", cpiIntegrationDocument.orElse(new CpiIntegrationDocument()).getFileName()).isEmpty();
         FileMetaData fileMetaData = FileMetaData
-                .builder()
-                .name(FilenameUtils.removeExtension(testFileToUpload.getName()))
-                .description("automated upload")
-                .fileName(testFileToUpload.getName())
-                .type("File")
-                .build();
+            .builder()
+            .name(FilenameUtils.removeExtension(testFileToUpload.getName()))
+            .description("automated upload")
+            .fileName(testFileToUpload.getName())
+            .type("File")
+            .build();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (InputStream in = Files.newInputStream(testFileToUpload.toPath())) {
             int read;

@@ -36,24 +36,24 @@ public class IntegrationPackageCustomTagsClient extends BaseClient {
     }
 
     public void updateCustomTags(
-            RequestContext requestContext,
-            String packageId,
-            String nameOfTag,
-            String delimiterSeparatedTagValues) {
+        RequestContext requestContext,
+        String packageId,
+        String nameOfTag,
+        String delimiterSeparatedTagValues) {
         log.debug("start updateCustomTags");
         JSONObject requestUpdateTag = new JSONObject().put(VALUE, delimiterSeparatedTagValues);
         String updateCustomTagsUrl = String.format(API_UPDATE_CUSTOM_TAGS_IN_PACKAGE, packageId, nameOfTag);
 
         executeMethodPublicApi(
-                requestContext,
-                updateCustomTagsUrl,
-                requestUpdateTag.toString(),
-                HttpMethod.PUT,
-                responseEntity -> {
-                    ResponseStatusHandler.handleResponseStatus(responseEntity, UPDATE_CUSTOM_TAGS_IN_INTEGRATION_PACKAGE_OPERATION);
-                    log.debug(UPDATE_CUSTOM_TAGS_IN_INTEGRATION_PACKAGE_MESSAGE, nameOfTag, delimiterSeparatedTagValues);
-                    return null;
-                }
+            requestContext,
+            updateCustomTagsUrl,
+            requestUpdateTag.toString(),
+            HttpMethod.PUT,
+            responseEntity -> {
+                ResponseStatusHandler.handleResponseStatus(responseEntity, UPDATE_CUSTOM_TAGS_IN_INTEGRATION_PACKAGE_OPERATION);
+                log.debug(UPDATE_CUSTOM_TAGS_IN_INTEGRATION_PACKAGE_MESSAGE, nameOfTag, delimiterSeparatedTagValues);
+                return null;
+            }
         );
     }
 
@@ -61,14 +61,14 @@ public class IntegrationPackageCustomTagsClient extends BaseClient {
         log.debug("start getCustomTags");
         String getCustomTagsUrl = String.format(API_GET_CUSTOM_TAGS_OF_PACKAGE, packageId);
         return executeMethodPublicApi(
-                requestContext,
-                getCustomTagsUrl,
-                "",
-                HttpMethod.GET,
-                responseEntity -> {
-                    ResponseStatusHandler.handleResponseStatus(responseEntity, GET_CUSTOM_TAGS_OF_INTEGRATION_PACKAGE_OPERATION);
-                    return parseCustomTagsFromResponse(responseEntity.getBody());
-                }
+            requestContext,
+            getCustomTagsUrl,
+            "",
+            HttpMethod.GET,
+            responseEntity -> {
+                ResponseStatusHandler.handleResponseStatus(responseEntity, GET_CUSTOM_TAGS_OF_INTEGRATION_PACKAGE_OPERATION);
+                return parseCustomTagsFromResponse(responseEntity.getBody());
+            }
         );
     }
 
