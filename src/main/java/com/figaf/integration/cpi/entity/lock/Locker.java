@@ -117,7 +117,7 @@ public class Locker {
 
             if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
                 throw new ClientIntegrationException(String.format(
-                    "Couldn't lock package %s: Code: %d, Message: %s",
+                    "Couldn't lock or unlock package %s: Code: %d, Message: %s",
                     externalPackageId,
                     responseEntity.getStatusCode().value(),
                     responseEntity.getBody())

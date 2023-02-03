@@ -25,6 +25,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.springframework.http.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -44,7 +45,7 @@ public class CpiIntegrationDocumentClient extends BaseClient {
     private static final String API_FILE_DOCUMENT = "/itspaces/odata/1.0/workspace.svc/ContentEntities.Files('%s')/$value?attachment=false";
     private static final String API_DOCUMENT_UPLOAD = "/itspaces/api/1.0/package/%s/documents";
     private static final String X_CSRF_TOKEN = "X-CSRF-Token";
-    private static final String CREATION_VERSION = "1.0.0";
+    private static final String DEFAULT_VERSION_AFTER_CREATION = "1.0.0";
     private static final String API_FILE_DELETE = "/itspaces/odata/1.0/workspace.svc/ContentEntities.Files('%s')";
     private static final String API_URL_DELETE = "/itspaces/odata/1.0/workspace.svc/ContentEntities.Urls('%s')";
     private static final String API_LOCK_AND_UNLOCK_DOCUMENT = "itspaces/api/1.0/package/{0}/documents/{1}";
@@ -165,7 +166,7 @@ public class CpiIntegrationDocumentClient extends BaseClient {
             org.springframework.http.HttpEntity<UrlUploadRequest> urlUploadRequestEntity = new org.springframework.http.HttpEntity<>(urlUploadRequest, httpHeaders);
             ResponseEntity<CreateDocumentResponse> uploadUrlResponse = restTemplate.postForEntity(uploadUrlUri, urlUploadRequestEntity, CreateDocumentResponse.class);
             if (CREATED.equals(uploadUrlResponse.getStatusCode())) {
-                if (!CREATION_VERSION.equals(urlUploadRequest.getVersion()) && Optional.ofNullable(uploadUrlResponse.getBody()).isPresent()) {
+                if (!DEFAULT_VERSION_AFTER_CREATION.equals(urlUploadRequest.getVersion()) && Optional.ofNullable(uploadUrlResponse.getBody()).isPresent()) {
                     setDocumentVersion(
                         urlUploadRequest,
                         packageExternalId,
@@ -224,7 +225,7 @@ public class CpiIntegrationDocumentClient extends BaseClient {
             if (uploadFileResponse.getStatusLine().getStatusCode() != 201) {
                 throw new ClientIntegrationException("Couldn't execute file uploading:\n" + IOUtils.toString(uploadFileResponse.getEntity().getContent(), StandardCharsets.UTF_8));
             } else {
-                if (!CREATION_VERSION.equals(fileUploadRequest.getFileMetaData().getVersion())) {
+                if (!DEFAULT_VERSION_AFTER_CREATION.equals(fileUploadRequest.getFileMetaData().getVersion())) {
                     setDocumentVersion(
                         fileUploadRequest.getFileMetaData(),
                         packageExternalId,
@@ -264,8 +265,12 @@ public class CpiIntegrationDocumentClient extends BaseClient {
         ConnectionProperties connectionProperties) {
         try {
             Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", true, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
-            Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", false, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
-
+            lockOrUnlockCpiObjectWithFalseLockInfo(
+                packageExternalId,
+                artifactExternalId,
+                userApiCsrfToken,
+                restTemplate,
+                connectionProperties);
             CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
                 packageExternalId,
                 artifactExternalId,
@@ -280,6 +285,23 @@ public class CpiIntegrationDocumentClient extends BaseClient {
             throw new ClientIntegrationException("Error occurred while uploading document: " + ex.getMessage(), ex);
         } finally {
             Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "UNLOCK", false, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
+        }
+    }
+
+    private void lockOrUnlockCpiObjectWithFalseLockInfo(
+        String packageExternalId,
+        String artifactExternalId,
+        String userApiCsrfToken,
+        RestTemplate restTemplate,
+        ConnectionProperties connectionProperties) {
+        try {
+            Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", false, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
+        } catch (HttpClientErrorException ex) {
+            if (HttpStatus.LOCKED.equals(ex.getStatusCode())) {
+                log.warn("document {} is already locked", artifactExternalId);
+            } else {
+                throw new ClientIntegrationException("Couldn't lock or unlock document \n" + ex.getResponseBodyAsString());
+            }
         }
     }
 }
