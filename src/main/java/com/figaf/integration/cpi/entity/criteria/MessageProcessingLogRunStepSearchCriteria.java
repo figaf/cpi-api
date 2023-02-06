@@ -1,4 +1,4 @@
-    package com.figaf.integration.cpi.entity.criteria;
+package com.figaf.integration.cpi.entity.criteria;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -34,9 +34,9 @@ public class DataStoreEntriesClient extends CpiBaseClient {
         String resourcePath = String.format(API_DATA_STORE_ENTRIES, messageId);
         try {
             JSONArray dataStoreEntriesJsonArray = callRestWs(
-                    requestContext,
-                    resourcePath,
-                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                requestContext,
+                resourcePath,
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
             List<DataStoreEntry> dataStoreEntries = new ArrayList<>();
@@ -65,20 +65,20 @@ public class DataStoreEntriesClient extends CpiBaseClient {
 
     public DataStoreEntryPayload getDataStoreEntryPayload(RequestContext requestContext, String dataStoreEntryId, String dataStoreEntryName, String integrationFlow, String type) {
         log.debug("#getDataStoreEntryPayload(RequestContext requestContext, String dataStoreEntryId, String dataStoreEntryName, String integrationFlow, String type): {}, {}, {}, {}, {}",
-                requestContext, dataStoreEntryId, dataStoreEntryName, integrationFlow, type
+            requestContext, dataStoreEntryId, dataStoreEntryName, integrationFlow, type
         );
         try {
             byte[] fullArchive = callRestWs(
-                    requestContext,
-                    String.format(
-                            API_DATA_STORE_ENTRY_PAYLOAD,
-                            dataStoreEntryId,
-                            dataStoreEntryName,
-                            integrationFlow,
-                            StringUtils.defaultString(type, "")
-                    ),
-                    response -> response,
-                    byte[].class
+                requestContext,
+                String.format(
+                    API_DATA_STORE_ENTRY_PAYLOAD,
+                    dataStoreEntryId,
+                    dataStoreEntryName,
+                    integrationFlow,
+                    StringUtils.defaultString(type, "")
+                ),
+                response -> response,
+                byte[].class
             );
             return DataStoreEntryParser.parseDataStoreEntryPayload(fullArchive);
         } catch (Exception ex) {

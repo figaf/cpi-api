@@ -132,9 +132,9 @@ public abstract class CpiBaseClient extends BaseClient {
         try {
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                    .scheme(connectionProperties.getProtocol())
-                    .host(connectionProperties.getHost())
-                    .path(path);
+                .scheme(connectionProperties.getProtocol())
+                .host(connectionProperties.getHost())
+                .path(path);
 
             if (StringUtils.isNotEmpty(connectionProperties.getPort())) {
                 uriBuilder.port(connectionProperties.getPort());
@@ -155,9 +155,9 @@ public abstract class CpiBaseClient extends BaseClient {
 
             if (headResponse.getStatusLine().getStatusCode() != 200) {
                 throw new ClientIntegrationException(String.format(
-                        "Couldn't fetch token. Code: %d, Message: %s",
-                        headResponse.getStatusLine().getStatusCode(),
-                        IOUtils.toString(headResponse.getEntity().getContent(), StandardCharsets.UTF_8))
+                    "Couldn't fetch token. Code: %d, Message: %s",
+                    headResponse.getStatusLine().getStatusCode(),
+                    IOUtils.toString(headResponse.getEntity().getContent(), StandardCharsets.UTF_8))
                 );
             }
 
@@ -172,18 +172,18 @@ public abstract class CpiBaseClient extends BaseClient {
     }
 
     protected <R> R callRestWs(
-            RequestContext requestContext,
-            String resourcePath,
-            CheckedFunction<String, R, JSONException> responseExtractor
+        RequestContext requestContext,
+        String resourcePath,
+        CheckedFunction<String, R, JSONException> responseExtractor
     ) {
         return callRestWs(requestContext, resourcePath, responseExtractor, String.class);
     }
 
     protected <R, T> R callRestWs(
-            RequestContext requestContext,
-            String resourcePath,
-            CheckedFunction<T, R, JSONException> responseExtractor,
-            Class<T> bodyType
+        RequestContext requestContext,
+        String resourcePath,
+        CheckedFunction<T, R, JSONException> responseExtractor,
+        Class<T> bodyType
     ) {
         try {
             ConnectionProperties connectionProperties = requestContext.getConnectionProperties();
@@ -199,13 +199,13 @@ public abstract class CpiBaseClient extends BaseClient {
 
     public static Header createBasicAuthHeader(ConnectionProperties connectionProperties) throws UnsupportedEncodingException {
         return new BasicHeader(
-                "Authorization",
-                String.format(
-                        "Basic %s",
-                        Base64Utils.encodeToString(
-                                (connectionProperties.getUsername() + ":" + connectionProperties.getPassword()).getBytes(StandardCharsets.UTF_8)
-                        )
+            "Authorization",
+            String.format(
+                "Basic %s",
+                Base64Utils.encodeToString(
+                    (connectionProperties.getUsername() + ":" + connectionProperties.getPassword()).getBytes(StandardCharsets.UTF_8)
                 )
+            )
         );
     }
 

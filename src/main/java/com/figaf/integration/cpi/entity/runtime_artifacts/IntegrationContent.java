@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@ToString(of = {"name","type","version","status"})
+@ToString(of = {"name", "type", "version", "status"})
 public class IntegrationContent implements Serializable {
 
     private String id;

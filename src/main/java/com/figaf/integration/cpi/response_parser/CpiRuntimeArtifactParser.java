@@ -21,7 +21,8 @@ import static java.util.function.Function.identity;
  */
 public class CpiRuntimeArtifactParser {
 
-    private CpiRuntimeArtifactParser() {}
+    private CpiRuntimeArtifactParser() {
+    }
 
     public static List<CpiArtifact> buildCpiArtifacts(
         String packageTechnicalName,
@@ -77,7 +78,7 @@ public class CpiRuntimeArtifactParser {
                 return new JSONObject(result).getString("taskId");
             }
             case VALUE_MAPPING:
-            case MESSAGE_MAPPING:{
+            case MESSAGE_MAPPING: {
                 return result != null ? result.replace("\"", "") : null;
             }
             default: {

@@ -36,7 +36,7 @@ class CpiValueMappingClientTest {
     @BeforeAll
     static void setUp() {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiValueMappingClient = new CpiValueMappingClient(integrationPackageClient, new HttpClientsFactory());
+        cpiValueMappingClient = new CpiValueMappingClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
         valueMappingUtils = new ValueMappingUtils(packageUtils, cpiValueMappingClient);
     }

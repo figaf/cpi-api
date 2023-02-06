@@ -24,15 +24,15 @@ public class InfrastructureClient extends CpiBaseClient {
     public String fetchIflMapHost(RequestContext requestContext) {
         log.debug("#fetchIflMapHost(RequestContext requestContext): {}", requestContext);
         return executeGetPublicApiAndReturnResponseBody(
-                requestContext,
-                "/api/v1/ServiceEndpoints?$expand=EntryPoints,ApiDefinitions",
-                (body) -> {
-                    InputSource inputXML = new InputSource( new StringReader( body) );
-                    XPath xPath = XPathFactory.newInstance().newXPath();
-                    String fetchedUrl = xPath.evaluate("(//*[local-name()='Url']/text())[1]", inputXML);
-                    URL url = new URL(fetchedUrl);
-                    return url.getHost();
-                }
+            requestContext,
+            "/api/v1/ServiceEndpoints?$expand=EntryPoints,ApiDefinitions",
+            (body) -> {
+                InputSource inputXML = new InputSource(new StringReader(body));
+                XPath xPath = XPathFactory.newInstance().newXPath();
+                String fetchedUrl = xPath.evaluate("(//*[local-name()='Url']/text())[1]", inputXML);
+                URL url = new URL(fetchedUrl);
+                return url.getHost();
+            }
         );
     }
 

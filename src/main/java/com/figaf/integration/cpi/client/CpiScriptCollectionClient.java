@@ -20,18 +20,18 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
     private static final String API_UPLOAD_SCRIPT_COLLECTION = "/itspaces/api/1.0/workspace/%s/scriptcollections/?isImport=true";
     private static final String API_DEPLOY_SCRIPT_COLLECTION = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/scriptcollections/%s?action=DEPLOY";
 
-    public CpiScriptCollectionClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiScriptCollectionClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getScriptCollectionsByPackage(
-            RequestContext requestContext,
-            String packageTechnicalName,
-            String packageDisplayedName,
-            String packageExternalId
+        RequestContext requestContext,
+        String packageTechnicalName,
+        String packageDisplayedName,
+        String packageExternalId
     ) {
         log.debug("#getScriptCollectionsByPackage(RequestContext requestContext, String packageTechnicalName, String packageDisplayedName, " +
-            "String packageExternalId): {}, {}, {}, {}",
+                "String packageExternalId): {}, {}, {}, {}",
             requestContext, packageTechnicalName, packageDisplayedName, packageExternalId);
         return getArtifactsByPackage(
             requestContext,
@@ -43,12 +43,12 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
     }
 
     public byte[] downloadScriptCollection(
-            RequestContext requestContext,
-            String packageExternalId,
-            String scriptCollectionExternalId
+        RequestContext requestContext,
+        String packageExternalId,
+        String scriptCollectionExternalId
     ) {
         log.debug("#downloadScriptCollection(RequestContext requestContext, String packageExternalId, String scriptCollectionExternalId): {}, {}, {}",
-                requestContext, packageExternalId, scriptCollectionExternalId
+            requestContext, packageExternalId, scriptCollectionExternalId
         );
         return downloadArtifact(requestContext, packageExternalId, scriptCollectionExternalId);
     }
@@ -117,7 +117,7 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
         RequestContext requestContext
     ) {
         log.debug("#deleteScriptCollection(String packageExternalId, String scriptCollectionExternalId, String scriptCollectionName, RequestContext requestContext): " +
-                "{}, {}, {}, {}", packageExternalId, scriptCollectionExternalId, scriptCollectionName, requestContext);
+            "{}, {}, {}, {}", packageExternalId, scriptCollectionExternalId, scriptCollectionName, requestContext);
 
         deleteArtifact(packageExternalId, scriptCollectionExternalId, scriptCollectionName, requestContext);
     }

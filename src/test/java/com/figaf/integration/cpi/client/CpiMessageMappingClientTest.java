@@ -36,7 +36,7 @@ class CpiMessageMappingClientTest {
     @BeforeAll
     static void setUp() {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiMessageMappingClient = new CpiMessageMappingClient(integrationPackageClient, new HttpClientsFactory());
+        cpiMessageMappingClient = new CpiMessageMappingClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
         messageMappingUtils = new MessageMappingUtils(packageUtils, cpiMessageMappingClient);
     }

@@ -34,7 +34,7 @@ class CpiRestApiClientTest {
     @BeforeAll
     static void setUp() {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiRestApiClient = new CpiRestApiClient(integrationPackageClient, new HttpClientsFactory());
+        cpiRestApiClient = new CpiRestApiClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
         restApiUtils = new RestApiUtils(packageUtils, cpiRestApiClient);
     }

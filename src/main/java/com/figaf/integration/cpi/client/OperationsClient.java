@@ -43,10 +43,10 @@ public class OperationsClient extends CpiBaseClient {
 
     public StatisticOverviewCommandResponse callStatisticOverviewCommand(RequestContext requestContext) {
         return executeMethod(
-                requestContext,
-                "/itspaces/Operations",
-                "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.StatisticOverviewCommand",
-                (url, token, restTemplateWrapper) -> callStatisticOverviewCommand(url, token, restTemplateWrapper.getRestTemplate())
+            requestContext,
+            "/itspaces/Operations",
+            "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.StatisticOverviewCommand",
+            (url, token, restTemplateWrapper) -> callStatisticOverviewCommand(url, token, restTemplateWrapper.getRestTemplate())
         );
     }
 
@@ -56,12 +56,12 @@ public class OperationsClient extends CpiBaseClient {
 
     public ParticipantListCommandResponse callParticipantListCommand(ConnectionProperties connectionProperties, HttpClient client, String csrfToken) {
         URI uri = UriComponentsBuilder.newInstance()
-                .scheme(connectionProperties.getProtocol())
-                .host(connectionProperties.getHost())
-                .path("/Operations/com.sap.it.op.srv.commands.dashboard.ParticipantListCommand")
-                .build()
-                .encode()
-                .toUri();
+            .scheme(connectionProperties.getProtocol())
+            .host(connectionProperties.getHost())
+            .path("/Operations/com.sap.it.op.srv.commands.dashboard.ParticipantListCommand")
+            .build()
+            .encode()
+            .toUri();
 
         HttpResponse participantListHttpResponse = null;
         try {
@@ -82,9 +82,9 @@ public class OperationsClient extends CpiBaseClient {
                 return participantListCommandResponse;
             } else {
                 throw new ClientIntegrationException(String.format(
-                        "Couldn't get participantListCommandResponse. Code: %d, Message: %s",
-                        participantListHttpResponse.getStatusLine().getStatusCode(),
-                        IOUtils.toString(participantListHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
+                    "Couldn't get participantListCommandResponse. Code: %d, Message: %s",
+                    participantListHttpResponse.getStatusLine().getStatusCode(),
+                    IOUtils.toString(participantListHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
                 );
             }
 
@@ -98,12 +98,12 @@ public class OperationsClient extends CpiBaseClient {
 
     public NodeProcessStatisticCommandResponse callNodeProcessStatisticCommand(ConnectionProperties connectionProperties, HttpClient client, String csrfToken, NodeProcessStatisticCommandRequest nodeProcessStatisticCommandRequest) {
         URI uri = UriComponentsBuilder.newInstance()
-                .scheme(connectionProperties.getProtocol())
-                .host(connectionProperties.getHost())
-                .path("/Operations/com.sap.it.op.srv.commands.dashboard.NodeProcessStatisticCommand")
-                .build()
-                .encode()
-                .toUri();
+            .scheme(connectionProperties.getProtocol())
+            .host(connectionProperties.getHost())
+            .path("/Operations/com.sap.it.op.srv.commands.dashboard.NodeProcessStatisticCommand")
+            .build()
+            .encode()
+            .toUri();
 
         HttpResponse nodeProcessStatisticCommandHttpResponse = null;
         try {
@@ -123,9 +123,9 @@ public class OperationsClient extends CpiBaseClient {
                 return nodeProcessStatisticCommandResponse;
             } else {
                 throw new ClientIntegrationException(String.format(
-                        "Couldn't get nodeProcessStatisticCommandResponse. Code: %d, Message: %s",
-                        nodeProcessStatisticCommandHttpResponse.getStatusLine().getStatusCode(),
-                        IOUtils.toString(nodeProcessStatisticCommandHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
+                    "Couldn't get nodeProcessStatisticCommandResponse. Code: %d, Message: %s",
+                    nodeProcessStatisticCommandHttpResponse.getStatusLine().getStatusCode(),
+                    IOUtils.toString(nodeProcessStatisticCommandHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
                 );
             }
 
@@ -153,9 +153,9 @@ public class OperationsClient extends CpiBaseClient {
                 return statisticOverviewCommandResponse;
             } else {
                 throw new ClientIntegrationException(String.format(
-                        "Couldn't get statisticOverviewCommandResponse. Code: %d, Message: %s",
-                        responseEntity.getStatusCode().value(),
-                        requestEntity.getBody())
+                    "Couldn't get statisticOverviewCommandResponse. Code: %d, Message: %s",
+                    responseEntity.getStatusCode().value(),
+                    requestEntity.getBody())
                 );
             }
 
