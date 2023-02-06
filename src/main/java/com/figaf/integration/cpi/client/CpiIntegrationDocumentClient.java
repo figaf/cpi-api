@@ -39,13 +39,12 @@ import static org.springframework.http.HttpStatus.*;
  */
 @Slf4j
 public class CpiIntegrationDocumentClient extends BaseClient {
-
+    public static final String DEFAULT_VERSION_AFTER_CREATION = "1.0.0";
     private static final String API_FILE_DOCUMENTS_META_DATA = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Files?$format=json";
     private static final String API_URL_DOCUMENTS = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Urls?$format=json";
     private static final String API_FILE_DOCUMENT = "/itspaces/odata/1.0/workspace.svc/ContentEntities.Files('%s')/$value?attachment=false";
     private static final String API_DOCUMENT_UPLOAD = "/itspaces/api/1.0/package/%s/documents";
     private static final String X_CSRF_TOKEN = "X-CSRF-Token";
-    private static final String DEFAULT_VERSION_AFTER_CREATION = "1.0.0";
     private static final String API_FILE_DELETE = "/itspaces/odata/1.0/workspace.svc/ContentEntities.Files('%s')";
     private static final String API_URL_DELETE = "/itspaces/odata/1.0/workspace.svc/ContentEntities.Urls('%s')";
     private static final String API_LOCK_AND_UNLOCK_DOCUMENT = "itspaces/api/1.0/package/{0}/documents/{1}";
