@@ -55,13 +55,14 @@ class CpiIntegrationDocumentClientTest {
 
         File testFileToUpload = ResourceUtils.getFile("classpath:upload-test-files-to-sap-cpi-package/testUploadFileToPackage.png");
         Optional<CpiIntegrationDocument> cpiIntegrationDocument = cpiIntegrationDocuments.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getFileName().equals(testFileToUpload.getName())).findFirst();
-        assertThat(cpiIntegrationDocument).as("file %s already exists", cpiIntegrationDocument.orElse(new CpiIntegrationDocument()).getFileName()).isEmpty();
+        cpiIntegrationDocument.ifPresent(integrationDocument -> cpiIntegrationDocumentClient.deleteDocument(requestContext, documentType, cpiIntegrationDocument.get().getTechnicalName()));
         FileMetaData fileMetaData = FileMetaData
             .builder()
             .name(FilenameUtils.removeExtension(testFileToUpload.getName()))
             .description("automated upload")
             .fileName(testFileToUpload.getName())
             .type("File")
+            .version(CpiIntegrationDocumentClient.DEFAULT_VERSION_AFTER_CREATION)
             .build();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (InputStream in = Files.newInputStream(testFileToUpload.toPath())) {
@@ -95,9 +96,9 @@ class CpiIntegrationDocumentClientTest {
 
         List<CpiIntegrationDocument> cpiIntegrationDocuments = cpiIntegrationDocumentClient.getDocumentsByPackage(requestContext, integrationPackage.getTechnicalName(), integrationPackage.getDisplayedName(), integrationPackage.getExternalId(), documentType);
         AdditionalAttributes additionalAttributes = AdditionalAttributes.builder().url(Lists.newArrayList("https://www.google.com")).build();
-        UrlUploadRequest urlUploadRequest = UrlUploadRequest.builder().type("Url").name("URL").description("url description").additionalAttrs(additionalAttributes).build();
+        UrlUploadRequest urlUploadRequest = UrlUploadRequest.builder().version(CpiIntegrationDocumentClient.DEFAULT_VERSION_AFTER_CREATION).type("Url").name("URL").description("url description").additionalAttrs(additionalAttributes).build();
         Optional<CpiIntegrationDocument> cpiIntegrationDocument = cpiIntegrationDocuments.stream().filter(cpiIntegrationDocumentInner -> cpiIntegrationDocumentInner.getDisplayedName().equals(urlUploadRequest.getName())).findFirst();
-        assertThat(cpiIntegrationDocument).as("url %s already exists", cpiIntegrationDocument.orElse(new CpiIntegrationDocument()).getDisplayedName()).isEmpty();
+        cpiIntegrationDocument.ifPresent(integrationDocument -> cpiIntegrationDocumentClient.deleteDocument(requestContext, documentType, cpiIntegrationDocument.get().getTechnicalName()));
 
         cpiIntegrationDocumentClient.uploadUrl(requestContext, integrationPackage.getExternalId(), urlUploadRequest);
 
