@@ -46,14 +46,14 @@ public class MessageProcessingLogClient extends CpiBaseClient {
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate) {
         log.debug("#getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
         FastDateFormat dateFormat = FastDateFormat.getInstance(
-                "yyyy-MM-dd'T'HH:mm:ss.SSS",
-                TimeZone.getTimeZone("GMT")
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            TimeZone.getTimeZone("GMT")
         );
         String resourcePath = String.format(API_MSG_PROC_LOGS,
-                String.format("IntegrationFlowName eq '%s' and LogStart gt datetime'%s'",
-                        integrationFlowName,
-                        dateFormat.format(startDate)
-                )
+            String.format("IntegrationFlowName eq '%s' and LogStart gt datetime'%s'",
+                integrationFlowName,
+                dateFormat.format(startDate)
+            )
         );
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
@@ -61,27 +61,27 @@ public class MessageProcessingLogClient extends CpiBaseClient {
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
         log.debug("#getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
         FastDateFormat dateFormat = FastDateFormat.getInstance(
-                "yyyy-MM-dd'T'HH:mm:ss.SSS",
-                TimeZone.getTimeZone("GMT")
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            TimeZone.getTimeZone("GMT")
         );
         String resourcePath = String.format(API_MSG_PROC_LOGS,
-                String.format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
-                        integrationFlowName,
-                        dateFormat.format(startDate),
-                        dateFormat.format(DateUtils.addMinutes(new Date(), -55))
-                )
+            String.format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
+                integrationFlowName,
+                dateFormat.format(startDate),
+                dateFormat.format(DateUtils.addMinutes(new Date(), -55))
+            )
         );
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByMessageGuids(
-            RequestContext requestContext,
-            Set<String> messageGuids,
-            boolean expandCustomHeaders
+        RequestContext requestContext,
+        Set<String> messageGuids,
+        boolean expandCustomHeaders
     ) {
         log.debug(
-                "#getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids, boolean expandCustomHeaders): {}, {}, {}",
-                requestContext, messageGuids, expandCustomHeaders
+            "#getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids, boolean expandCustomHeaders): {}, {}, {}",
+            requestContext, messageGuids, expandCustomHeaders
         );
 
         List<String> params = new ArrayList<>();
@@ -92,8 +92,8 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         String resourcePath = expandCustomHeaders ? API_MSG_PROC_LOGS + "&$expand=CustomHeaderProperties" : API_MSG_PROC_LOGS;
 
         return getMessageProcessingLogs(
-                requestContext,
-                String.format(resourcePath, StringUtils.join(params, " or "))
+            requestContext,
+            String.format(resourcePath, StringUtils.join(params, " or "))
         );
     }
 
@@ -106,19 +106,19 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         }
 
         return getMessageProcessingLogs(
-                requestContext,
-                String.format(API_MSG_PROC_LOGS, StringUtils.join(params, " or "))
+            requestContext,
+            String.format(API_MSG_PROC_LOGS, StringUtils.join(params, " or "))
         );
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date startDate) {
         log.debug("#getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date startDate): {}, {}, {}", requestContext, filter, startDate);
         FastDateFormat dateFormat = FastDateFormat.getInstance(
-                "yyyy-MM-dd'T'HH:mm:ss.SSS",
-                TimeZone.getTimeZone("GMT")
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            TimeZone.getTimeZone("GMT")
         );
         String resourcePath = String.format(API_MSG_PROC_LOGS,
-                String.format("%s and LogStart gt datetime'%s'", filter, dateFormat.format(startDate))
+            String.format("%s and LogStart gt datetime'%s'", filter, dateFormat.format(startDate))
         );
 
         return getMessageProcessingLogs(requestContext, resourcePath);
@@ -127,28 +127,28 @@ public class MessageProcessingLogClient extends CpiBaseClient {
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
         log.debug("#getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId): {}, {}", requestContext, correlationId);
         String resourcePath = String.format(API_MSG_PROC_LOGS,
-                String.format("CorrelationId eq '%s'", correlationId)
+            String.format("CorrelationId eq '%s'", correlationId)
         );
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
     public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilter(
-            RequestContext requestContext,
-            int top,
-            int skip,
-            String filter,
-            boolean expandCustomHeaders
+        RequestContext requestContext,
+        int top,
+        int skip,
+        String filter,
+        boolean expandCustomHeaders
     ) {
         log.debug(
-                "getMessageProcessingLogsByFilter(RequestContext requestContext, int top, int skip, String filter, boolean expandCustomHeaders): {}, {}, {}, {}, {}",
-                requestContext, top, skip, filter, expandCustomHeaders
+            "getMessageProcessingLogsByFilter(RequestContext requestContext, int top, int skip, String filter, boolean expandCustomHeaders): {}, {}, {}, {}, {}",
+            requestContext, top, skip, filter, expandCustomHeaders
         );
         String resourcePath = expandCustomHeaders ? API_MSG_PROC_LOGS_PAGINATED + "&$expand=CustomHeaderProperties" : API_MSG_PROC_LOGS_PAGINATED;
         try {
             JSONObject jsonObjectD = callRestWs(
-                    requestContext,
-                    String.format(resourcePath, top, skip, filter),
-                    response -> new JSONObject(response).getJSONObject("d")
+                requestContext,
+                String.format(resourcePath, top, skip, filter),
+                response -> new JSONObject(response).getJSONObject("d")
             );
 
             String totalCountString = optString(jsonObjectD, "__count");
@@ -182,9 +182,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         try {
 
             JSONObject jsonObjectD = callRestWs(
-                    requestContext,
-                    resourcePath,
-                    response -> new JSONObject(response).getJSONObject("d")
+                requestContext,
+                resourcePath,
+                response -> new JSONObject(response).getJSONObject("d")
             );
 
             JSONArray jsonArray = jsonObjectD.getJSONArray("results");
@@ -212,9 +212,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         String resourcePath = String.format("/api/v1/MessageProcessingLogs/$count?$filter=%s", filter);
         try {
             int count = callRestWs(
-                    requestContext,
-                    resourcePath,
-                    response -> NumberUtils.isCreatable(response) ? NumberUtils.toInt(response) : 0
+                requestContext,
+                resourcePath,
+                response -> NumberUtils.isCreatable(response) ? NumberUtils.toInt(response) : 0
             );
             return count;
         } catch (Exception ex) {
@@ -228,9 +228,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         try {
 
             JSONArray messageProcessingLogsJsonArray = callRestWs(
-                    requestContext,
-                    resourcePath,
-                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                requestContext,
+                resourcePath,
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
             List<MessageProcessingLog> messageProcessingLogs = new ArrayList<>();
@@ -253,9 +253,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
     public MessageProcessingLog getMessageProcessingLogByGuid(RequestContext requestContext, String messageGuid) {
         try {
             JSONObject messageProcessingLogsObject = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_PROC_LOGS_ID, messageGuid),
-                    response -> new JSONObject(response).getJSONObject("d")
+                requestContext,
+                String.format(API_MSG_PROC_LOGS_ID, messageGuid),
+                response -> new JSONObject(response).getJSONObject("d")
             );
             return MessageProcessingLogParser.fillMessageProcessingLog(messageProcessingLogsObject);
         } catch (HttpClientErrorException.NotFound ex) {
@@ -274,9 +274,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         try {
 
             JSONArray attachmentsJsonArray = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_PROC_LOGS_ATTACHMENTS, messageGuid),
-                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                requestContext,
+                String.format(API_MSG_PROC_LOGS_ATTACHMENTS, messageGuid),
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
             List<MessageProcessingLogAttachment> attachments = new ArrayList<>();
@@ -311,9 +311,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         try {
 
             JSONArray attachmentsJsonArray = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_PROC_LOGS_MESSAGE_STORE_ENTRIES, messageGuid),
-                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                requestContext,
+                String.format(API_MSG_PROC_LOGS_MESSAGE_STORE_ENTRIES, messageGuid),
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
             List<MessageProcessingLogAttachment> attachments = new ArrayList<>();
@@ -346,9 +346,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         try {
 
             JSONObject jsonObject = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_PROC_LOGS_ERROR_INFORMATION, messageId),
-                    response -> new JSONObject(response).getJSONObject("d")
+                requestContext,
+                String.format(API_MSG_PROC_LOGS_ERROR_INFORMATION, messageId),
+                response -> new JSONObject(response).getJSONObject("d")
             );
 
             MessageProcessingLogErrorInformation mplErrorInformation = new MessageProcessingLogErrorInformation();
@@ -370,9 +370,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         log.debug("#getErrorInformationValue(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
         try {
             String errorInformationValue = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_PROC_LOGS_ERROR_INFORMATION_VALUE, messageGuid),
-                    response -> response
+                requestContext,
+                String.format(API_MSG_PROC_LOGS_ERROR_INFORMATION_VALUE, messageGuid),
+                response -> response
             );
             return errorInformationValue;
         } catch (Exception ex) {
@@ -387,9 +387,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         try {
 
             String responseText = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_PROC_LOG_ATTACHMENT, attachmentId),
-                    response -> response
+                requestContext,
+                String.format(API_MSG_PROC_LOG_ATTACHMENT, attachmentId),
+                response -> response
             );
 
             if (StringUtils.isNotBlank(responseText)) {
@@ -407,9 +407,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         log.debug("#getPersistedAttachment(RequestContext requestContext, String attachmentId): {}, {}", requestContext, attachmentId);
         try {
             String responseText = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_STORE_ENTRIES_VALUE, attachmentId),
-                    response -> response
+                requestContext,
+                String.format(API_MSG_STORE_ENTRIES_VALUE, attachmentId),
+                response -> response
             );
 
             if (StringUtils.isNotBlank(responseText)) {
@@ -428,9 +428,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         try {
 
             JSONArray runsJsonArray = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_PROC_LOGS_RUNS, messageGuid),
-                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                requestContext,
+                String.format(API_MSG_PROC_LOGS_RUNS, messageGuid),
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
             List<MessageProcessingLogRun> runs = new ArrayList<>();
@@ -489,9 +489,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                     String value = optString(runStepPropertyElement, "Value");
                     //getRunStepProperties is not used anywhere
                     runStep.getRunStepProperties().add(new MessageRunStepProperty(
-                            PropertyType.RUN_STEP_PROPERTY,
-                            name,
-                            value
+                        PropertyType.RUN_STEP_PROPERTY,
+                        name,
+                        value
                     ));
                     if ("TraceIds".equals(name) && StringUtils.isNotBlank(value)) {
                         //This regex means that we want to find only the first value of the list
@@ -518,19 +518,19 @@ public class MessageProcessingLogClient extends CpiBaseClient {
     }
 
     public MessageProcessingLogRunStep.TraceMessage getTraceMessage(
-            RequestContext requestContext,
-            MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria,
-            MessageProcessingLogRunStep runStep
+        RequestContext requestContext,
+        MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria,
+        MessageProcessingLogRunStep runStep
     ) {
         log.debug("#getTraceMessage(RequestContext requestContext, MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria, MessageProcessingLogRunStep runStep): {}, {}, {}",
-                requestContext, runStepSearchCriteria, runStep
+            requestContext, runStepSearchCriteria, runStep
         );
         String runId = runStep.getRunId();
 
         JSONArray traceMessagesJsonArray = callRestWs(
-                requestContext,
-                String.format(API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES, runId, runStep.getChildCount()),
-                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+            requestContext,
+            String.format(API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES, runId, runStep.getChildCount()),
+            response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
         );
 
         if (traceMessagesJsonArray.length() == 0) {
@@ -546,9 +546,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
             for (int i = 0; i < traceMessagesJsonArray.length() && traceMessageElement == null; i++) {
                 JSONObject currentTraceMessage = traceMessagesJsonArray.getJSONObject(i);
                 JSONArray traceMessagePropertiesJsonArray = callRestWs(
-                        requestContext,
-                        String.format(API_TRACE_MESSAGE_PROPERTIES, optString(currentTraceMessage, "TraceId")),
-                        response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                    requestContext,
+                    String.format(API_TRACE_MESSAGE_PROPERTIES, optString(currentTraceMessage, "TraceId")),
+                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
                 );
                 for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
                     JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
@@ -593,9 +593,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 traceMessagePropertiesJsonArray = foundTraceMessagePropertiesJsonArray;
             } else {
                 traceMessagePropertiesJsonArray = callRestWs(
-                        requestContext,
-                        String.format(API_TRACE_MESSAGE_PROPERTIES, traceMessage.getTraceId()),
-                        response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                    requestContext,
+                    String.format(API_TRACE_MESSAGE_PROPERTIES, traceMessage.getTraceId()),
+                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
                 );
             }
 
@@ -603,25 +603,25 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
 
                 traceMessage.getProperties().add(new MessageRunStepProperty(
-                        PropertyType.TRACE_MESSAGE_HEADER,
-                        optString(traceMessagePropertyElement, "Name"),
-                        optString(traceMessagePropertyElement, "Value")
+                    PropertyType.TRACE_MESSAGE_HEADER,
+                    optString(traceMessagePropertyElement, "Name"),
+                    optString(traceMessagePropertyElement, "Value")
                 ));
             }
 
             JSONArray traceMessageExchangePropertiesJsonArray = callRestWs(
-                    requestContext,
-                    String.format(API_TRACE_MESSAGE_EXCHANGE_PROPERTIES, traceMessage.getTraceId()),
-                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                requestContext,
+                String.format(API_TRACE_MESSAGE_EXCHANGE_PROPERTIES, traceMessage.getTraceId()),
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
             for (int traceMessageExchangePropertyInd = 0; traceMessageExchangePropertyInd < traceMessageExchangePropertiesJsonArray.length(); traceMessageExchangePropertyInd++) {
                 JSONObject traceMessageExchangePropertyElement = traceMessageExchangePropertiesJsonArray.getJSONObject(traceMessageExchangePropertyInd);
 
                 traceMessage.getProperties().add(new MessageRunStepProperty(
-                        PropertyType.TRACE_MESSAGE_EXCHANGE,
-                        optString(traceMessageExchangePropertyElement, "Name"),
-                        optString(traceMessageExchangePropertyElement, "Value")
+                    PropertyType.TRACE_MESSAGE_EXCHANGE,
+                    optString(traceMessageExchangePropertyElement, "Name"),
+                    optString(traceMessageExchangePropertyElement, "Value")
                 ));
             }
 
@@ -637,9 +637,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         do {
             int skip = MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION * iterNumber;
             JSONObject dObject = callRestWs(
-                    requestContext,
-                    String.format(API_MSG_PROC_LOG_RUN_STEPS, runId, MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION, skip),
-                    response -> new JSONObject(response).getJSONObject("d")
+                requestContext,
+                String.format(API_MSG_PROC_LOG_RUN_STEPS, runId, MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION, skip),
+                response -> new JSONObject(response).getJSONObject("d")
             );
 
             if (numberOfIterations == null) {
@@ -660,8 +660,8 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         String totalCountStr = dObject.getString("__count");
         int totalCount = Integer.parseInt(totalCountStr);
         numberOfIterations = totalCount % MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION == 0
-                ? totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION
-                : totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION + 1;
+            ? totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION
+            : totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION + 1;
         return numberOfIterations;
     }
 
@@ -670,9 +670,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         try {
 
             String payloadResponse = callRestWs(
-                    requestContext,
-                    String.format(API_TRACE_MESSAGE_PAYLOAD, traceId),
-                    response -> response
+                requestContext,
+                String.format(API_TRACE_MESSAGE_PAYLOAD, traceId),
+                response -> response
             );
 
             if (StringUtils.isNotBlank(payloadResponse)) {

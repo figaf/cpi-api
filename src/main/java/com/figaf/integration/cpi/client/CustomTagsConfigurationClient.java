@@ -39,18 +39,18 @@ public class CustomTagsConfigurationClient extends BaseClient {
     public List<CustomTagsConfiguration> getCustomTagsConfiguration(RequestContext requestContext) {
         log.debug("start getCustomTagsConfiguration");
         return executeMethodPublicApi(
-                requestContext,
-                API_GET_CUSTOM_TAGS,
-                "",
-                HttpMethod.GET,
-                responseEntity -> {
-                    ResponseStatusHandler.handleResponseStatus(responseEntity, GET_CUSTOM_TAGS_CONFIGURATION_OPERATION);
-                    RetrieveCustomTagsResponse retrieveCustomTagsResponse = new Gson().fromJson(responseEntity.getBody(), RetrieveCustomTagsResponse.class);
-                    if (Optional.ofNullable(retrieveCustomTagsResponse).isPresent() && Optional.ofNullable(retrieveCustomTagsResponse.getCustomTagsConfiguration()).isPresent()) {
-                        return retrieveCustomTagsResponse.getCustomTagsConfiguration();
-                    }
-                    throw new ClientIntegrationException(CUSTOM_TAGS_CONFIGURATION_IS_EMPTY_ERROR_MESSAGE);
+            requestContext,
+            API_GET_CUSTOM_TAGS,
+            "",
+            HttpMethod.GET,
+            responseEntity -> {
+                ResponseStatusHandler.handleResponseStatus(responseEntity, GET_CUSTOM_TAGS_CONFIGURATION_OPERATION);
+                RetrieveCustomTagsResponse retrieveCustomTagsResponse = new Gson().fromJson(responseEntity.getBody(), RetrieveCustomTagsResponse.class);
+                if (Optional.ofNullable(retrieveCustomTagsResponse).isPresent() && Optional.ofNullable(retrieveCustomTagsResponse.getCustomTagsConfiguration()).isPresent()) {
+                    return retrieveCustomTagsResponse.getCustomTagsConfiguration();
                 }
+                throw new ClientIntegrationException(CUSTOM_TAGS_CONFIGURATION_IS_EMPTY_ERROR_MESSAGE);
+            }
         );
     }
 
@@ -67,14 +67,14 @@ public class CustomTagsConfigurationClient extends BaseClient {
         JSONObject requestCustomTagsConfiguration = new JSONObject().put(CUSTOM_TAGS_CONFIGURATION_CONTENT, Base64.getEncoder().encodeToString(customTagsConfiguration.toString().getBytes(StandardCharsets.UTF_8)));
 
         executeMethodPublicApi(
-                requestContext,
-                API_CREATE_CUSTOM_TAGS,
-                requestCustomTagsConfiguration.toString(),
-                HttpMethod.POST,
-                responseEntity -> {
-                    ResponseStatusHandler.handleResponseStatus(responseEntity, CREATE_CUSTOM_TAGS_CONFIGURATION_OPERATION);
-                    return responseEntity.getBody();
-                }
+            requestContext,
+            API_CREATE_CUSTOM_TAGS,
+            requestCustomTagsConfiguration.toString(),
+            HttpMethod.POST,
+            responseEntity -> {
+                ResponseStatusHandler.handleResponseStatus(responseEntity, CREATE_CUSTOM_TAGS_CONFIGURATION_OPERATION);
+                return responseEntity.getBody();
+            }
         );
     }
 

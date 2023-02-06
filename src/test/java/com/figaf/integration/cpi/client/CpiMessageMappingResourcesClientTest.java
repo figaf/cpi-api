@@ -37,7 +37,7 @@ class CpiMessageMappingResourcesClientTest {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
         messageMappingUtils = new MessageMappingUtils(
             new PackageUtils(integrationPackageClient),
-            new CpiMessageMappingClient(integrationPackageClient, new HttpClientsFactory())
+            new CpiMessageMappingClient(new HttpClientsFactory())
         );
     }
 

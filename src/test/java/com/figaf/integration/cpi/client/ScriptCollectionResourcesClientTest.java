@@ -37,7 +37,7 @@ class ScriptCollectionResourcesClientTest {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
         scriptCollectionUtils = new ScriptCollectionUtils(
             new PackageUtils(integrationPackageClient),
-            new CpiScriptCollectionClient(integrationPackageClient, new HttpClientsFactory())
+            new CpiScriptCollectionClient(new HttpClientsFactory())
         );
     }
 

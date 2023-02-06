@@ -16,9 +16,9 @@ public class AgentTestDataProvider extends AbstractAgentTestDataProvider {
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
         return Stream.of(
-                Arguments.of(buildAgentTestDataForNeo()),
-                Arguments.of(buildAgentTestDataForCf1()),
-                Arguments.of(buildAgentTestDataForCf1UseCustomIdp())
+            Arguments.of(buildAgentTestDataForNeo()),
+            Arguments.of(buildAgentTestDataForCf1()),
+            Arguments.of(buildAgentTestDataForCf1UseCustomIdp())
 //                Arguments.of(buildAgentTestDataForCf3()),
 //                Arguments.of(buildAgentTestDataForCf4())
         );
@@ -31,6 +31,7 @@ public class AgentTestDataProvider extends AbstractAgentTestDataProvider {
     public static AgentTestData buildAgentTestDataForCf1UseCustomIdp() {
         return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-cf-1-use-custom-idp"));
     }
+
     public static AgentTestData buildAgentTestDataForCf2() {
         return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-cf-2"));
     }

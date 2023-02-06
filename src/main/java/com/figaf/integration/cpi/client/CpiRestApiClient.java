@@ -20,18 +20,18 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
     private static final String API_UPLOAD_REST_API = "/itspaces/api/1.0/workspace/%s/restapis/";
     private static final String API_DEPLOY_REST_API = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY";
 
-    public CpiRestApiClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiRestApiClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getRestApiObjectsByPackage(
-            RequestContext requestContext,
-            String packageTechnicalName,
-            String packageDisplayedName,
-            String packageExternalId
+        RequestContext requestContext,
+        String packageTechnicalName,
+        String packageDisplayedName,
+        String packageExternalId
     ) {
         log.debug("#getRestApisByPackage(RequestContext requestContext, String packageTechnicalName, String packageDisplayedName, " +
-            "String packageExternalId): {}, {}, {}, {}",
+                "String packageExternalId): {}, {}, {}, {}",
             requestContext, packageTechnicalName, packageDisplayedName, packageExternalId);
         return getArtifactsByPackage(
             requestContext,
@@ -43,12 +43,12 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
     }
 
     public byte[] downloadRestApi(
-            RequestContext requestContext,
-            String packageExternalId,
-            String restApiExternalId
+        RequestContext requestContext,
+        String packageExternalId,
+        String restApiExternalId
     ) {
         log.debug("#downloadRestApi(RequestContext requestContext, String packageExternalId, String restApiExternalId): {}, {}, {}",
-                requestContext, packageExternalId, restApiExternalId
+            requestContext, packageExternalId, restApiExternalId
         );
         return downloadArtifact(requestContext, packageExternalId, restApiExternalId);
     }
@@ -104,7 +104,7 @@ public class CpiRestApiClient extends CpiRuntimeArtifactClient {
         RequestContext requestContext
     ) {
         log.debug("#deleteRestApi(String packageExternalId, String restApiExternalId, String restApiTechnicalName, RequestContext requestContext): " +
-                "{}, {}, {}, {}", packageExternalId, restApiExternalId, restApiTechnicalName, requestContext);
+            "{}, {}, {}, {}", packageExternalId, restApiExternalId, restApiTechnicalName, requestContext);
 
         deleteArtifact(packageExternalId, restApiExternalId, restApiTechnicalName, requestContext);
     }

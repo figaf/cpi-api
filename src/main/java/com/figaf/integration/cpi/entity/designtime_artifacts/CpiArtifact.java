@@ -1,6 +1,7 @@
 package com.figaf.integration.cpi.entity.designtime_artifacts;
 
 import lombok.*;
+
 import java.util.*;
 
 /**
@@ -8,7 +9,7 @@ import java.util.*;
  */
 @Getter
 @Setter
-@ToString(of={"externalId", "technicalName", "version"})
+@ToString(of = {"externalId", "technicalName", "version"})
 public class CpiArtifact {
 
     private String externalId;

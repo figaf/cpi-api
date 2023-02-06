@@ -29,7 +29,7 @@ public class IntegrationContentClient extends CpiBaseClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public IntegrationContentClient(
-            HttpClientsFactory httpClientsFactory
+        HttpClientsFactory httpClientsFactory
     ) {
         super(httpClientsFactory);
     }
@@ -38,21 +38,21 @@ public class IntegrationContentClient extends CpiBaseClient {
         log.debug("#getAllIntegrationRuntimeArtifacts(RequestContext requestContext): {}", requestContext);
         try {
             return executeGetPublicApiAndReturnResponseBody(
-                    requestContext,
-                    "/api/v1/IntegrationRuntimeArtifacts?$format=json",
-                    (body) -> {
-                        JSONObject responseModel = new JSONObject(body);
-                        JSONArray results = responseModel.getJSONObject("d").getJSONArray("results");
+                requestContext,
+                "/api/v1/IntegrationRuntimeArtifacts?$format=json",
+                (body) -> {
+                    JSONObject responseModel = new JSONObject(body);
+                    JSONArray results = responseModel.getJSONObject("d").getJSONArray("results");
 
-                        List<IntegrationContent> artifacts = new ArrayList<>();
-                        for (int ind = 0; ind < results.length(); ind++) {
-                            JSONObject integrationContentEntry = results.getJSONObject(ind);
-                            IntegrationContent integrationContent = fillIntegrationContent(integrationContentEntry);
-                            artifacts.add(integrationContent);
-                        }
-
-                        return artifacts;
+                    List<IntegrationContent> artifacts = new ArrayList<>();
+                    for (int ind = 0; ind < results.length(); ind++) {
+                        JSONObject integrationContentEntry = results.getJSONObject(ind);
+                        IntegrationContent integrationContent = fillIntegrationContent(integrationContentEntry);
+                        artifacts.add(integrationContent);
                     }
+
+                    return artifacts;
+                }
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching integration runtime artifacts " + ex.getMessage(), ex);
@@ -64,14 +64,14 @@ public class IntegrationContentClient extends CpiBaseClient {
         log.debug("#getIntegrationRuntimeArtifactByName(RequestContext requestContext, String name): {}, {}", requestContext, name);
         try {
             return executeGetPublicApiAndReturnResponseBody(
-                    requestContext,
-                    String.format("/api/v1/IntegrationRuntimeArtifacts('%s')?$format=json", name),
-                    (body) -> {
-                        JSONObject responseModel = new JSONObject(body);
-                        JSONObject integrationContentEntry = responseModel.getJSONObject("d");
-                        IntegrationContent integrationContent = fillIntegrationContent(integrationContentEntry);
-                        return integrationContent;
-                    }
+                requestContext,
+                String.format("/api/v1/IntegrationRuntimeArtifacts('%s')?$format=json", name),
+                (body) -> {
+                    JSONObject responseModel = new JSONObject(body);
+                    JSONObject integrationContentEntry = responseModel.getJSONObject("d");
+                    IntegrationContent integrationContent = fillIntegrationContent(integrationContentEntry);
+                    return integrationContent;
+                }
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching integration runtime artifact " + ex.getMessage(), ex);
@@ -83,22 +83,22 @@ public class IntegrationContentClient extends CpiBaseClient {
         log.debug("#getIntegrationRuntimeArtifactErrorInformation(RequestContext requestContext, IntegrationContent integrationContent):, {}, {}", requestContext, integrationContent);
         try {
             return executeGetPublicApiAndReturnResponseEntity(
-                    requestContext,
-                    String.format("/api/v1/IntegrationRuntimeArtifacts('%s')/ErrorInformation/$value", integrationContent.getId()),
-                    (responseEntity) -> {
-                        switch (responseEntity.getStatusCode().value()) {
-                            case 200: {
-                                IntegrationContentErrorInformation integrationContentErrorInformation = objectMapper.readValue(responseEntity.getBody(), IntegrationContentErrorInformation.class);
-                                return integrationContentErrorInformation;
-                            }
-                            case 204: {
-                                return new IntegrationContentErrorInformation();
-                            }
-                            default: {
-                                throw new RuntimeException("Couldn't error information about runtime artifact GET request:\n" + responseEntity.getBody());
-                            }
+                requestContext,
+                String.format("/api/v1/IntegrationRuntimeArtifacts('%s')/ErrorInformation/$value", integrationContent.getId()),
+                (responseEntity) -> {
+                    switch (responseEntity.getStatusCode().value()) {
+                        case 200: {
+                            IntegrationContentErrorInformation integrationContentErrorInformation = objectMapper.readValue(responseEntity.getBody(), IntegrationContentErrorInformation.class);
+                            return integrationContentErrorInformation;
+                        }
+                        case 204: {
+                            return new IntegrationContentErrorInformation();
+                        }
+                        default: {
+                            throw new RuntimeException("Couldn't error information about runtime artifact GET request:\n" + responseEntity.getBody());
                         }
                     }
+                }
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching error information about runtime artifact " + ex.getMessage(), ex);
@@ -111,22 +111,22 @@ public class IntegrationContentClient extends CpiBaseClient {
     public List<CpiExternalConfiguration> getCpiExternalConfigurations(RequestContext requestContext, String iFlowName) {
         try {
             return executeGetPublicApiAndReturnResponseBody(
-                    requestContext,
-                    String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/Configurations?$format=json", iFlowName),
-                    (body) -> {
-                        JSONObject responseModel = new JSONObject(body);
-                        JSONArray results = responseModel.getJSONObject("d").getJSONArray("results");
-                        List<CpiExternalConfiguration> cpiExternalConfigurationList = new ArrayList<>();
-                        for (int ind = 0; ind < results.length(); ind++) {
-                            JSONObject jsonObject = results.getJSONObject(ind);
-                            CpiExternalConfiguration cpiExternalConfiguration = new CpiExternalConfiguration();
-                            cpiExternalConfiguration.setParameterKey(jsonObject.getString("ParameterKey"));
-                            cpiExternalConfiguration.setParameterValue(jsonObject.getString("ParameterValue"));
-                            cpiExternalConfiguration.setDataType(jsonObject.getString("DataType"));
-                            cpiExternalConfigurationList.add(cpiExternalConfiguration);
-                        }
-                        return cpiExternalConfigurationList;
+                requestContext,
+                String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/Configurations?$format=json", iFlowName),
+                (body) -> {
+                    JSONObject responseModel = new JSONObject(body);
+                    JSONArray results = responseModel.getJSONObject("d").getJSONArray("results");
+                    List<CpiExternalConfiguration> cpiExternalConfigurationList = new ArrayList<>();
+                    for (int ind = 0; ind < results.length(); ind++) {
+                        JSONObject jsonObject = results.getJSONObject(ind);
+                        CpiExternalConfiguration cpiExternalConfiguration = new CpiExternalConfiguration();
+                        cpiExternalConfiguration.setParameterKey(jsonObject.getString("ParameterKey"));
+                        cpiExternalConfiguration.setParameterValue(jsonObject.getString("ParameterValue"));
+                        cpiExternalConfiguration.setDataType(jsonObject.getString("DataType"));
+                        cpiExternalConfigurationList.add(cpiExternalConfiguration);
                     }
+                    return cpiExternalConfigurationList;
+                }
             );
 
         } catch (Exception ex) {
@@ -144,33 +144,33 @@ public class IntegrationContentClient extends CpiBaseClient {
             try {
 
                 JSONObject requestBody = new JSONObject()
-                        .put("ParameterValue", cpiExternalConfiguration.getParameterValue());
+                    .put("ParameterValue", cpiExternalConfiguration.getParameterValue());
 
                 executeMethodPublicApi(
-                        requestContext,
-                        String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/$links/Configurations('%s')", iFlowName, cpiExternalConfiguration.getParameterKey()),
-                        requestBody.toString(),
-                        HttpMethod.PUT,
-                        (responseEntity) -> {
-                            switch (responseEntity.getStatusCode().value()) {
-                                case 200:
-                                case 201:
-                                case 202: {
-                                    log.debug("CpiExternalConfiguration {} was applied: {}", cpiExternalConfiguration, responseEntity.getBody());
-                                    numberOfSuccessfullyProcessedConfigurations.getAndIncrement();
-                                    break;
-                                }
-                                default: {
-                                    throw new ClientIntegrationException(String.format(
-                                            "Couldn't apply CpiExternalConfiguration %s: Code: %d, Message: %s",
-                                            cpiExternalConfiguration.toString(),
-                                            responseEntity.getStatusCode().value(),
-                                            responseEntity.getBody())
-                                    );
-                                }
+                    requestContext,
+                    String.format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/$links/Configurations('%s')", iFlowName, cpiExternalConfiguration.getParameterKey()),
+                    requestBody.toString(),
+                    HttpMethod.PUT,
+                    (responseEntity) -> {
+                        switch (responseEntity.getStatusCode().value()) {
+                            case 200:
+                            case 201:
+                            case 202: {
+                                log.debug("CpiExternalConfiguration {} was applied: {}", cpiExternalConfiguration, responseEntity.getBody());
+                                numberOfSuccessfullyProcessedConfigurations.getAndIncrement();
+                                break;
                             }
-                            return null;
+                            default: {
+                                throw new ClientIntegrationException(String.format(
+                                    "Couldn't apply CpiExternalConfiguration %s: Code: %d, Message: %s",
+                                    cpiExternalConfiguration.toString(),
+                                    responseEntity.getStatusCode().value(),
+                                    responseEntity.getBody())
+                                );
+                            }
                         }
+                        return null;
+                    }
                 );
             } catch (Exception ex) {
                 log.error("Error occurred while applying CpiExternalConfiguration: " + ex.getMessage(), ex);

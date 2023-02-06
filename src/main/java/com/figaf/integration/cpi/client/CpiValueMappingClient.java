@@ -6,6 +6,7 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateValueMappingRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateValueMappingRequest;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.VALUE_MAPPING;
@@ -19,18 +20,18 @@ public class CpiValueMappingClient extends CpiRuntimeArtifactClient {
     private static final String API_UPLOAD_VALUE_MAPPING = "/itspaces/api/1.0/workspace/%s/valuemappings/";
     private static final String API_DEPLOY_VALUE_MAPPING = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/valuemappings/%s?webdav=DEPLOY";
 
-    public CpiValueMappingClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiValueMappingClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getValueMappingsByPackage(
-            RequestContext requestContext,
-            String packageTechnicalName,
-            String packageDisplayedName,
-            String packageExternalId
+        RequestContext requestContext,
+        String packageTechnicalName,
+        String packageDisplayedName,
+        String packageExternalId
     ) {
         log.debug("#getValueMappingsByPackage(RequestContext requestContext, String packageTechnicalName, String packageDisplayedName, " +
-            "String packageExternalId): {}, {}, {}, {}",
+                "String packageExternalId): {}, {}, {}, {}",
             requestContext, packageTechnicalName, packageDisplayedName, packageExternalId);
         return getArtifactsByPackage(
             requestContext,
@@ -42,12 +43,12 @@ public class CpiValueMappingClient extends CpiRuntimeArtifactClient {
     }
 
     public byte[] downloadValueMapping(
-            RequestContext requestContext,
-            String packageExternalId,
-            String valueMappingExternalId
+        RequestContext requestContext,
+        String packageExternalId,
+        String valueMappingExternalId
     ) {
         log.debug("#downloadValueMapping(RequestContext requestContext, String packageExternalId, String valueMappingExternalId): {}, {}, {}",
-                requestContext, packageExternalId, valueMappingExternalId
+            requestContext, packageExternalId, valueMappingExternalId
         );
         return downloadArtifact(requestContext, packageExternalId, valueMappingExternalId);
     }
@@ -103,7 +104,7 @@ public class CpiValueMappingClient extends CpiRuntimeArtifactClient {
         RequestContext requestContext
     ) {
         log.debug("#deleteValueMapping(String packageExternalId, String valueMappingExternalId, String valueMappingName, RequestContext requestContext): " +
-                "{}, {}, {}, {}", packageExternalId, valueMappingExternalId, valueMappingName, requestContext);
+            "{}, {}, {}, {}", packageExternalId, valueMappingExternalId, valueMappingName, requestContext);
 
         deleteArtifact(packageExternalId, valueMappingExternalId, valueMappingName, requestContext);
     }

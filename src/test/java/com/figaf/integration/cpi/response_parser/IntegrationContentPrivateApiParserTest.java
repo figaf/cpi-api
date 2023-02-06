@@ -15,8 +15,8 @@ class IntegrationContentPrivateApiParserTest {
     void getAllIntegrationRuntimeArtifacts() throws IOException {
         //this payload has a German letter
         String sourceModelWithoutScript = IOUtils.toString(
-                this.getClass().getClassLoader().getResource("client/integration-runtime-artifacts-response.xml"),
-                StandardCharsets.UTF_8
+            this.getClass().getClassLoader().getResource("client/integration-runtime-artifacts-response.xml"),
+            StandardCharsets.UTF_8
         );
         IntegrationContentPrivateApiParser.getAllIntegrationRuntimeArtifacts(sourceModelWithoutScript);
     }

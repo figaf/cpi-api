@@ -33,18 +33,18 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     private static final String API_DEPLOY_IFLOW = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY";
     private static final String API_SET_TRACE_LOG_LEVEL_FOR_IFLOWS = "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentSetMplLogLevelCommand";
 
-    public CpiIntegrationFlowClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiIntegrationFlowClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getIFlowsByPackage(
-            RequestContext requestContext,
-            String packageTechnicalName,
-            String packageDisplayedName,
-            String packageExternalId
+        RequestContext requestContext,
+        String packageTechnicalName,
+        String packageDisplayedName,
+        String packageExternalId
     ) {
         log.debug("#getIFlowsByPackage(RequestContext requestContext, String packageTechnicalName, String packageDisplayedName, " +
-            "String packageExternalId): {}, {}, {}, {}",
+                "String packageExternalId): {}, {}, {}, {}",
             requestContext, packageTechnicalName, packageDisplayedName, packageExternalId);
         return getArtifactsByPackage(
             requestContext,
@@ -56,12 +56,12 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     }
 
     public byte[] downloadIFlow(
-            RequestContext requestContext,
-            String packageExternalId,
-            String iFlowExternalId
+        RequestContext requestContext,
+        String packageExternalId,
+        String iFlowExternalId
     ) {
         log.debug("#downloadIFlow(RequestContext requestContext, String packageExternalId, String iFlowExternalId): {}, {}, {}",
-                requestContext, packageExternalId, iFlowExternalId
+            requestContext, packageExternalId, iFlowExternalId
         );
         return downloadArtifact(requestContext, packageExternalId, iFlowExternalId);
     }
@@ -69,19 +69,19 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     public void createIFlow(RequestContext requestContext, CreateIFlowRequest request) {
         log.debug("#createIFlow(RequestContext requestContext, CreateIFlowRequest request): {}, {}", requestContext, request);
         executeMethod(
-                requestContext,
-                String.format(API_UPLOAD_IFLOW, request.getPackageExternalId()),
-                (url, token, restTemplateWrapper) -> {
-                    createArtifact(
-                        requestContext.getConnectionProperties(),
-                        request,
-                        "iflowBrowse-data",
-                        url,
-                        token,
-                        restTemplateWrapper
-                    );
-                    return null;
-                }
+            requestContext,
+            String.format(API_UPLOAD_IFLOW, request.getPackageExternalId()),
+            (url, token, restTemplateWrapper) -> {
+                createArtifact(
+                    requestContext.getConnectionProperties(),
+                    request,
+                    "iflowBrowse-data",
+                    url,
+                    token,
+                    restTemplateWrapper
+                );
+                return null;
+            }
         );
 
     }
@@ -98,28 +98,28 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         String iFlowTechnicalName
     ) {
         log.debug("#deployIFlow(RequestContext requestContext, String packageExternalId, String iFlowExternalId, String iFlowTechnicalName): {}, {}, {}, {}",
-                requestContext, packageExternalId, iFlowExternalId, iFlowTechnicalName
+            requestContext, packageExternalId, iFlowExternalId, iFlowTechnicalName
         );
         return executeMethod(
-                requestContext,
-                String.format(API_DEPLOY_IFLOW, packageExternalId, iFlowExternalId, iFlowExternalId, iFlowTechnicalName),
-                (url, token, restTemplateWrapper) -> deployArtifact(
-                    requestContext.getConnectionProperties(),
-                    packageExternalId,
-                    IFLOW,
-                    url,
-                    token,
-                    restTemplateWrapper.getRestTemplate()
-                )
+            requestContext,
+            String.format(API_DEPLOY_IFLOW, packageExternalId, iFlowExternalId, iFlowExternalId, iFlowTechnicalName),
+            (url, token, restTemplateWrapper) -> deployArtifact(
+                requestContext.getConnectionProperties(),
+                packageExternalId,
+                IFLOW,
+                url,
+                token,
+                restTemplateWrapper.getRestTemplate()
+            )
         );
     }
 
     public boolean undeployIFlow(RequestContext requestContext, String iFlowTechnicalName) {
         log.debug("#undeployIFlow(RequestContext requestContext, String iFlowTechnicalName): {}, {}", requestContext, iFlowTechnicalName);
         return executeDeletePublicApi(
-                requestContext,
-                format("/api/v1/IntegrationRuntimeArtifacts('%s')", iFlowTechnicalName),
-                Objects::nonNull
+            requestContext,
+            format("/api/v1/IntegrationRuntimeArtifacts('%s')", iFlowTechnicalName),
+            Objects::nonNull
         );
     }
 
@@ -140,9 +140,9 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     public boolean deleteIFlow(RequestContext requestContext, String iFlowTechnicalName) {
         log.debug("#deleteIFlow(RequestContext requestContext, String iFlowTechnicalName): {}, {}", iFlowTechnicalName, requestContext);
         return executeDeletePublicApi(
-                requestContext,
-                format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')", iFlowTechnicalName),
-                Objects::nonNull
+            requestContext,
+            format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')", iFlowTechnicalName),
+            Objects::nonNull
         );
     }
 
@@ -183,19 +183,19 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
                 HttpEntity<Map<String, String>> setTraceLogLevelRequestHttpEntity = new HttpEntity<>(request, setTraceLogLevelRequestHttpHeaders);
 
                 restTemplate.exchange(
-                        url,
-                        HttpMethod.POST,
-                        setTraceLogLevelRequestHttpEntity,
-                        String.class
+                    url,
+                    HttpMethod.POST,
+                    setTraceLogLevelRequestHttpEntity,
+                    String.class
                 );
             } catch (Exception ex) {
                 log.error(
-                        String.format(
-                                "Error occurred while setting TRACE level for iflow %s: %s",
-                                iflowTechnicalName,
-                                ex.getMessage()
-                        ),
-                        ex
+                    String.format(
+                        "Error occurred while setting TRACE level for iflow %s: %s",
+                        iflowTechnicalName,
+                        ex.getMessage()
+                    ),
+                    ex
                 );
             }
         });

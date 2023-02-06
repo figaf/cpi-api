@@ -36,7 +36,7 @@ class CpiIntegrationFlowClientTest {
     @BeforeAll
     static void setUp() {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiIntegrationFlowClient = new CpiIntegrationFlowClient(integrationPackageClient, new HttpClientsFactory());
+        cpiIntegrationFlowClient = new CpiIntegrationFlowClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
         iFlowUtils = new IFlowUtils(packageUtils, cpiIntegrationFlowClient);
     }

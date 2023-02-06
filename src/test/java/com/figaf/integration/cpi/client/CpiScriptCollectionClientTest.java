@@ -36,7 +36,7 @@ class CpiScriptCollectionClientTest {
     @BeforeAll
     static void setUp() {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiScriptCollectionClient = new CpiScriptCollectionClient(integrationPackageClient, new HttpClientsFactory());
+        cpiScriptCollectionClient = new CpiScriptCollectionClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
         scriptCollectionUtils = new ScriptCollectionUtils(packageUtils, cpiScriptCollectionClient);
     }

@@ -30,9 +30,9 @@ public class CpiApiUtils {
             }
             if (date.matches(".*Date\\(.*\\).*")) {
                 return new Timestamp(
-                        Long.parseLong(
-                                date.replaceAll("[^0-9]", "")
-                        )
+                    Long.parseLong(
+                        date.replaceAll("[^0-9]", "")
+                    )
                 );
             } else {
                 return DATE_FORMAT.parse(date);

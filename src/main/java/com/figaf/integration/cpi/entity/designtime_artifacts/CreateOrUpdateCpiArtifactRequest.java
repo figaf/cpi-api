@@ -30,7 +30,8 @@ public abstract class CreateOrUpdateCpiArtifactRequest {
     private String newArtifactVersion;
     private String comment;
 
-    private CreateOrUpdateCpiArtifactRequest() {}
+    private CreateOrUpdateCpiArtifactRequest() {
+    }
 
     protected CreateOrUpdateCpiArtifactRequest(
         String id,

@@ -59,9 +59,9 @@ public class DataStoreEntryParser {
                             if (propertyKey instanceof String) {
                                 String propertyKeyString = (String) propertyKey;
                                 traceMessageProperties.add(new MessageRunStepProperty(
-                                        PropertyType.TRACE_MESSAGE_HEADER,
-                                        propertyKeyString,
-                                        properties.getProperty(propertyKeyString)
+                                    PropertyType.TRACE_MESSAGE_HEADER,
+                                    propertyKeyString,
+                                    properties.getProperty(propertyKeyString)
                                 ));
                             }
                         }

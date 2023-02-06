@@ -20,10 +20,10 @@ public class ResponseStatusHandler {
             }
             default: {
                 throw new ClientIntegrationException(String.format(
-                        "operation %s failed , Code: %d, Message: %s",
-                        operation,
-                        responseEntity.getStatusCode().value(),
-                        responseEntity.getBody())
+                    "operation %s failed , Code: %d, Message: %s",
+                    operation,
+                    responseEntity.getStatusCode().value(),
+                    responseEntity.getBody())
                 );
             }
         }

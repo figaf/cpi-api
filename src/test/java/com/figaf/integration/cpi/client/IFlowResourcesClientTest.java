@@ -38,7 +38,7 @@ class IFlowResourcesClientTest {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
         iFlowUtils = new IFlowUtils(
             new PackageUtils(integrationPackageClient),
-            new CpiIntegrationFlowClient(integrationPackageClient, new HttpClientsFactory())
+            new CpiIntegrationFlowClient(new HttpClientsFactory())
         );
     }
 

@@ -20,18 +20,18 @@ public class CpiMessageMappingClient extends CpiRuntimeArtifactClient {
     private static final String API_UPLOAD_MESSAGE_MAPPING = "/itspaces/api/1.0/workspace/%s/messagemappings/";
     private static final String API_DEPLOY_MESSAGE_MAPPING = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/messagemappings/%s?webdav=DEPLOY";
 
-    public CpiMessageMappingClient(IntegrationPackageClient integrationPackageClient, HttpClientsFactory httpClientsFactory) {
-        super(integrationPackageClient, httpClientsFactory);
+    public CpiMessageMappingClient(HttpClientsFactory httpClientsFactory) {
+        super(httpClientsFactory);
     }
 
     public List<CpiArtifact> getMessageMappingsByPackage(
-            RequestContext requestContext,
-            String packageTechnicalName,
-            String packageDisplayedName,
-            String packageExternalId
+        RequestContext requestContext,
+        String packageTechnicalName,
+        String packageDisplayedName,
+        String packageExternalId
     ) {
         log.debug("#getMessageMappingsByPackage(RequestContext requestContext, String packageTechnicalName, String packageDisplayedName, " +
-            "String packageExternalId): {}, {}, {}, {}",
+                "String packageExternalId): {}, {}, {}, {}",
             requestContext, packageTechnicalName, packageDisplayedName, packageExternalId);
         return getArtifactsByPackage(
             requestContext,
@@ -43,12 +43,12 @@ public class CpiMessageMappingClient extends CpiRuntimeArtifactClient {
     }
 
     public byte[] downloadMessageMapping(
-            RequestContext requestContext,
-            String packageExternalId,
-            String messageMappingExternalId
+        RequestContext requestContext,
+        String packageExternalId,
+        String messageMappingExternalId
     ) {
         log.debug("#downloadMessageMapping(RequestContext requestContext, String packageExternalId, String messageMappingExternalId): {}, {}, {}",
-                requestContext, packageExternalId, messageMappingExternalId
+            requestContext, packageExternalId, messageMappingExternalId
         );
         return downloadArtifact(requestContext, packageExternalId, messageMappingExternalId);
     }
