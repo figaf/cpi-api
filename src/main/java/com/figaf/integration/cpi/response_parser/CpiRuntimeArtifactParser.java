@@ -5,6 +5,7 @@ import com.figaf.integration.common.utils.Utils;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType;
 import com.figaf.integration.cpi.utils.CpiApiUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.util.function.Function.identity;
 
 /**
@@ -75,7 +77,30 @@ public class CpiRuntimeArtifactParser {
             case IFLOW:
             case REST_API:
             case SCRIPT_COLLECTION: {
-                return new JSONObject(result).getString("taskId");
+                JSONObject jsonObject = new JSONObject(result);
+                String taskId = jsonObject.optString("taskId");
+                if (StringUtils.isNotEmpty(taskId)) {
+                    return taskId;
+                }
+                JSONObject validationResultModel = jsonObject.optJSONObject("validationResultModel");
+                if (validationResultModel == null) {
+                    throw new ClientIntegrationException(format("Unexpected error: can't find neither 'taskId' nor 'validationResultModel' properties in the response: %s", jsonObject));
+                }
+
+                List<String> errors = new ArrayList<>();
+                JSONArray problemsArray = validationResultModel.optJSONArray("problems");
+                for (int i = 0; i < problemsArray.length(); i++) {
+                    JSONObject problemObject = problemsArray.getJSONObject(i);
+                    String severity = problemObject.optString("severity");
+                    if ("Error".equalsIgnoreCase(severity)) {
+                        errors.add(format("%s [%s]: %s", problemObject.optString("location"), problemObject.optString("elementId"), problemObject.optString("message")));
+                    }
+                }
+                if (!errors.isEmpty()) {
+                    throw new ClientIntegrationException(format("IFlow validation failed because of the following errors:\n%s", StringUtils.join(errors, ";\n")));
+                } else {
+                    throw new ClientIntegrationException(format("IFlow validation failed but no errors were found: %s", jsonObject));
+                }
             }
             case VALUE_MAPPING:
             case MESSAGE_MAPPING: {
