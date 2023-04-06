@@ -18,9 +18,8 @@ public class AgentTestDataProvider extends AbstractAgentTestDataProvider {
         return Stream.of(
             Arguments.of(buildAgentTestDataForNeo()),
             Arguments.of(buildAgentTestDataForCf1()),
-            Arguments.of(buildAgentTestDataForCf1UseCustomIdp())
-//                Arguments.of(buildAgentTestDataForCf3()),
-//                Arguments.of(buildAgentTestDataForCf4())
+            Arguments.of(buildAgentTestDataForCf1UseCustomIdp()),
+            Arguments.of(buildAgentTestDataForIntegrationSuite())
         );
     }
 
@@ -46,6 +45,10 @@ public class AgentTestDataProvider extends AbstractAgentTestDataProvider {
 
     public static AgentTestData buildAgentTestDataForNeo() {
         return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-neo-1"));
+    }
+
+    public static AgentTestData buildAgentTestDataForIntegrationSuite() {
+        return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-cf-integration-suite"));
     }
 
 }

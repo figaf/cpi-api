@@ -1,6 +1,7 @@
 package com.figaf.integration.cpi.entity.runtime_artifacts;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -9,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Nesterov Ilya
@@ -34,9 +36,9 @@ public class IntegrationContent implements Serializable {
         return this;
     }
 
-    public static IntegrationContent searchByTechnicalName(List<IntegrationContent> artifacts, String technicalName) {
+    public static IntegrationContent searchByTechnicalNameAndType(List<IntegrationContent> artifacts, String technicalName, CpiArtifactType cpiArtifactType) {
         for (IntegrationContent artifact : artifacts) {
-            if (StringUtils.equals(artifact.getId(), technicalName)) {
+            if (StringUtils.equals(artifact.getId(), technicalName) && Objects.equals(artifact.getType(), cpiArtifactType.getRuntimeIntegrationType())) {
                 return artifact;
             }
         }
