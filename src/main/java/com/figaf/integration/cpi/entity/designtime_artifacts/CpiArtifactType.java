@@ -8,7 +8,7 @@ public enum CpiArtifactType {
     IFLOW("CPI_IFLOW", "IFlow"),
     VALUE_MAPPING("VALUE_MAPPING", "ValueMapping"),
     REST_API("CPI_REST_API", "RESTAPIProvider"),
-    SOAP_API("CPI_SOAP_API", "SOAPPIProvider"),
+    SOAP_API("CPI_SOAP_API", "SOAPAPIProvider"),
     ODATA_API("CPI_ODATA_API", "OData Service"),
     SCRIPT_COLLECTION("SCRIPT_COLLECTION", "ScriptCollection"),
     MESSAGE_MAPPING("CPI_MESSAGE_MAPPING", "MessageMapping");

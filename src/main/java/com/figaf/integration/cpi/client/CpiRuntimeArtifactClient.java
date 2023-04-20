@@ -25,7 +25,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.buildCpiArtifacts;
 import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.retrieveDeployingResult;
@@ -72,6 +74,22 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
         String packageExternalId,
         CpiArtifactType artifactType
     ) {
+        return getArtifactsByPackage(
+            requestContext,
+            packageTechnicalName,
+            packageDisplayedName,
+            packageExternalId,
+            hashSet(artifactType)
+        );
+    }
+
+    protected List<CpiArtifact> getArtifactsByPackage(
+        RequestContext requestContext,
+        String packageTechnicalName,
+        String packageDisplayedName,
+        String packageExternalId,
+        Set<CpiArtifactType> artifactTypes
+    ) {
         String path = String.format(API_ARTIFACTS, packageTechnicalName);
         return executeGet(
             requestContext,
@@ -80,7 +98,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 packageTechnicalName,
                 packageDisplayedName,
                 packageExternalId,
-                hashSet(artifactType),
+                artifactTypes,
                 body
             )
         );
