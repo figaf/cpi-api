@@ -25,18 +25,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Klochkov Sergey
  */
 @Slf4j
-class CpiRestApiClientTest {
+class CpiRestAndSoapApiClientTest {
 
-    private static CpiRestApiClient cpiRestApiClient;
+    private static CpiRestAndSoapApiClient cpiRestAndSoapApiClient;
     private static PackageUtils packageUtils;
     private static RestApiUtils restApiUtils;
 
     @BeforeAll
     static void setUp() {
         IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiRestApiClient = new CpiRestApiClient(new HttpClientsFactory());
+        cpiRestAndSoapApiClient = new CpiRestAndSoapApiClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
-        restApiUtils = new RestApiUtils(packageUtils, cpiRestApiClient);
+        restApiUtils = new RestApiUtils(packageUtils, cpiRestAndSoapApiClient);
     }
 
     @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
@@ -46,7 +46,7 @@ class CpiRestApiClientTest {
         IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
 
-        List<CpiArtifact> restApis = cpiRestApiClient.getRestApiObjectsByPackage(
+        List<CpiArtifact> restApis = cpiRestAndSoapApiClient.getRestApiObjectsByPackage(
             requestContext,
             API_TEST_PACKAGE_NAME,
             API_TEST_PACKAGE_NAME,
@@ -62,7 +62,7 @@ class CpiRestApiClientTest {
         CpiArtifact restApi = restApiUtils.findTestRestApiInTestPackageIfExist(requestContext);
         assertThat(restApi).as("rest api %s wasn't found", API_TEST_REST_API_NAME).isNotNull();
 
-        byte[] restApiPayload = cpiRestApiClient.downloadRestApi(
+        byte[] restApiPayload = cpiRestAndSoapApiClient.downloadRestOrSoapApi(
             requestContext,
             restApi.getPackageExternalId(),
             restApi.getExternalId()
@@ -95,14 +95,14 @@ class CpiRestApiClientTest {
         byte[] payload = IOUtils.toByteArray(
             this.getClass().getClassLoader().getResource("client/FigafApiTestDummyRestApiUpdated.zip")
         );
-        UpdateRestApiRequest updateRestApiRequest = UpdateRestApiRequest.builder()
+        UpdateRestOrSoapApiRequest updateRestOrSoapApiRequest = UpdateRestOrSoapApiRequest.builder()
             .id(restApiExternalId)
             .name(API_TEST_DUMMY_REST_API_NAME)
             .description("Rest Api for api tests")
             .packageExternalId(restApi.getPackageExternalId())
             .bundledModel(payload)
             .build();
-        cpiRestApiClient.updateRestApi(requestContext, updateRestApiRequest);
+        cpiRestAndSoapApiClient.updateRestOrSoapApi(requestContext, updateRestOrSoapApiRequest);
 
         restApiUtils.deleteRestApi(requestContext, restApi);
         restApi = restApiUtils.findDummyRestApiInTestPackageIfExist(requestContext);
@@ -117,7 +117,7 @@ class CpiRestApiClientTest {
         assertThat(restApi).as("rest api %s wasn't found", API_TEST_DUMMY_REST_API_NAME).isNotNull();
 
         String restApiExternalId = restApi.getExternalId();
-        String taskId = cpiRestApiClient.deployRestApi(
+        String taskId = cpiRestAndSoapApiClient.deployRestApi(
             requestContext,
             restApi.getPackageExternalId(),
             restApiExternalId,
@@ -125,7 +125,7 @@ class CpiRestApiClientTest {
         );
         assertThat(taskId).isNotBlank();
 
-        String status = cpiRestApiClient.checkDeploymentStatus(requestContext, taskId);
+        String status = cpiRestAndSoapApiClient.checkDeploymentStatus(requestContext, taskId);
         assertThat(status).isNotBlank();
 
         restApiUtils.deleteRestApi(requestContext, restApi);

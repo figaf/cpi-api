@@ -19,6 +19,7 @@ public class AgentTestDataProvider extends AbstractAgentTestDataProvider {
             Arguments.of(buildAgentTestDataForNeo()),
             Arguments.of(buildAgentTestDataForCf1()),
             Arguments.of(buildAgentTestDataForCf1UseCustomIdp())
+//            Arguments.of(buildAgentTestDataForCfIntegrationSuite())
 //                Arguments.of(buildAgentTestDataForCf3()),
 //                Arguments.of(buildAgentTestDataForCf4())
         );
@@ -30,6 +31,10 @@ public class AgentTestDataProvider extends AbstractAgentTestDataProvider {
 
     public static AgentTestData buildAgentTestDataForCf1UseCustomIdp() {
         return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-cf-1-use-custom-idp"));
+    }
+
+    public static AgentTestData buildAgentTestDataForCfIntegrationSuite() {
+        return buildAgentTestData(Paths.get("src/test/resources/agent-test-data/cpi-cf-integration-suite"));
     }
 
     public static AgentTestData buildAgentTestDataForCf2() {
