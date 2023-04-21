@@ -1,9 +1,9 @@
 package com.figaf.integration.cpi.utils;
 
 import com.figaf.integration.common.entity.RequestContext;
-import com.figaf.integration.cpi.client.CpiRestApiClient;
+import com.figaf.integration.cpi.client.CpiRestAndSoapApiClient;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateRestApiRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateRestOrSoapApiRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class RestApiUtils {
     public static final String API_TEST_DUMMY_REST_API_NAME = "FigafApiTestDummyRestApi";
 
     private final PackageUtils packageUtils;
-    private final CpiRestApiClient cpiRestApiClient;
+    private final CpiRestAndSoapApiClient cpiRestAndSoapApiClient;
 
     public CpiArtifact findTestRestApiInTestPackageIfExist(RequestContext requestContext) {
         IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
@@ -77,7 +77,7 @@ public class RestApiUtils {
     }
 
     public void deleteRestApi(RequestContext requestContext, CpiArtifact restApi) {
-        cpiRestApiClient.deleteRestApi(
+        cpiRestAndSoapApiClient.deleteRestOrSoapApi(
             restApi.getPackageExternalId(),
             restApi.getExternalId(),
             restApi.getTechnicalName(),
@@ -92,7 +92,7 @@ public class RestApiUtils {
         String packageExternalId,
         String restApiName
     ) {
-        List<CpiArtifact> artifacts = cpiRestApiClient.getRestApiObjectsByPackage(
+        List<CpiArtifact> artifacts = cpiRestAndSoapApiClient.getRestApiObjectsByPackage(
             requestContext,
             packageTechnicalName,
             packageDisplayedName,
@@ -111,14 +111,14 @@ public class RestApiUtils {
         String restApiName,
         byte[] payload
     ) {
-        CreateRestApiRequest createOrUpdateRestApiRequest = CreateRestApiRequest.builder()
+        CreateRestOrSoapApiRequest createOrUpdateRestApiRequest = CreateRestOrSoapApiRequest.builder()
             .id(restApiName)
             .name(restApiName)
             .description("Rest Api for api tests")
             .packageExternalId(packageExternalId)
             .bundledModel(payload)
             .build();
-        cpiRestApiClient.createRestApi(requestContext, createOrUpdateRestApiRequest);
+        cpiRestAndSoapApiClient.createRestApi(requestContext, createOrUpdateRestApiRequest);
         return findRestApiIfExist(
             requestContext,
             packageTechnicalName,
