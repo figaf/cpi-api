@@ -5,6 +5,7 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.DeleteAndUndeployIFlowResult;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactFromPublicApi;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateIFlowRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.IFLOW;
+import static com.figaf.integration.cpi.utils.CpiApiUtils.loadXMLFromString;
 import static java.lang.String.format;
 
 /**
@@ -144,6 +149,44 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
             format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')", iFlowTechnicalName),
             Objects::nonNull
         );
+    }
+
+    public CpiArtifactFromPublicApi getIFlowByTechnicalName(RequestContext requestContext, String iFlowTechnicalName) {
+        log.debug("#getIFlowByTechnicalName(RequestContext requestContext, String iFlowTechnicalName): {}, {}", iFlowTechnicalName, requestContext);
+        return executeMethodPublicApi(
+            requestContext,
+            format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')", iFlowTechnicalName),
+            "",
+            HttpMethod.GET,
+            responseEntity -> parseCpiArtifact(responseEntity.getBody())
+        );
+    }
+
+    private CpiArtifactFromPublicApi parseCpiArtifact(String xml) {
+        Document document = loadXMLFromString(xml);
+        NodeList entries = document.getElementsByTagName("m:properties");
+
+        NodeList propertiesList = entries.item(0).getChildNodes();
+        Map<String, String> properties = new HashMap<>();
+        for (int i = 0; i < propertiesList.getLength(); i++) {
+            Node propertyNode = propertiesList.item(i);
+            String propertyName = propertyNode.getLocalName();
+            String propertyValue = propertyNode.getTextContent();
+            properties.put(propertyName, propertyValue);
+        }
+        CpiArtifactFromPublicApi cpiArtifact = new CpiArtifactFromPublicApi();
+        cpiArtifact.setTechnicalName(properties.get("Id"));
+        cpiArtifact.setDisplayedName(properties.get("Name"));
+        cpiArtifact.setVersion(properties.get("Version"));
+        cpiArtifact.setPackageTechnicalName(properties.get("PackageId"));
+        cpiArtifact.setDescription(properties.get("Description"));
+        cpiArtifact.setSender(properties.get("Sender"));
+        cpiArtifact.setReceiver(properties.get("Receiver"));
+        cpiArtifact.setCreatedBy(properties.get("CreatedBy"));
+        cpiArtifact.setCreatedAt(properties.get("CreatedAt"));
+        cpiArtifact.setModifiedBy(properties.get("ModifiedBy"));
+        cpiArtifact.setModifiedAt(properties.get("ModifiedAt"));
+        return cpiArtifact;
     }
 
     public DeleteAndUndeployIFlowResult deleteAndUndeployIFlow(RequestContext requestContext, String iFlowTechnicalName) {
