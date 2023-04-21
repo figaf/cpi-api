@@ -143,4 +143,16 @@ class CpiIntegrationFlowClientTest {
         cpiIntegrationFlowClient.setTraceLogLevelForIFlows(requestContext, singletonList(API_TEST_IFLOW_NAME));
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(AgentTestDataProvider.class)
+    void test_getIFlowByTechnicalName(AgentTestData agentTestData) {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
+        assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
+
+        CpiArtifactFromPublicApi cpiArtifactFromPublicApi = cpiIntegrationFlowClient.getIFlowByTechnicalName(requestContext, API_TEST_IFLOW_NAME);
+        assertThat(cpiArtifactFromPublicApi).isNotNull();
+        assertThat(cpiArtifactFromPublicApi.getTechnicalName()).isEqualTo(API_TEST_IFLOW_NAME);
+    }
+
 }
