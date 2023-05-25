@@ -23,6 +23,7 @@ public class MessageProcessingLog implements Serializable {
     private String correlationId;
     private String integrationFlowName;
     private String status;
+    private String customStatus;
     private String logLevel;
     private Date logStart;
     private Date logEnd;
