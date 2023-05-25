@@ -46,6 +46,7 @@ public class MessageProcessingLogParser {
         messageProcessingLog.setIntegrationFlowName(Utils.optString(messageProcessingLogElement, "IntegrationFlowName"));
         messageProcessingLog.setLogLevel(Utils.optString(messageProcessingLogElement, "LogLevel"));
         messageProcessingLog.setStatus(Utils.optString(messageProcessingLogElement, "Status"));
+        messageProcessingLog.setCustomStatus(Utils.optString(messageProcessingLogElement, "CustomStatus"));
         messageProcessingLog.setApplicationMessageId(Utils.optString(messageProcessingLogElement, "ApplicationMessageId"));
         messageProcessingLog.setApplicationMessageType(Utils.optString(messageProcessingLogElement, "ApplicationMessageType"));
         messageProcessingLog.setSender(Utils.optString(messageProcessingLogElement, "Sender"));
