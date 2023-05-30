@@ -128,7 +128,7 @@ public class IntegrationPackageClient extends BaseClient {
         boolean locked = false;
         try {
 
-            Locker.lockPackage(connectionProperties, externalId, userApiCsrfToken, restTemplate, true);
+            Locker.lockPackage(connectionProperties, externalId, userApiCsrfToken, restTemplate);
             locked = true;
 
             Map<String, String> requestBody = prepareRequestBodyForPackageUpload(request);
