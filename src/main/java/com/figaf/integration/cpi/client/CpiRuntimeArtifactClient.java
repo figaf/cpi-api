@@ -21,11 +21,9 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.json.JSONObject;
 import org.springframework.http.*;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -172,7 +170,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
         boolean locked = false;
         String packageExternalId = request.getPackageExternalId();
         try {
-            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), true);
+            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
             locked = true;
 
             HttpPost uploadArtifactRequest = new HttpPost(uploadArtifactUri);
@@ -203,6 +201,8 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 throw new ClientIntegrationException("Couldn't execute artifact uploading:\n" + IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
             }
 
+        } catch (ClientIntegrationException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Error occurred while uploading artifact " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while uploading artifact: " + ex.getMessage(), ex);
@@ -225,7 +225,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     ) {
         boolean locked = false;
         try {
-            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplate, true);
+            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplate);
             locked = true;
 
             HttpHeaders httpHeaders = new HttpHeaders();
@@ -268,7 +268,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     ) {
         boolean locked = false;
         try {
-            Locker.lockPackage(connectionProperties, packageExternalId, token, restTemplate, true);
+            Locker.lockPackage(connectionProperties, packageExternalId, token, restTemplate);
             locked = true;
 
             HttpHeaders httpHeaders = createHttpHeadersWithCSRFToken(token);
@@ -284,6 +284,8 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 );
             }
 
+        } catch (ClientIntegrationException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Error occurred while deleting artifact " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while deleting artifact: " + ex.getMessage(), ex);
@@ -307,16 +309,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
         String packageExternalId = request.getPackageExternalId();
         String artifactExternalId = request.getId();
         try {
-            Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", true, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
-            try {
-                Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", false, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
-            } catch (HttpClientErrorException ex) {
-                if (HttpStatus.LOCKED.equals(ex.getStatusCode())) {
-                    log.warn("artifact {} is already locked", artifactExternalId);
-                } else {
-                    throw new ClientIntegrationException("Couldn't lock or unlock artifact\n" + ex.getResponseBodyAsString());
-                }
-            }
+            Locker.lockCpiObject(connectionProperties, packageExternalId, artifactExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
             locked = true;
 
             HttpPost uploadArtifactRequest = new HttpPost(uploadArtifactUri);
@@ -363,6 +356,8 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 throw new RuntimeException("Couldn't execute artifact uploading:\n" + IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
             }
 
+        } catch (ClientIntegrationException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Error occurred while uploading artifact " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while uploading artifact: " + ex.getMessage(), ex);
@@ -371,7 +366,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
                 HttpClientUtils.closeQuietly(uploadArtifactResponse);
             }
             if (locked) {
-                Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "UNLOCK", false, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
+                Locker.unlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
             }
         }
     }
