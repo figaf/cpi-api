@@ -156,7 +156,7 @@ public class CpiIntegrationDocumentClient extends BaseClient {
         log.debug("start uploadUrl");
 
         try {
-            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplate, true);
+            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplate);
 
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(X_CSRF_TOKEN, userApiCsrfToken);
@@ -183,6 +183,8 @@ public class CpiIntegrationDocumentClient extends BaseClient {
                 );
             }
 
+        } catch (ClientIntegrationException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Error occurred while uploading url " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while uploading url: " + ex.getMessage(), ex);
@@ -203,7 +205,7 @@ public class CpiIntegrationDocumentClient extends BaseClient {
         HttpResponse uploadFileResponse = null;
 
         try {
-            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), true);
+            Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
 
             HttpPost uploadFileRequest = new HttpPost(uploadFileUri);
 
@@ -234,6 +236,8 @@ public class CpiIntegrationDocumentClient extends BaseClient {
                         connectionProperties);
                 }
             }
+        } catch (ClientIntegrationException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Error occurred while file uploading " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while file uploading: " + ex.getMessage(), ex);
@@ -263,13 +267,7 @@ public class CpiIntegrationDocumentClient extends BaseClient {
         RestTemplate restTemplate,
         ConnectionProperties connectionProperties) {
         try {
-            Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", true, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
-            lockOrUnlockCpiObjectWithFalseLockInfo(
-                packageExternalId,
-                artifactExternalId,
-                userApiCsrfToken,
-                restTemplate,
-                connectionProperties);
+            Locker.lockCpiObject(connectionProperties, packageExternalId, artifactExternalId, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
             CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
                 packageExternalId,
                 artifactExternalId,
@@ -279,28 +277,14 @@ public class CpiIntegrationDocumentClient extends BaseClient {
                 restTemplate,
                 API_LOCK_AND_UNLOCK_DOCUMENT
             );
+        } catch (ClientIntegrationException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Error occurred while uploading document " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while uploading document: " + ex.getMessage(), ex);
         } finally {
-            Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "UNLOCK", false, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
+            Locker.unlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
         }
     }
 
-    private void lockOrUnlockCpiObjectWithFalseLockInfo(
-        String packageExternalId,
-        String artifactExternalId,
-        String userApiCsrfToken,
-        RestTemplate restTemplate,
-        ConnectionProperties connectionProperties) {
-        try {
-            Locker.lockOrUnlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, "LOCK", false, userApiCsrfToken, restTemplate, API_LOCK_AND_UNLOCK_DOCUMENT);
-        } catch (HttpClientErrorException ex) {
-            if (HttpStatus.LOCKED.equals(ex.getStatusCode())) {
-                log.warn("document {} is already locked", artifactExternalId);
-            } else {
-                throw new ClientIntegrationException("Couldn't lock or unlock document \n" + ex.getResponseBodyAsString());
-            }
-        }
-    }
 }
