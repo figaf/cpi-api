@@ -138,6 +138,27 @@ class CpiIntegrationFlowClientTest {
 
     @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
+    void test_deployIFlowViaPublicApiAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        CpiArtifact iFlow = iFlowUtils.getOrCreateDummyIFlow(requestContext);
+        assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_DUMMY_IFLOW_NAME).isNotNull();
+
+        String taskId = cpiIntegrationFlowClient.deployIFlowViaPublicApi(
+            requestContext,
+            iFlow.getTechnicalName()
+        );
+        assertThat(taskId).isNotBlank();
+
+        String status = cpiIntegrationFlowClient.checkDeploymentStatus(requestContext, taskId);
+        assertThat(status).isNotBlank();
+
+        iFlowUtils.deleteIFlow(requestContext, iFlow);
+        iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);
+        assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
+    }
+
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
+    @ArgumentsSource(AgentTestDataProvider.class)
     void test_setTraceLogLevelForIFlows(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         cpiIntegrationFlowClient.setTraceLogLevelForIFlows(requestContext, singletonList(API_TEST_IFLOW_NAME));
