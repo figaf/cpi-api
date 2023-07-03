@@ -1,7 +1,7 @@
 package com.figaf.integration.cpi.client;
 
-import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.ConnectionProperties;
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.ArtifactResources;
@@ -20,6 +20,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+
+import static java.lang.String.format;
 
 /**
  * @author Arsenii Istlentev
@@ -161,6 +163,15 @@ public class IFlowResourcesClient extends ArtifactResourcesClient {
             throw new RuntimeException("Error occurred while updating resource of an iFlow: " + ex.getMessage(), ex);
         }
 
+    }
+
+    public String getIFlowResourceContent(RequestContext requestContext, String iflowTechnicalName, String resourceName, String resourceType) {
+        log.debug("#getIFlowResourceContent(RequestContext requestContext, String iflowTechnicalName, String resourceName, String resourceType): {}, {}, {}, {}", requestContext, iflowTechnicalName, resourceName, resourceType);
+        return executeGetPublicApiAndReturnResponseBody(
+            requestContext,
+            format("/api/v1/IntegrationDesigntimeArtifacts(Id='%s',Version='active')/Resources(Name='%s',ResourceType='%s')/$value", iflowTechnicalName, resourceName, resourceType),
+            responseBody -> responseBody
+        );
     }
 
 }

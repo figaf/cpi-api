@@ -119,6 +119,17 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         );
     }
 
+    public String deployIFlowViaPublicApi(RequestContext requestContext, String iFlowTechnicalName) {
+        log.debug("#deployIFlowViaPublicApi(RequestContext requestContext, String iFlowTechnicalName): {}, {}", requestContext, iFlowTechnicalName);
+        return executeMethodPublicApi(
+            requestContext,
+            format("/api/v1/DeployIntegrationDesigntimeArtifact?Id='%s'&Version='active'", iFlowTechnicalName),
+            null,
+            HttpMethod.POST,
+            HttpEntity::getBody
+        );
+    }
+
     public boolean undeployIFlow(RequestContext requestContext, String iFlowTechnicalName) {
         log.debug("#undeployIFlow(RequestContext requestContext, String iFlowTechnicalName): {}, {}", requestContext, iFlowTechnicalName);
         return executeDeletePublicApi(

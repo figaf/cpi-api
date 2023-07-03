@@ -68,6 +68,23 @@ class IFlowResourcesClientTest {
         assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
     }
 
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
+    @ArgumentsSource(AgentTestDataProvider.class)
+    void test_getIFlowResourceContent(AgentTestData agentTestData) throws Exception {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        CpiArtifact iFlow = iFlowUtils.getOrCreateDummyIFlow(requestContext);
+        assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_DUMMY_IFLOW_NAME).isNotNull();
+
+        String resourceContent = iFlowResourcesClient.getIFlowResourceContent(
+            requestContext,
+            iFlow.getTechnicalName(),
+            "firstGroovy.groovy",
+            "groovy"
+        );
+
+        assertThat(resourceContent).as("Can't find not empty firstGroovy.groovy").isNotEmpty();
+    }
+
     private Set<ArtifactResource> getExpectedResources() {
         Set<ArtifactResource> expectedResources = new HashSet<>();
         expectedResources.add(
