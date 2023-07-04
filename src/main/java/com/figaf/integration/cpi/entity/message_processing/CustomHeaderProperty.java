@@ -2,6 +2,8 @@ package com.figaf.integration.cpi.entity.message_processing;
 
 import lombok.*;
 
+import java.io.Serializable;
+
 /**
  * @author Arsenii Istlentev
  */
@@ -10,7 +12,7 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class CustomHeaderProperty {
+public class CustomHeaderProperty implements Serializable {
 
     private String id;
     private String name;
