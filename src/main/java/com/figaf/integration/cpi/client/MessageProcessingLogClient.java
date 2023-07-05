@@ -112,7 +112,11 @@ public class MessageProcessingLogClient extends CpiBaseClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date startDate) {
-        log.debug("#getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date startDate): {}, {}, {}", requestContext, filter, startDate);
+        return getMessageProcessingLogsByFilter(requestContext, filter, startDate, false);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date startDate, boolean expandCustomHeaders) {
+        log.debug("#getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date startDate, boolean expandCustomHeaders): {}, {}, {}, {}", requestContext, filter, startDate, expandCustomHeaders);
         FastDateFormat dateFormat = FastDateFormat.getInstance(
             "yyyy-MM-dd'T'HH:mm:ss.SSS",
             TimeZone.getTimeZone("GMT")
@@ -120,6 +124,9 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         String resourcePath = String.format(API_MSG_PROC_LOGS,
             String.format("%s and LogStart gt datetime'%s'", filter, dateFormat.format(startDate))
         );
+        if (expandCustomHeaders) {
+            resourcePath += "&$expand=CustomHeaderProperties";
+        }
 
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
