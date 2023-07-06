@@ -1,8 +1,11 @@
 package com.figaf.integration.cpi.entity.designtime_artifacts;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Klochkov Sergey
  */
+@Slf4j
 public enum CpiArtifactType {
 
     IFLOW("CPI_IFLOW", "IFlow"),
@@ -27,6 +30,16 @@ public enum CpiArtifactType {
 
     public String getQueryTitle() {
         return this.queryTitle;
+    }
+
+    public static CpiArtifactType fromQueryTitle(String queryTitle) {
+        for (CpiArtifactType cpiArtifactType : CpiArtifactType.values()) {
+            if (cpiArtifactType.getQueryTitle().equals(queryTitle)) {
+                return cpiArtifactType;
+            }
+        }
+        log.warn("Not expected artifact type: {}", queryTitle);
+        return null;
     }
 
 }
