@@ -81,7 +81,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
         );
     }
 
-    protected List<CpiArtifact> getArtifactsByPackage(
+    public List<CpiArtifact> getArtifactsByPackage(
         RequestContext requestContext,
         String packageTechnicalName,
         String packageDisplayedName,
@@ -118,7 +118,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
         );
     }
 
-    protected byte[] downloadArtifact(
+    public byte[] downloadArtifact(
         RequestContext requestContext,
         String packageExternalId,
         String artifactExternalId
@@ -132,7 +132,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
         );
     }
 
-    protected void updateArtifact(RequestContext requestContext, CreateOrUpdateCpiArtifactRequest request) {
+    public void updateArtifact(RequestContext requestContext, CreateOrUpdateCpiArtifactRequest request) {
         executeMethod(
             requestContext,
             String.format(API_UPDATE_ARTIFACT, request.getPackageExternalId()),
@@ -149,7 +149,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
         );
     }
 
-    protected void deleteArtifact(
+    public void deleteArtifact(
         String packageExternalId,
         String artifactExternalId,
         String artifactName,
