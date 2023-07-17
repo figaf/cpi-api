@@ -14,18 +14,19 @@ public enum CpiArtifactType {
     SOAP_API("CPI_SOAP_API", "SOAPAPIProvider"),
     ODATA_API("CPI_ODATA_API", "OData Service"),
     SCRIPT_COLLECTION("SCRIPT_COLLECTION", "ScriptCollection"),
-    MESSAGE_MAPPING("CPI_MESSAGE_MAPPING", "MessageMapping");
+    MESSAGE_MAPPING("CPI_MESSAGE_MAPPING", "MessageMapping"),
+    FUNCTION_LIBRARIES("CPI_FUNCTION_LIBRARIES", "FunctionLibraries");
 
-    private final String title;
+    private final String trackedObjectType;
     private final String queryTitle;
 
-    CpiArtifactType(String title, String queryTitle) {
-        this.title = title;
+    CpiArtifactType(String trackedObjectType, String queryTitle) {
+        this.trackedObjectType = trackedObjectType;
         this.queryTitle = queryTitle;
     }
 
-    public String getTitle() {
-        return this.title;
+    public String getTrackedObjectType() {
+        return this.trackedObjectType;
     }
 
     public String getQueryTitle() {
@@ -40,6 +41,15 @@ public enum CpiArtifactType {
         }
         log.warn("Not expected artifact type: {}", queryTitle);
         return null;
+    }
+
+    public static CpiArtifactType fromTrackedObjectType(String trackedObjectType) {
+        for (CpiArtifactType cpiArtifactType : CpiArtifactType.values()) {
+            if (cpiArtifactType.getTrackedObjectType().equals(trackedObjectType)) {
+                return cpiArtifactType;
+            }
+        }
+        throw new IllegalArgumentException(String.format("Not expected artifact type %s", trackedObjectType));
     }
 
 }

@@ -12,12 +12,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static java.util.function.Function.identity;
 
 /**
  * @author Arsenii Istlentev
@@ -60,7 +57,7 @@ public class CpiRuntimeArtifactParser {
             artifact.setModificationDate(CpiApiUtils.parseDate(Utils.optString(artifactElement, "ModifiedAt")));
             artifact.setModifiedBy(artifactElement.getString("ModifiedBy"));
             artifact.setDescription(Utils.optString(artifactElement, "Description"));
-            artifact.setTrackedObjectType(cpiArtifactType.getTitle());
+            artifact.setTrackedObjectType(cpiArtifactType.getTrackedObjectType());
             artifact.setPackageTechnicalName(packageTechnicalName);
             artifact.setPackageExternalId(packageExternalId);
             artifacts.add(artifact);
@@ -77,7 +74,8 @@ public class CpiRuntimeArtifactParser {
         switch (objectType) {
             case IFLOW:
             case REST_API:
-            case SCRIPT_COLLECTION: {
+            case SCRIPT_COLLECTION:
+            case FUNCTION_LIBRARIES: {
                 JSONObject jsonObject = new JSONObject(result);
                 String taskId = jsonObject.optString("taskId");
                 if (StringUtils.isNotEmpty(taskId)) {
