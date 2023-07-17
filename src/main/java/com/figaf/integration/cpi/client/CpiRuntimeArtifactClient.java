@@ -24,6 +24,7 @@ import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -40,7 +41,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Klochkov Sergey
  */
 @Slf4j
-public abstract class CpiRuntimeArtifactClient extends BaseClient {
+public class CpiRuntimeArtifactClient extends BaseClient {
 
     private static final String API_PACKAGES = "/itspaces/odata/1.0/workspace.svc/ContentPackages";
     private static final String API_ARTIFACTS = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Artifacts?$format=json";
@@ -52,7 +53,7 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
     private static final String FILE_NAME = "model.zip";
     private static final String X_CSRF_TOKEN = "X-CSRF-Token";
 
-    CpiRuntimeArtifactClient(HttpClientsFactory httpClientsFactory) {
+    public CpiRuntimeArtifactClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
     }
 
@@ -62,6 +63,21 @@ public abstract class CpiRuntimeArtifactClient extends BaseClient {
             requestContext,
             path,
             CpiRuntimeArtifactParser::retrieveDeployStatus
+        );
+    }
+
+    public List<CpiArtifact> getArtifactsByPackage(
+        RequestContext requestContext,
+        String packageTechnicalName,
+        String packageDisplayedName,
+        String packageExternalId
+    ) {
+        return getArtifactsByPackage(
+            requestContext,
+            packageTechnicalName,
+            packageDisplayedName,
+            packageExternalId,
+            Collections.emptySet()
         );
     }
 
