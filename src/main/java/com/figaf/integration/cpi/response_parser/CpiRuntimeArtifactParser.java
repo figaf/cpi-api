@@ -5,18 +5,16 @@ import com.figaf.integration.common.utils.Utils;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType;
 import com.figaf.integration.cpi.utils.CpiApiUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static java.util.function.Function.identity;
 
 /**
  * @author Arsenii Istlentev
@@ -36,15 +34,15 @@ public class CpiRuntimeArtifactParser {
         JSONObject response = new JSONObject(responseBody);
         JSONArray artifactsJsonArray = response.getJSONObject("d").getJSONArray("results");
 
-        Map<String, CpiArtifactType> queryTypeTitleToTypeMap = artifactTypes.stream()
-            .collect(Collectors.toMap(CpiArtifactType::getQueryTitle, identity()));
         List<CpiArtifact> artifacts = new ArrayList<>();
         for (int ind = 0; ind < artifactsJsonArray.length(); ind++) {
             JSONObject artifactElement = artifactsJsonArray.getJSONObject(ind);
 
             String type = Utils.optString(artifactElement, "Type");
-
-            if (!queryTypeTitleToTypeMap.containsKey(type)) {
+            CpiArtifactType cpiArtifactType = CpiArtifactType.fromQueryTitle(type);
+            if (cpiArtifactType == null ||
+                (CollectionUtils.isNotEmpty(artifactTypes) && !artifactTypes.contains(cpiArtifactType))
+            ) {
                 continue;
             }
 
@@ -59,7 +57,7 @@ public class CpiRuntimeArtifactParser {
             artifact.setModificationDate(CpiApiUtils.parseDate(Utils.optString(artifactElement, "ModifiedAt")));
             artifact.setModifiedBy(artifactElement.getString("ModifiedBy"));
             artifact.setDescription(Utils.optString(artifactElement, "Description"));
-            artifact.setTrackedObjectType(queryTypeTitleToTypeMap.get(type).getTitle());
+            artifact.setTrackedObjectType(cpiArtifactType.getTrackedObjectType());
             artifact.setPackageTechnicalName(packageTechnicalName);
             artifact.setPackageExternalId(packageExternalId);
             artifacts.add(artifact);
@@ -76,7 +74,8 @@ public class CpiRuntimeArtifactParser {
         switch (objectType) {
             case IFLOW:
             case REST_API:
-            case SCRIPT_COLLECTION: {
+            case SCRIPT_COLLECTION:
+            case FUNCTION_LIBRARIES: {
                 JSONObject jsonObject = new JSONObject(result);
                 String taskId = jsonObject.optString("taskId");
                 if (StringUtils.isNotEmpty(taskId)) {
