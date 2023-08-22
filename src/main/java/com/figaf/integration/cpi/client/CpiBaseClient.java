@@ -95,6 +95,8 @@ public abstract class CpiBaseClient extends BaseClient {
 
     protected static final String API_MSG_PROC_LOGS = "/api/v1/MessageProcessingLogs?$format=json&$orderby=LogEnd&$filter=%s";
     protected static final String API_MSG_PROC_LOGS_ID = "/api/v1/MessageProcessingLogs('%s')?$format=json";
+    protected static final String API_MSG_PROC_LOGS_ORDERED = "/api/v1/MessageProcessingLogs?$inlinecount=allpages&$format=json&$top=%d&$orderby=LogEnd&$filter=%s";
+    protected static final String API_MSG_PROC_LOGS_PAGINATED_WITH_SELECTED_RESPONSE_FIELDS = "/api/v1/MessageProcessingLogs?$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s&$select=%s";
     protected static final String API_MSG_PROC_LOGS_PAGINATED = "/api/v1/MessageProcessingLogs?$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s";
     protected static final String API_MSG_PROC_LOGS_ATTACHMENTS = "/api/v1/MessageProcessingLogs('%s')/Attachments?$format=json";
     protected static final String API_MSG_PROC_LOGS_MESSAGE_STORE_ENTRIES = "/api/v1/MessageProcessingLogs('%s')/MessageStoreEntries?$format=json";
