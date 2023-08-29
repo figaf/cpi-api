@@ -12,6 +12,7 @@ import com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser;
 import com.figaf.integration.cpi.version.CpiObjectVersionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -194,7 +195,8 @@ public class CpiRuntimeArtifactClient extends BaseClient {
             JSONObject requestBody = new JSONObject();
             requestBody.put("id", request.getId());
             requestBody.put("name", request.getName());
-            requestBody.put("description", request.getDescription());
+            //description property is mandatory for artifact creation but null value is not allowed for Value Mappings
+            requestBody.put("description", StringUtils.defaultString(request.getDescription(), ""));
             requestBody.put("type", request.getType());
             requestBody.put("additionalAttrs", new JSONObject(request.getAdditionalAttrs()));
             requestBody.put("fileName", FILE_NAME);
