@@ -131,6 +131,11 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
+    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, int top, String filter) {
+        log.debug("#getMessageProcessingLogsByFilter(RequestContext requestContext, int top, String filter): {}, {}", requestContext, filter);
+        return getMessageProcessingLogs(requestContext, String.format(API_MSG_PROC_LOGS_ORDERED, top, filter));
+    }
+
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
         log.debug("#getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId): {}, {}", requestContext, correlationId);
         String resourcePath = String.format(API_MSG_PROC_LOGS,
@@ -158,28 +163,59 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 response -> new JSONObject(response).getJSONObject("d")
             );
 
-            String totalCountString = optString(jsonObjectD, "__count");
-            Integer totalMessagesCount = null;
-            if (NumberUtils.isCreatable(totalCountString)) {
-                totalMessagesCount = NumberUtils.toInt(totalCountString);
-            }
-
-            JSONArray messageProcessingLogsJsonArray = jsonObjectD.getJSONArray("results");
-            List<MessageProcessingLog> messageProcessingLogs = new ArrayList<>();
-
-            for (int ind = 0; ind < messageProcessingLogsJsonArray.length(); ind++) {
-                JSONObject messageProcessingLogElement = messageProcessingLogsJsonArray.getJSONObject(ind);
-
-                MessageProcessingLog messageProcessingLog = MessageProcessingLogParser.fillMessageProcessingLog(messageProcessingLogElement);
-                messageProcessingLogs.add(messageProcessingLog);
-            }
-
-            return new MutablePair<>(messageProcessingLogs, totalMessagesCount);
+            return extractMplsAndCountFromResponse(jsonObjectD);
 
         } catch (JSONException ex) {
             log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
         }
+    }
+
+    public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilterWithSelectedResponseFields(
+        RequestContext requestContext,
+        int top,
+        int skip,
+        String filter,
+        String responseFields
+    ) {
+        log.debug(
+            "getMessageProcessingLogsByFilterWithSelectedResponseFields(RequestContext requestContext, int top, int skip, String filter, String responseFields): {}, {}, {}, {}, {}",
+            requestContext, top, skip, filter, responseFields
+        );
+
+        try {
+            JSONObject jsonObjectD = callRestWs(
+                requestContext,
+                String.format(API_MSG_PROC_LOGS_PAGINATED_WITH_SELECTED_RESPONSE_FIELDS, top, skip, filter, responseFields),
+                response -> new JSONObject(response).getJSONObject("d")
+            );
+
+            return extractMplsAndCountFromResponse(jsonObjectD);
+
+        } catch (JSONException ex) {
+            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
+        }
+    }
+
+    private Pair<List<MessageProcessingLog>, Integer> extractMplsAndCountFromResponse(JSONObject jsonObjectD) {
+        String totalCountString = optString(jsonObjectD, "__count");
+        Integer totalMessagesCount = null;
+        if (NumberUtils.isCreatable(totalCountString)) {
+            totalMessagesCount = NumberUtils.toInt(totalCountString);
+        }
+
+        JSONArray messageProcessingLogsJsonArray = jsonObjectD.getJSONArray("results");
+        List<MessageProcessingLog> messageProcessingLogs = new ArrayList<>();
+
+        for (int ind = 0; ind < messageProcessingLogsJsonArray.length(); ind++) {
+            JSONObject messageProcessingLogElement = messageProcessingLogsJsonArray.getJSONObject(ind);
+
+            MessageProcessingLog messageProcessingLog = MessageProcessingLogParser.fillMessageProcessingLog(messageProcessingLogElement);
+            messageProcessingLogs.add(messageProcessingLog);
+        }
+
+        return new MutablePair<>(messageProcessingLogs, totalMessagesCount);
     }
 
     public List<CustomHeaderProperty> getCustomHeaderProperties(RequestContext requestContext, String messageGuid) {
