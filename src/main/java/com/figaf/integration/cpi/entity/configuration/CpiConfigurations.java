@@ -9,10 +9,12 @@ import lombok.ToString;
 @ToString
 public class CpiConfigurations {
 
-    private String isBuildNumber;
-    private String ciBuildNumber;
-    private String ciRuntimeBuildNumber;
-    private String iaBuildNumber;
+    // Build number - global version of the whole Integration Suite tenant
+    private String integrationSuiteTenantGlobalBuildNumber;
+    // version of the IS part related to CPI
+    private String cloudIntegrationBuildNumber;
+    // version of CPI runtime
+    private String cloudIntegrationRunTimeBuildNumber;
+    private String integrationAdvisorBuildNumber;
     private String apiManagementBuildNumber;
-    private String nonISBuildNumber;
 }

@@ -1,7 +1,6 @@
 package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.data_provider.AgentTestData;
-import com.figaf.integration.common.entity.CloudPlatformType;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
@@ -37,11 +36,10 @@ class ConfigurationsClientTest {
         CpiConfigurations cpiConfigurations = configurationsClient.getConfigurations(requestContext);
 
         boolean isAnyBuildNumberNotEmpty =
-            StringUtils.isNotBlank(cpiConfigurations.getNonISBuildNumber()) ||
-                StringUtils.isNotBlank(cpiConfigurations.getIsBuildNumber()) ||
-                StringUtils.isNotBlank(cpiConfigurations.getCiBuildNumber()) ||
-                StringUtils.isNotBlank(cpiConfigurations.getCiRuntimeBuildNumber()) ||
-                StringUtils.isNotBlank(cpiConfigurations.getIaBuildNumber()) ||
+                StringUtils.isNotBlank(cpiConfigurations.getIntegrationSuiteTenantGlobalBuildNumber()) ||
+                StringUtils.isNotBlank(cpiConfigurations.getCloudIntegrationBuildNumber()) ||
+                StringUtils.isNotBlank(cpiConfigurations.getCloudIntegrationRunTimeBuildNumber()) ||
+                StringUtils.isNotBlank(cpiConfigurations.getIntegrationAdvisorBuildNumber()) ||
                 StringUtils.isNotBlank(cpiConfigurations.getApiManagementBuildNumber());
         Assertions.assertTrue(isAnyBuildNumberNotEmpty, "All build numbers of cpiConfigurations are empty");
     }

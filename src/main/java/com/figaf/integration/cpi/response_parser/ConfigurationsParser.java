@@ -26,7 +26,7 @@ public class ConfigurationsParser {
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jSONObject = jsonArray.getJSONObject(i);
             if (BUILD_NUMBER.equals(jSONObject.optString(KEY))) {
-                configurations.setIsBuildNumber(jSONObject.getString(VALUE));
+                configurations.setIntegrationSuiteTenantGlobalBuildNumber(jSONObject.getString(VALUE));
             }
             if (jSONObject.optString(KEY, "").equals("capabilityVersions")) {
                 JSONObject valueObj = jSONObject.getJSONObject(VALUE);
@@ -34,16 +34,16 @@ public class ConfigurationsParser {
                 String capabilityVersion = valueObj.optString("capabilityVersion", "");
                 switch (capabilityName) {
                     case "{com.sap.it.spc.ibp.workspace.configuration.common.i18n>TMN_APPLICATION_TITLE_ISUITE}":
-                        configurations.setCiBuildNumber(capabilityVersion);
+                        configurations.setCloudIntegrationBuildNumber(capabilityVersion);
                         break;
                     case "{com.sap.it.spc.ibp.workspace.configuration.common.i18n>CLOUD_INTEGRATION_RUNTIME}":
-                        configurations.setCiRuntimeBuildNumber(capabilityVersion);
+                        configurations.setCloudIntegrationRunTimeBuildNumber(capabilityVersion);
                         break;
                     case "API Management":
                         configurations.setApiManagementBuildNumber(capabilityVersion);
                         break;
                     case "{com.sap.it.spc.smarti.ica.common.i18n>IA_APPLICATION_TITLE}":
-                        configurations.setIaBuildNumber(capabilityVersion);
+                        configurations.setIntegrationAdvisorBuildNumber(capabilityVersion);
                         break;
                     default:
                         log.warn("Unexpected capabilityName:" + capabilityName);
@@ -62,7 +62,7 @@ public class ConfigurationsParser {
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jSONObject = jsonArray.getJSONObject(i);
             if (BUILD_NUMBER.equals(jSONObject.optString(KEY))) {
-                configurations.setNonISBuildNumber(jSONObject.getString(VALUE));
+                configurations.setIntegrationSuiteTenantGlobalBuildNumber(jSONObject.getString(VALUE));
             }
         }
         log.debug("#buildCpiNonIsConfigurations: configurations={}", configurations);
