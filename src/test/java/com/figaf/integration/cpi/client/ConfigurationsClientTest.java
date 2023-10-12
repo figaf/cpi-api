@@ -6,17 +6,15 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.configuration.CpiConfigurations;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.junit.platform.commons.util.StringUtils;
+import org.junit.jupiter.api.Test;
 
-import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
  * @author Kostas Charalambous
+ * @author Ilya Nesterov
  */
 @Slf4j
 class ConfigurationsClientTest {
@@ -28,19 +26,40 @@ class ConfigurationsClientTest {
         configurationsClient = new ConfigurationsClient(new HttpClientsFactory());
     }
 
-    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
-    @ArgumentsSource(AgentTestDataProvider.class)
-    void test_getConfigurations(AgentTestData agentTestData) {
+    @Test
+    void test_getConfigurationsForIntegrationSuiteAgent_usingIntegrationSuiteUrl() {
+        AgentTestData agentTestData = AgentTestDataProvider.buildAgentTestDataForCfIntegrationSuite();
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        requestContext
+            .getConnectionProperties()
+            .setHost("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
+
+        CpiConfigurations cpiConfigurations = configurationsClient.getConfigurations(requestContext);
+
+        assertThat(cpiConfigurations.getTenantBuildNumber()).isNotBlank();
+        assertThat(cpiConfigurations.getCloudIntegrationBuildNumber()).isNotBlank();
+        assertThat(cpiConfigurations.getCloudIntegrationRunTimeBuildNumber()).isNotBlank();
+        assertThat(cpiConfigurations.getIntegrationAdvisorBuildNumber()).isNotBlank();
+        assertThat(cpiConfigurations.getApiManagementBuildNumber()).isNotBlank();
+    }
+
+    @Test
+    void test_getConfigurationsForIntegrationSuiteAgent_usingCloudIntegrationUrl() {
+        AgentTestData agentTestData = AgentTestDataProvider.buildAgentTestDataForCfIntegrationSuite();
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
         CpiConfigurations cpiConfigurations = configurationsClient.getConfigurations(requestContext);
 
-        boolean isAnyBuildNumberNotEmpty =
-                StringUtils.isNotBlank(cpiConfigurations.getIntegrationSuiteTenantGlobalBuildNumber()) ||
-                StringUtils.isNotBlank(cpiConfigurations.getCloudIntegrationBuildNumber()) ||
-                StringUtils.isNotBlank(cpiConfigurations.getCloudIntegrationRunTimeBuildNumber()) ||
-                StringUtils.isNotBlank(cpiConfigurations.getIntegrationAdvisorBuildNumber()) ||
-                StringUtils.isNotBlank(cpiConfigurations.getApiManagementBuildNumber());
-        Assertions.assertTrue(isAnyBuildNumberNotEmpty, "All build numbers of cpiConfigurations are empty");
+        assertThat(cpiConfigurations.getTenantBuildNumber()).isNotBlank();
+    }
+
+    @Test
+    void test_getConfigurationsForNonIntegrationSuiteAgent() {
+        AgentTestData agentTestData = AgentTestDataProvider.buildAgentTestDataForNeo();
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+
+        CpiConfigurations cpiConfigurations = configurationsClient.getConfigurations(requestContext);
+
+        assertThat(cpiConfigurations.getTenantBuildNumber()).isNotBlank();
     }
 }

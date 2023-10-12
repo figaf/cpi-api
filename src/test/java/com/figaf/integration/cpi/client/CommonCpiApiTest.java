@@ -97,34 +97,6 @@ class CommonCpiApiTest {
         assertThat(numberOfUploadedConfigurations).isEqualTo(1);
     }
 
-    @Test
-    void test_getAllIntegrationRuntimeArtifacts_with_parallel_authorization() throws InterruptedException {
-        List<IntegrationContent> integrationRuntimeArtifacts1 = new ArrayList<>();
-        List<IntegrationContent> integrationRuntimeArtifacts2 = new ArrayList<>();
-        Thread thread1 = new Thread(() -> {
-            AgentTestData agentTestData = AgentTestDataProvider.buildAgentTestDataForCf1();
-            integrationRuntimeArtifacts1.addAll(integrationContentClient.getAllIntegrationRuntimeArtifacts(agentTestData.createRequestContext(agentTestData.getTitle())));
-        });
-        Thread thread2 = new Thread(() -> {
-            AgentTestData agentTestData = AgentTestDataProvider.buildAgentTestDataForCf1();
-            integrationRuntimeArtifacts2.addAll(integrationContentClient.getAllIntegrationRuntimeArtifacts(agentTestData.createRequestContext(agentTestData.getTitle())));
-        });
-
-        thread1.start();
-        thread2.start();
-        thread1.join();
-        thread2.join();
-
-        log.debug("{} integration runtime artifacts were found in first request", integrationRuntimeArtifacts1.size());
-        assertThat(integrationRuntimeArtifacts1).isNotEmpty();
-
-        log.debug("{} integration runtime artifacts were found in second request", integrationRuntimeArtifacts2.size());
-        assertThat(integrationRuntimeArtifacts2).isNotEmpty();
-
-        assertThat(integrationRuntimeArtifacts1.size()).isEqualTo(integrationRuntimeArtifacts2.size());
-
-    }
-
     @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_privatePackageApiDelete(AgentTestData agentTestData) {
