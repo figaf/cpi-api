@@ -33,62 +33,42 @@ public class AdvancedAuthenticationUseCasesTest {
 
     @Test
     void test_parallelAccessToWebApiWithDifferentUrlsForIntegrationSuite() {
-
         AgentTestData integrationSuiteAgentTestData = AgentTestDataProvider.buildAgentTestDataForCfIntegrationSuite();
 
+        RequestContext requestContextForWebApiWithIntegrationSuiteUrl = integrationSuiteAgentTestData.createRequestContext(
+            integrationSuiteAgentTestData.getTitle()
+        );
+        requestContextForWebApiWithIntegrationSuiteUrl
+            .getConnectionProperties()
+            .setHost("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
+        requestContextForWebApiWithIntegrationSuiteUrl
+            .setRestTemplateWrapperKey(integrationSuiteAgentTestData.getTitle() + "_IS");
+
+        RequestContext requestContextForWebApiWithCloudIntegrationUrl = integrationSuiteAgentTestData.createRequestContext(
+            integrationSuiteAgentTestData.getTitle()
+        );
+
         List<Supplier<Object>> requestCallbacks = Arrays.asList(
-            () -> {
-                RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
-                requestContext.setIntegrationSuiteUrl("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
-                requestContext.setIntegrationSuite(true);
-                return configurationsClient.getConfigurations(requestContext);
-            },
-            () -> {
-                RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
-                return integrationPackageClient.getIntegrationPackages(
-                    requestContext,
+            () -> configurationsClient.getConfigurations(requestContextForWebApiWithIntegrationSuiteUrl),
+            () -> integrationPackageClient.getIntegrationPackages(
+                    requestContextForWebApiWithCloudIntegrationUrl,
                     format("TechnicalName eq '%s'", "FigafApiTestPackage")
-                );
-            },
-            () -> {
-                RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
-                requestContext.setIntegrationSuiteUrl("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
-                requestContext.setIntegrationSuite(true);
-                return configurationsClient.getConfigurations(requestContext);
-            },
-            () -> {
-                RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
-                return integrationPackageClient.getIntegrationPackages(
-                    requestContext,
-                    format("TechnicalName eq '%s'", "FigafApiTestPackage")
-                );
-            },
-            () -> {
-                RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
-                requestContext.setIntegrationSuiteUrl("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
-                requestContext.setIntegrationSuite(true);
-                return configurationsClient.getConfigurations(requestContext);
-            },
-            () -> {
-                RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
-                return integrationPackageClient.getIntegrationPackages(
-                    requestContext,
-                    format("TechnicalName eq '%s'", "FigafApiTestPackage")
-                );
-            },
-            () -> {
-                RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
-                requestContext.setIntegrationSuiteUrl("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
-                requestContext.setIntegrationSuite(true);
-                return configurationsClient.getConfigurations(requestContext);
-            },
-            () -> {
-                RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
-                return integrationPackageClient.getIntegrationPackages(
-                    requestContext,
-                    format("TechnicalName eq '%s'", "FigafApiTestPackage")
-                );
-            }
+            ),
+            () -> configurationsClient.getConfigurations(requestContextForWebApiWithIntegrationSuiteUrl),
+            () -> integrationPackageClient.getIntegrationPackages(
+                requestContextForWebApiWithCloudIntegrationUrl,
+                format("TechnicalName eq '%s'", "FigafApiTestPackage")
+            ),
+            () -> configurationsClient.getConfigurations(requestContextForWebApiWithIntegrationSuiteUrl),
+            () -> integrationPackageClient.getIntegrationPackages(
+                requestContextForWebApiWithCloudIntegrationUrl,
+                format("TechnicalName eq '%s'", "FigafApiTestPackage")
+            ),
+            () -> configurationsClient.getConfigurations(requestContextForWebApiWithIntegrationSuiteUrl),
+            () -> integrationPackageClient.getIntegrationPackages(
+                requestContextForWebApiWithCloudIntegrationUrl,
+                format("TechnicalName eq '%s'", "FigafApiTestPackage")
+            )
         );
 
         long fetchedObjectsCount = requestCallbacks.parallelStream()
