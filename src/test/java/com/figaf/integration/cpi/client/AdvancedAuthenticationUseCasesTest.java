@@ -33,20 +33,8 @@ public class AdvancedAuthenticationUseCasesTest {
 
     @Test
     void test_parallelAccessToWebApiWithDifferentUrlsForIntegrationSuite() {
-        AgentTestData integrationSuiteAgentTestData = AgentTestDataProvider.buildAgentTestDataForCfIntegrationSuite();
-
-        RequestContext requestContextForWebApiWithIntegrationSuiteUrl = integrationSuiteAgentTestData.createRequestContext(
-            integrationSuiteAgentTestData.getTitle()
-        );
-        requestContextForWebApiWithIntegrationSuiteUrl
-            .getConnectionProperties()
-            .setHost("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
-        requestContextForWebApiWithIntegrationSuiteUrl
-            .setRestTemplateWrapperKey(integrationSuiteAgentTestData.getTitle() + "_IS");
-
-        RequestContext requestContextForWebApiWithCloudIntegrationUrl = integrationSuiteAgentTestData.createRequestContext(
-            integrationSuiteAgentTestData.getTitle()
-        );
+        RequestContext requestContextForWebApiWithIntegrationSuiteUrl = requestContextForWebApiWithIntegrationSuiteUrl();
+        RequestContext requestContextForWebApiWithCloudIntegrationUrl = requestContextForWebApiWithCloudIntegrationUrl();
 
         List<Supplier<Object>> requestCallbacks = Arrays.asList(
             () -> configurationsClient.getConfigurations(requestContextForWebApiWithIntegrationSuiteUrl),
@@ -75,5 +63,20 @@ public class AdvancedAuthenticationUseCasesTest {
             .map(Supplier::get)
             .count();
         assertThat(fetchedObjectsCount).isEqualTo(8);
+    }
+
+    private RequestContext requestContextForWebApiWithIntegrationSuiteUrl() {
+        AgentTestData integrationSuiteAgentTestData = AgentTestDataProvider.buildAgentTestDataForCfIntegrationSuite();
+        RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
+        requestContext.getConnectionProperties().setHost("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
+        requestContext.setRestTemplateWrapperKey(integrationSuiteAgentTestData.getTitle() + "_IS");
+        return requestContext;
+    }
+
+    private RequestContext requestContextForWebApiWithCloudIntegrationUrl() {
+        AgentTestData integrationSuiteAgentTestData = AgentTestDataProvider.buildAgentTestDataForCfIntegrationSuite();
+        return integrationSuiteAgentTestData.createRequestContext(
+            integrationSuiteAgentTestData.getTitle()
+        );
     }
 }
