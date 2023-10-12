@@ -19,14 +19,13 @@ public class ConfigurationsParser {
     private static final String KEY = "key";
     private static final String BUILD_NUMBER = "buildNumber";
 
-    public static CpiConfigurations buildCpiIsConfigurations(String body) {
-
+    public static CpiConfigurations parseConfigurationsFromJsonString(String body) {
         CpiConfigurations configurations = new CpiConfigurations();
         JSONArray jsonArray = new JSONArray(body);
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jSONObject = jsonArray.getJSONObject(i);
             if (BUILD_NUMBER.equals(jSONObject.optString(KEY))) {
-                configurations.setIntegrationSuiteTenantGlobalBuildNumber(jSONObject.getString(VALUE));
+                configurations.setTenantBuildNumber(jSONObject.getString(VALUE));
             }
             if (jSONObject.optString(KEY, "").equals("capabilityVersions")) {
                 JSONObject valueObj = jSONObject.getJSONObject(VALUE);
@@ -51,21 +50,7 @@ public class ConfigurationsParser {
                 }
             }
         }
-        log.debug("#buildCpiIsConfigurations: configurations={}", configurations);
-        return configurations;
-    }
-
-    public static CpiConfigurations buildCpiNonIsConfigurations(String body) {
-
-        CpiConfigurations configurations = new CpiConfigurations();
-        JSONArray jsonArray = new JSONArray(body);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject jSONObject = jsonArray.getJSONObject(i);
-            if (BUILD_NUMBER.equals(jSONObject.optString(KEY))) {
-                configurations.setIntegrationSuiteTenantGlobalBuildNumber(jSONObject.getString(VALUE));
-            }
-        }
-        log.debug("#buildCpiNonIsConfigurations: configurations={}", configurations);
+        log.debug("parsed configurations: {}", configurations);
         return configurations;
     }
 }
