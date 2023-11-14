@@ -119,11 +119,6 @@ public abstract class CpiBaseClient extends BaseClient {
         super(httpClientsFactory);
     }
 
-    protected String getCsrfToken(ConnectionProperties connectionProperties, HttpClient httpClient) {
-        return getCsrfToken(connectionProperties, "/api/v1/", httpClient);
-    }
-
-
     protected String getCsrfToken(ConnectionProperties connectionProperties, String path, HttpClient httpClient) {
         getLogger().debug("#getCsrfToken(ConnectionProperties connectionProperties, String path, HttpClient httpClient): {}, {}, {}", connectionProperties, path, httpClient);
 
