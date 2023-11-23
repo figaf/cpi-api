@@ -1,14 +1,23 @@
 package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.entity.CloudPlatformType;
+import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.entity.RequestContext;
+import com.figaf.integration.common.entity.RestTemplateWrapper;
+import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.DeleteAndUndeployIFlowResult;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactFromPublicApi;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
-import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateIFlowRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.*;
+import com.figaf.integration.cpi.entity.lock.Locker;
+import com.figaf.integration.cpi.version.CpiObjectVersionHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.entity.StringEntity;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -18,6 +27,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +47,7 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
     private static final String API_UPLOAD_IFLOW = "/itspaces/api/1.0/workspace/%s/iflows/";
     private static final String API_DEPLOY_IFLOW = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY";
+    private static final String API_NORMALIZE_IFLOW = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s";
     private static final String API_SET_TRACE_LOG_LEVEL_FOR_IFLOWS = "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentSetMplLogLevelCommand";
 
     public CpiIntegrationFlowClient(HttpClientsFactory httpClientsFactory) {
@@ -71,16 +83,33 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         return downloadArtifact(requestContext, packageExternalId, iFlowExternalId);
     }
 
-    public void createIFlow(RequestContext requestContext, CreateIFlowRequest request) {
+    public String createIFlow(RequestContext requestContext, CreateIFlowRequest request) {
         log.debug("#createIFlow(RequestContext requestContext, CreateIFlowRequest request): {}, {}", requestContext, request);
-        executeMethod(
+        return executeMethod(
             requestContext,
             String.format(API_UPLOAD_IFLOW, request.getPackageExternalId()),
+            (url, token, restTemplateWrapper) -> createArtifact(
+                requestContext.getConnectionProperties(),
+                request,
+                "iflowBrowse-data",
+                url,
+                token,
+                restTemplateWrapper
+            )
+        );
+    }
+
+    public void normalizeUsingCpiJsonModel(
+        RequestContext requestContext,
+        NormalizeIFlowRequest request
+    ) {
+        executeMethod(
+            requestContext,
+            String.format(API_NORMALIZE_IFLOW, request.getPackageExternalId(), request.getIflowExternalId(), request.getIflowExternalId(), request.getIflowTechnicalName()),
             (url, token, restTemplateWrapper) -> {
-                createArtifact(
+                normalizeUsingCpiJsonModel(
                     requestContext.getConnectionProperties(),
                     request,
-                    "iflowBrowse-data",
                     url,
                     token,
                     restTemplateWrapper
@@ -88,7 +117,6 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
                 return null;
             }
         );
-
     }
 
     public void updateIFlow(RequestContext requestContext, UpdateIFlowRequest request) {
@@ -253,6 +281,85 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
                 );
             }
         });
+    }
+
+    private void normalizeUsingCpiJsonModel(
+        ConnectionProperties connectionProperties,
+        NormalizeIFlowRequest request,
+        String normalizeIFlowUrl,
+        String userApiCsrfToken,
+        RestTemplateWrapper restTemplateWrapper
+    ) {
+        String packageExternalId = request.getPackageExternalId();
+        String iflowExternalId = request.getIflowExternalId();
+        boolean locked = false;
+        try {
+            Locker.lockCpiObject(connectionProperties, packageExternalId, iflowExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
+            locked = true;
+
+            HttpClient client = restTemplateWrapper.getHttpClient();
+
+            String contentBody = getCpiJsonModel(client, normalizeIFlowUrl, userApiCsrfToken);
+            putCpiJsonModel(client, normalizeIFlowUrl, userApiCsrfToken, contentBody);
+
+            CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
+                packageExternalId,
+                iflowExternalId,
+                "1.0.0",
+                userApiCsrfToken,
+                null,
+                restTemplateWrapper.getRestTemplate(),
+                API_LOCK_AND_UNLOCK_ARTIFACT
+            );
+
+        } catch (ClientIntegrationException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Error occurred while uploading artifact " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while uploading artifact: " + ex.getMessage(), ex);
+        } finally {
+            if (locked) {
+                Locker.unlockCpiObject(connectionProperties, packageExternalId, iflowExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
+            }
+        }
+    }
+
+    private String getCpiJsonModel(HttpClient client, String normalizeIFlowUrl, String userApiCsrfToken) throws IOException {
+        HttpResponse httpResponse = null;
+        try {
+            HttpGet uploadArtifactRequest = new HttpGet(normalizeIFlowUrl);
+            uploadArtifactRequest.setHeader(X_CSRF_TOKEN, userApiCsrfToken);
+            httpResponse = client.execute(uploadArtifactRequest);
+            String jsonBody = IOUtils.toString(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+            if (httpResponse.getStatusLine().getStatusCode() != 200) {
+                throw new RuntimeException(format("Couldn't get CPI IFlow JSON model: code: %d, body: %s", httpResponse.getStatusLine().getStatusCode(), jsonBody));
+            }
+            return jsonBody;
+        } finally {
+            if (httpResponse != null) {
+                HttpClientUtils.closeQuietly(httpResponse);
+            }
+        }
+    }
+
+    private void putCpiJsonModel(HttpClient client, String normalizeIFlowUrl, String userApiCsrfToken, String cpiIflowJsonModel) throws IOException {
+        HttpResponse httpResponse = null;
+        try {
+            HttpPut httpPut = new HttpPut(normalizeIFlowUrl);
+            httpPut.setHeader(X_CSRF_TOKEN, userApiCsrfToken);
+            org.apache.http.HttpEntity httpEntity = new StringEntity(cpiIflowJsonModel);
+            httpPut.setEntity(httpEntity);
+            httpResponse = client.execute(httpPut);
+            String putResponseContentBody = IOUtils.toString(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+            if (httpResponse.getStatusLine().getStatusCode() != 200) {
+                throw new RuntimeException(format("Couldn't update CPI IFlow JSON model: code: %d, body: %s", httpResponse.getStatusLine().getStatusCode(), putResponseContentBody));
+            }
+        } finally {
+            if (httpResponse != null) {
+                HttpClientUtils.closeQuietly(httpResponse);
+            }
+        }
+
     }
 
 }

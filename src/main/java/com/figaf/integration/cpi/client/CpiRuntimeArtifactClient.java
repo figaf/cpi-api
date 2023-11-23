@@ -6,7 +6,9 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.RestTemplateWrapper;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
-import com.figaf.integration.cpi.entity.designtime_artifacts.*;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateCpiArtifactRequest;
 import com.figaf.integration.cpi.entity.lock.Locker;
 import com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser;
 import com.figaf.integration.cpi.version.CpiObjectVersionHandler;
@@ -21,7 +23,10 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.json.JSONObject;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -50,9 +55,9 @@ public class CpiRuntimeArtifactClient extends BaseClient {
     private static final String API_DELETE_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts/%s";
     private static final String API_DOWNLOAD_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s";
     private static final String API_UPDATE_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts";
-    private static final String API_LOCK_AND_UNLOCK_ARTIFACT = "itspaces/api/1.0/workspace/{0}/artifacts/{1}";
+    protected static final String API_LOCK_AND_UNLOCK_ARTIFACT = "itspaces/api/1.0/workspace/{0}/artifacts/{1}";
     private static final String FILE_NAME = "model.zip";
-    private static final String X_CSRF_TOKEN = "X-CSRF-Token";
+    protected static final String X_CSRF_TOKEN = "X-CSRF-Token";
 
     public CpiRuntimeArtifactClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -174,7 +179,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
         );
     }
 
-    protected void createArtifact(
+    protected String createArtifact(
         ConnectionProperties connectionProperties,
         CreateOrUpdateCpiArtifactRequest request,
         String textBodyAttrName,
@@ -215,7 +220,10 @@ public class CpiRuntimeArtifactClient extends BaseClient {
 
             uploadArtifactResponse = client.execute(uploadArtifactRequest);
 
-            if (uploadArtifactResponse.getStatusLine().getStatusCode() != 201) {
+            if (uploadArtifactResponse.getStatusLine().getStatusCode() == 201) {
+                JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
+                return jsonObject.getString("id");
+            } else {
                 throw new ClientIntegrationException("Couldn't execute artifact uploading:\n" + IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
             }
 
