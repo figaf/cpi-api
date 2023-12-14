@@ -1,6 +1,5 @@
 package com.figaf.integration.cpi.entity.message_processing;
 
-import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +24,7 @@ public class MessageProcessingLogRunStep {
     private String status;
     private String error;
     private String activity;
+    private String messageProcessingLogId;
 
     //for now, we support only a single traceId per runStep
     private String traceId;

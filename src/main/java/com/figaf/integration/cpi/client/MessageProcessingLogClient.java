@@ -24,6 +24,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -34,6 +35,10 @@ import static java.lang.String.format;
 public class MessageProcessingLogClient extends CpiBaseClient {
 
     private final static int MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION = 500;
+    private final static FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
+        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+        TimeZone.getTimeZone("GMT")
+    );
 
     public MessageProcessingLogClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -47,14 +52,10 @@ public class MessageProcessingLogClient extends CpiBaseClient {
 
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate) {
         log.debug("#getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
-        FastDateFormat dateFormat = FastDateFormat.getInstance(
-            "yyyy-MM-dd'T'HH:mm:ss.SSS",
-            TimeZone.getTimeZone("GMT")
-        );
         String resourcePath = format(API_MSG_PROC_LOGS,
             format("IntegrationFlowName eq '%s' and LogStart gt datetime'%s'",
                 integrationFlowName,
-                dateFormat.format(startDate)
+                GMT_DATE_FORMAT.format(startDate)
             )
         );
         return getMessageProcessingLogs(requestContext, resourcePath);
@@ -62,15 +63,24 @@ public class MessageProcessingLogClient extends CpiBaseClient {
 
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
         log.debug("#getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
-        FastDateFormat dateFormat = FastDateFormat.getInstance(
-            "yyyy-MM-dd'T'HH:mm:ss.SSS",
-            TimeZone.getTimeZone("GMT")
-        );
         String resourcePath = format(API_MSG_PROC_LOGS,
             format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
                 integrationFlowName,
-                dateFormat.format(startDate),
-                dateFormat.format(DateUtils.addMinutes(new Date(), -55))
+                GMT_DATE_FORMAT.format(startDate),
+                GMT_DATE_FORMAT.format(shiftDateTo55MinutesBackFromNow())
+            )
+        );
+        return getMessageProcessingLogs(requestContext, resourcePath);
+    }
+
+    public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate) {
+        log.debug("#getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate): {}, {}, {}", requestContext, technicalNames, startDate);
+        String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
+        String resourcePath = format(API_MSG_PROC_LOGS,
+            format("LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
+                technicalNamesFilter,
+                GMT_DATE_FORMAT.format(startDate),
+                GMT_DATE_FORMAT.format(shiftDateTo55MinutesBackFromNow())
             )
         );
         return getMessageProcessingLogs(requestContext, resourcePath);
@@ -137,14 +147,10 @@ public class MessageProcessingLogClient extends CpiBaseClient {
             expandCustomHeaders,
             requestContext
         );
-        FastDateFormat dateFormat = FastDateFormat.getInstance(
-            "yyyy-MM-dd'T'HH:mm:ss.SSS",
-            TimeZone.getTimeZone("GMT")
-        );
         String resourcePath = String.format(API_MSG_PROC_LOGS,
             format("%s and LogEnd ge datetime'%s'",
                 filter.contains("or") ? format("(%s)", filter) : filter,
-                dateFormat.format(leftBoundDate))
+                GMT_DATE_FORMAT.format(leftBoundDate))
         );
         if (expandCustomHeaders) {
             resourcePath += format("&$expand=CustomHeaderProperties&$top=%d&$skip=%d", top, skip);
@@ -162,6 +168,16 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         log.debug("#getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId): {}, {}", requestContext, correlationId);
         String resourcePath = format(API_MSG_PROC_LOGS,
             format("CorrelationId eq '%s'", correlationId)
+        );
+        return getMessageProcessingLogs(requestContext, resourcePath);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames) {
+        log.debug("#getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames): {}, {}, {}", requestContext, correlationIds, technicalNames);
+        String correlationIdsFilter = buildCorrelationIdsFilter(correlationIds);
+        String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
+        String resourcePath = format(API_MSG_PROC_LOGS,
+            format("(%s) and (%s)", correlationIdsFilter, technicalNamesFilter)
         );
         return getMessageProcessingLogs(requestContext, resourcePath);
     }
@@ -510,6 +526,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 run.setLogLevel(optString(runElement, "LogLevel"));
                 run.setOverallState(optString(runElement, "OverallState"));
                 run.setProcessId(optString(runElement, "ProcessId"));
+                run.setMessageProcessingLogId(messageGuid);
 
                 runs.add(run);
             }
@@ -692,6 +709,22 @@ public class MessageProcessingLogClient extends CpiBaseClient {
 
         }
         return traceMessage;
+    }
+
+    private Date shiftDateTo55MinutesBackFromNow() {
+        return DateUtils.addMinutes(new Date(), -55);
+    }
+
+    private String buildTechnicalNamesFilter(List<String> technicalNames) {
+        return technicalNames.stream()
+            .map(technicalName -> format("IntegrationFlowName eq '%s'", technicalName))
+            .collect(Collectors.joining(" or "));
+    }
+
+    private String buildCorrelationIdsFilter(List<String> correlationIds) {
+        return correlationIds.stream()
+            .map(correlationId -> format("CorrelationId eq '%s'", correlationId))
+            .collect(Collectors.joining(" or "));
     }
 
     private List<JSONObject> getRunStepJsonObjects(RequestContext requestContext, String runId) {
