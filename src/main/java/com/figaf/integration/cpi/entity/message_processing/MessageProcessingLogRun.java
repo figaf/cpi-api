@@ -20,6 +20,7 @@ public class MessageProcessingLogRun {
     private String logLevel;
     private String overallState;
     private String processId;
+    private String messageProcessingLogId;
 
     private List<MessageProcessingLogRunStep> runSteps;
 
