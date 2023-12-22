@@ -18,10 +18,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.IFLOW;
 import static com.figaf.integration.cpi.utils.CpiApiUtils.loadXMLFromString;
@@ -139,8 +136,8 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         );
     }
 
-    public void setTraceLogLevelForIFlows(RequestContext commonClientWrapperEntity, List<String> iFlows) {
-        log.debug("#setTraceLogLevelForIFlows(RequestContext commonClientWrapperEntity, List<String> iFlows): {}, {}",
+    public void setTraceLogLevelForIFlows(RequestContext commonClientWrapperEntity, Collection<String> iFlows) {
+        log.debug("#setTraceLogLevelForIFlows(RequestContext commonClientWrapperEntity, Collection<String> iFlows): {}, {}",
             commonClientWrapperEntity, iFlows);
 
         executeMethod(
@@ -217,7 +214,7 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     }
 
     private void setTraceLogLevelForIFlows(
-        List<String> iflowTechnicalNames,
+        Collection<String> iflowTechnicalNames,
         String url,
         String token,
         RestTemplate restTemplate
