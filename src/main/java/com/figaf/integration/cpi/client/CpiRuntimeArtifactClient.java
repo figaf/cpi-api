@@ -32,6 +32,7 @@ import java.util.Set;
 import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.buildCpiArtifacts;
 import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.retrieveDeployingResult;
 import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.collections4.SetUtils.hashSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.springframework.http.HttpMethod.DELETE;
@@ -216,7 +217,11 @@ public class CpiRuntimeArtifactClient extends BaseClient {
             uploadArtifactResponse = client.execute(uploadArtifactRequest);
 
             if (uploadArtifactResponse.getStatusLine().getStatusCode() != 201) {
-                throw new ClientIntegrationException("Couldn't execute artifact uploading:\n" + IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
+                String errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, but 201 was expected.%nResponse body: %s",
+                    uploadArtifactResponse.getStatusLine().getStatusCode(),
+                    IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8)
+                );
+                throw new ClientIntegrationException(errorMsg);
             }
 
         } catch (ClientIntegrationException ex) {
@@ -263,7 +268,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
                 return retrieveDeployingResult(result, objectType);
             } else {
                 throw new ClientIntegrationException(
-                    String.format("Couldn't execute Artifact deployment:%n Code: %d, Message: %s",
+                    String.format("Couldn't execute artifact deployment:%n Code: %d, Message: %s",
                         responseEntity.getStatusCode().value(),
                         responseEntity.getBody()
                     )
@@ -358,7 +363,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
             uploadArtifactResponse = client.execute(uploadArtifactRequest);
 
             if (uploadArtifactResponse.getStatusLine().getStatusCode() == 201) {
-                JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
+                JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8));
                 if (!request.isUploadDraftVersion()) {
                     CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
                         packageExternalId,
@@ -371,7 +376,11 @@ public class CpiRuntimeArtifactClient extends BaseClient {
                     );
                 }
             } else {
-                throw new RuntimeException("Couldn't execute artifact uploading:\n" + IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), StandardCharsets.UTF_8));
+                String errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, but 201 was expected.%nResponse body: %s",
+                    uploadArtifactResponse.getStatusLine().getStatusCode(),
+                    IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8)
+                );
+                throw new ClientIntegrationException(errorMsg);
             }
 
         } catch (ClientIntegrationException ex) {
