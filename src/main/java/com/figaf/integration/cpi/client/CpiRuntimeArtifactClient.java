@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -216,13 +217,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
 
             uploadArtifactResponse = client.execute(uploadArtifactRequest);
 
-            if (uploadArtifactResponse.getStatusLine().getStatusCode() != 201) {
-                String errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, but 201 was expected.%nResponse body: %s",
-                    uploadArtifactResponse.getStatusLine().getStatusCode(),
-                    IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8)
-                );
-                throw new ClientIntegrationException(errorMsg);
-            }
+            checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(uploadArtifactResponse);
 
         } catch (ClientIntegrationException ex) {
             throw ex;
@@ -362,25 +357,19 @@ public class CpiRuntimeArtifactClient extends BaseClient {
 
             uploadArtifactResponse = client.execute(uploadArtifactRequest);
 
-            if (uploadArtifactResponse.getStatusLine().getStatusCode() == 201) {
-                JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8));
-                if (!request.isUploadDraftVersion()) {
-                    CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
-                        packageExternalId,
-                        artifactExternalId,
-                        !isBlank(request.getNewArtifactVersion()) ? request.getNewArtifactVersion() : jsonObject.getString("bundleVersion"),
-                        userApiCsrfToken,
-                        request.getComment(),
-                        restTemplateWrapper.getRestTemplate(),
-                        API_LOCK_AND_UNLOCK_ARTIFACT
-                    );
-                }
-            } else {
-                String errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, but 201 was expected.%nResponse body: %s",
-                    uploadArtifactResponse.getStatusLine().getStatusCode(),
-                    IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8)
+            checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(uploadArtifactResponse);
+
+            JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8));
+            if (!request.isUploadDraftVersion()) {
+                CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
+                    packageExternalId,
+                    artifactExternalId,
+                    !isBlank(request.getNewArtifactVersion()) ? request.getNewArtifactVersion() : jsonObject.getString("bundleVersion"),
+                    userApiCsrfToken,
+                    request.getComment(),
+                    restTemplateWrapper.getRestTemplate(),
+                    API_LOCK_AND_UNLOCK_ARTIFACT
                 );
-                throw new ClientIntegrationException(errorMsg);
             }
 
         } catch (ClientIntegrationException ex) {
@@ -395,6 +384,26 @@ public class CpiRuntimeArtifactClient extends BaseClient {
             if (locked) {
                 Locker.unlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
             }
+        }
+    }
+
+    private void checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(HttpResponse uploadArtifactResponse) throws IOException {
+        if (uploadArtifactResponse.getStatusLine().getStatusCode() != 201) {
+            String responseBody = IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8);
+            String errorMsg;
+            if (uploadArtifactResponse.getStatusLine().getStatusCode() == 403 && StringUtils.isBlank(responseBody)) {
+                errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, " +
+                        "but 201 was expected.%nResponse body is empty. The problem may be related to access policies configured for IFlow. " +
+                        "Check if user that executes request has enough access permissions.",
+                    uploadArtifactResponse.getStatusLine().getStatusCode()
+                );
+            } else {
+                errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, but 201 was expected.%nResponse body: %s",
+                    uploadArtifactResponse.getStatusLine().getStatusCode(),
+                    responseBody
+                );
+            }
+            throw new ClientIntegrationException(errorMsg);
         }
     }
 
