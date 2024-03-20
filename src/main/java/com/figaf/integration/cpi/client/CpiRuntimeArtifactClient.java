@@ -394,7 +394,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
             if (uploadArtifactResponse.getStatusLine().getStatusCode() == 403 && StringUtils.isBlank(responseBody)) {
                 errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, " +
                         "but 201 was expected.%nResponse body is empty. The problem may be related to access policies configured for IFlow. " +
-                        "Check if user that executes request has enough access permissions.",
+                        "Check if Figaf application user that executes request (S-user / P-user / role assignment in Custom IdP) has enough access permissions.",
                     uploadArtifactResponse.getStatusLine().getStatusCode()
                 );
             } else {
