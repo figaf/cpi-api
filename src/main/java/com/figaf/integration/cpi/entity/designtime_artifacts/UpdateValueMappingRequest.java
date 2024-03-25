@@ -24,11 +24,12 @@ public class UpdateValueMappingRequest extends CreateOrUpdateCpiArtifactRequest 
         String fileName,
         byte[] bundledModel,
         String packageExternalId,
+        String packageTechnicalName,
         boolean uploadDraftVersion,
         String newArtifactVersion,
         String comment
     ) {
-        super(id, name, description, additionalAttrs, fileName, bundledModel, packageExternalId, uploadDraftVersion, newArtifactVersion, comment);
+        super(id, name, description, additionalAttrs, fileName, bundledModel, packageExternalId, packageTechnicalName, uploadDraftVersion, newArtifactVersion, comment);
     }
 
     @Override

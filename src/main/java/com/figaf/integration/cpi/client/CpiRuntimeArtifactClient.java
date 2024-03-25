@@ -197,6 +197,7 @@ public class CpiRuntimeArtifactClient extends BaseClient {
             JSONObject requestBody = new JSONObject();
             requestBody.put("id", request.getId());
             requestBody.put("name", request.getName());
+            requestBody.put("packageId", request.getPackageTechnicalName());
             //description property is mandatory for artifact creation but null value is not allowed for Value Mappings
             requestBody.put("description", StringUtils.defaultString(request.getDescription(), ""));
             requestBody.put("type", request.getType());
@@ -394,7 +395,9 @@ public class CpiRuntimeArtifactClient extends BaseClient {
             if (uploadArtifactResponse.getStatusLine().getStatusCode() == 403 && StringUtils.isBlank(responseBody)) {
                 errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, " +
                         "but 201 was expected.%nResponse body is empty. The problem may be related to access policies configured for IFlow. " +
-                        "Check if Figaf application user that executes request (S-user / P-user / role assignment in Custom IdP) has enough access permissions.",
+                        "Check if Figaf application user that executes request (S-user / P-user / role assignment in Custom IdP) has enough access permissions. " +
+                        "If access policy roles had been added recently, wait for ~10 min and then try again. Recreate the session if it's cached: " +
+                        "in Figaf Tool execute `Reset http client forcibly` from CPI agent page.",
                     uploadArtifactResponse.getStatusLine().getStatusCode()
                 );
             } else {

@@ -157,7 +157,7 @@ public class Locker {
         );
 
         if (!OK.equals(responseEntity.getStatusCode())) {
-            throw new RuntimeException("Couldn't lock or unlock cpiObject\n" + responseEntity.getBody());
+            throw new ClientIntegrationException("Couldn't lock or unlock cpiObject\n" + responseEntity.getBody());
         }
 
         return responseEntity.getBody();
