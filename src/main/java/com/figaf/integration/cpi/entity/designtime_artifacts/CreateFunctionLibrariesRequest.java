@@ -20,9 +20,10 @@ public class CreateFunctionLibrariesRequest extends CreateOrUpdateCpiArtifactReq
         AdditionalAttributes additionalAttrs,
         String fileName,
         byte[] bundledModel,
-        String packageExternalId
+        String packageExternalId,
+        String packageTechnicalName
     ) {
-        super(id, name, description, additionalAttrs, fileName, bundledModel, packageExternalId);
+        super(id, name, description, additionalAttrs, fileName, bundledModel, packageExternalId, packageTechnicalName);
     }
 
     @Override

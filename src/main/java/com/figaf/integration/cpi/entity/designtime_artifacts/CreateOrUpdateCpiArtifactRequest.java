@@ -24,6 +24,7 @@ public abstract class CreateOrUpdateCpiArtifactRequest {
     //---------------- Additional parameters -----------------
     private byte[] bundledModel;
     private String packageExternalId;
+    private String packageTechnicalName;
 
     //only for update
     private boolean uploadDraftVersion;
@@ -40,7 +41,8 @@ public abstract class CreateOrUpdateCpiArtifactRequest {
         AdditionalAttributes additionalAttrs,
         String fileName,
         byte[] bundledModel,
-        String packageExternalId
+        String packageExternalId,
+        String packageTechnicalName
     ) {
         this.id = id;
         this.name = name;
@@ -50,6 +52,7 @@ public abstract class CreateOrUpdateCpiArtifactRequest {
 
         this.bundledModel = bundledModel;
         this.packageExternalId = packageExternalId;
+        this.packageTechnicalName = packageTechnicalName;
     }
 
     protected CreateOrUpdateCpiArtifactRequest(
@@ -60,6 +63,7 @@ public abstract class CreateOrUpdateCpiArtifactRequest {
         String fileName,
         byte[] bundledModel,
         String packageExternalId,
+        String packageTechnicalName,
         boolean uploadDraftVersion,
         String newArtifactVersion,
         String comment
@@ -72,6 +76,7 @@ public abstract class CreateOrUpdateCpiArtifactRequest {
 
         this.bundledModel = bundledModel;
         this.packageExternalId = packageExternalId;
+        this.packageTechnicalName = packageTechnicalName;
 
         this.uploadDraftVersion = uploadDraftVersion;
         this.newArtifactVersion = newArtifactVersion;
