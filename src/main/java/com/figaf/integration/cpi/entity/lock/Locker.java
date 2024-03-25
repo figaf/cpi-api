@@ -30,9 +30,9 @@ public class Locker {
             if (HttpStatus.LOCKED.equals(ex.getStatusCode())) {
                 LockInfo lockInfo = Locker.requestLockInfoForPackage(connectionProperties, externalPackageId, csrfToken, restTemplate);
                 if (lockInfo.isLocked() && !lockInfo.isCurrentUserHasLock()) {
-                    throw new CpiEntityIsLockedException(String.format("Locked by another user: %s", lockInfo.getLockedBy()), lockInfo, externalPackageId);
+                    throw new CpiEntityIsLockedException(String.format("Locked by another user: %s", lockInfo.getLockedBy()), lockInfo, externalPackageId, true);
                 }
-                throw new CpiEntityIsLockedException(String.format("Can't lock a package. Lock info: %s", lockInfo), ex, lockInfo, externalPackageId);
+                throw new CpiEntityIsLockedException(String.format("Can't lock a package. Lock info: %s", lockInfo), ex, lockInfo, externalPackageId, true);
             } else {
                 throw new ClientIntegrationException(String.format("Can't lock a package: %s", ex.getResponseBodyAsString()));
             }
@@ -57,12 +57,12 @@ public class Locker {
             if (HttpStatus.LOCKED.equals(ex.getStatusCode())) {
                 LockInfo lockInfo = Locker.requestLockInfoForCpiObject(connectionProperties, packageExternalId, artifactExternalId, userApiCsrfToken, restTemplate, urlOfLockOrUnlockCpiObject);
                 if (lockInfo.isLocked() && !lockInfo.isCurrentUserHasLock()) {
-                    throw new CpiEntityIsLockedException(String.format("Locked by another user: %s", lockInfo.getLockedBy()), lockInfo, artifactExternalId);
+                    throw new CpiEntityIsLockedException(String.format("Locked by another user: %s", lockInfo.getLockedBy()), lockInfo, artifactExternalId, false);
                 }
                 if (lockInfo.isLocked() && lockInfo.isCurrentUserHasLock() && !lockInfo.isCurrentSessionHasLock()) {
-                    throw new CpiEntityIsLockedException(String.format("Locked by current user (%s) but in another session", lockInfo.getLockedBy()), lockInfo, artifactExternalId);
+                    throw new CpiEntityIsLockedException(String.format("Locked by current user (%s) but in another session", lockInfo.getLockedBy()), lockInfo, artifactExternalId, false);
                 }
-                throw new CpiEntityIsLockedException(String.format("Can't lock an artifact. Lock info: %s", lockInfo), ex, lockInfo, artifactExternalId);
+                throw new CpiEntityIsLockedException(String.format("Can't lock an artifact. Lock info: %s", lockInfo), ex, lockInfo, artifactExternalId, false);
             } else {
                 throw new ClientIntegrationException(String.format("Can't lock an artifact: %s", ex.getResponseBodyAsString()));
             }
