@@ -114,8 +114,13 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_DATA_STORE_ENTRIES = "/api/v1/DataStoreEntries?messageid=%s&$format=json";
     protected static final String API_DATA_STORE_ENTRY_PAYLOAD = "/api/v1/DataStoreEntries(Id='%s',DataStoreName='%s',IntegrationFlow='%s',Type='%s')/$value";
     protected static final String API_BINARY_PARAMETERS = "/api/v1/BinaryParameters?$format=json";
+    protected static final String API_BINARY_PARAMETERS_CREATION = "/api/v1/BinaryParameters";
+    protected static final String API_BINARY_PARAMETERS_MANAGE  = "/api/v1/BinaryParameters(Pid='%s',Id='%s')";
+    protected static final String API_BINARY_PARAMETER = "/api/v1/BinaryParameters(Pid='%s',Id='%s')?$format=json";
     protected static final String API_STRING_PARAMETERS = "/api/v1/StringParameters?$format=json";
-
+    protected static final String API_STRING_PARAMETER_CREATION = "/api/v1/StringParameters";
+    protected static final String API_STRING_PARAMETERS_MANAGE  = "/api/v1/StringParameters(Pid='%s',Id='%s')";
+    protected static final String API_STRING_PARAMETER = "/api/v1/StringParameters(Pid='%s',Id='%s')?$format=json";
 
     public CpiBaseClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);

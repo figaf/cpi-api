@@ -25,6 +25,21 @@ public class PartnerDirectoryParser {
         return buildParameters(apiParameters, PartnerDirectoryParser::createStringParameter);
     }
 
+    public static PartnerDirectoryParameter createBinaryParameter(JSONObject apiParameter) {
+        PartnerDirectoryParameter binaryParameter = new PartnerDirectoryParameter();
+        seCommonProperties(apiParameter, binaryParameter);
+        getOptionalString("ContentType", apiParameter).ifPresent(binaryParameter::setContentType);
+        binaryParameter.setType(TypeOfParam.BINARY_PARAMETER);
+        return binaryParameter;
+    }
+
+    public static PartnerDirectoryParameter createStringParameter(JSONObject apiParameter) {
+        PartnerDirectoryParameter stringParameter = new PartnerDirectoryParameter();
+        seCommonProperties(apiParameter, stringParameter);
+        stringParameter.setType(TypeOfParam.STRING_PARAMETER);
+        return stringParameter;
+    }
+
     private static List<PartnerDirectoryParameter> buildParameters(JSONArray apiParameters, Function<JSONObject, PartnerDirectoryParameter> parameterCreator) {
         List<PartnerDirectoryParameter> partnerDirectoryParameters = new ArrayList<>();
         for (int i = 0; i < apiParameters.length(); i++) {
@@ -39,21 +54,6 @@ public class PartnerDirectoryParser {
             }
         }
         return partnerDirectoryParameters;
-    }
-
-    private static PartnerDirectoryParameter createBinaryParameter(JSONObject apiParameter) {
-        PartnerDirectoryParameter binaryParameter = new PartnerDirectoryParameter();
-        seCommonProperties(apiParameter, binaryParameter);
-        getOptionalString("ContentType", apiParameter).ifPresent(binaryParameter::setContentType);
-        binaryParameter.setType(TypeOfParam.BINARY_PARAMETER);
-        return binaryParameter;
-    }
-
-    private static PartnerDirectoryParameter createStringParameter(JSONObject apiParameter) {
-        PartnerDirectoryParameter stringParameter = new PartnerDirectoryParameter();
-        seCommonProperties(apiParameter, stringParameter);
-        stringParameter.setType(TypeOfParam.STRING_PARAMETER);
-        return stringParameter;
     }
 
     private static void seCommonProperties(JSONObject apiParameter, PartnerDirectoryParameter partnerDirectoryParameter) throws PartnerDirectoryClientException {
