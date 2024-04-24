@@ -2,7 +2,6 @@ package com.figaf.integration.cpi.response_parser;
 
 import com.figaf.integration.cpi.entity.partner_directory.PartnerDirectoryParameter;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
-import com.figaf.integration.cpi.entity.partner_directory.exception.PartnerDirectoryClientException;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,7 +26,7 @@ public class PartnerDirectoryParser {
 
     public static PartnerDirectoryParameter createBinaryParameter(JSONObject apiParameter) {
         PartnerDirectoryParameter binaryParameter = new PartnerDirectoryParameter();
-        seCommonProperties(apiParameter, binaryParameter);
+        setCommonProperties(apiParameter, binaryParameter);
         getOptionalString("ContentType", apiParameter).ifPresent(binaryParameter::setContentType);
         binaryParameter.setType(TypeOfParam.BINARY_PARAMETER);
         return binaryParameter;
@@ -35,7 +34,7 @@ public class PartnerDirectoryParser {
 
     public static PartnerDirectoryParameter createStringParameter(JSONObject apiParameter) {
         PartnerDirectoryParameter stringParameter = new PartnerDirectoryParameter();
-        seCommonProperties(apiParameter, stringParameter);
+        setCommonProperties(apiParameter, stringParameter);
         stringParameter.setType(TypeOfParam.STRING_PARAMETER);
         return stringParameter;
     }
@@ -49,14 +48,14 @@ public class PartnerDirectoryParser {
             }
             try {
                 partnerDirectoryParameters.add(parameterCreator.apply(apiParameter));
-            } catch (JSONException | PartnerDirectoryClientException e) {
+            } catch (JSONException | IllegalArgumentException e) {
                 log.error("Error processing parameter: " + e.getMessage());
             }
         }
         return partnerDirectoryParameters;
     }
 
-    private static void seCommonProperties(JSONObject apiParameter, PartnerDirectoryParameter partnerDirectoryParameter) throws PartnerDirectoryClientException {
+    private static void setCommonProperties(JSONObject apiParameter, PartnerDirectoryParameter partnerDirectoryParameter) {
         partnerDirectoryParameter.setPid(getMandatoryString("Pid", apiParameter));
         partnerDirectoryParameter.setId(getMandatoryString("Id", apiParameter));
 
@@ -68,9 +67,9 @@ public class PartnerDirectoryParser {
         getOptionalDate("LastModifiedTime", apiParameter).ifPresent(partnerDirectoryParameter::setModificationDate);
     }
 
-    private static String getMandatoryString(String key, JSONObject apiParameter) throws PartnerDirectoryClientException {
+    private static String getMandatoryString(String key, JSONObject apiParameter) {
         if (!apiParameter.has(key)) {
-            throw new PartnerDirectoryClientException("Missing mandatory field: " + key);
+            throw new IllegalArgumentException(String.format("Missing mandatory field: %s", key));
         }
         return apiParameter.getString(key);
     }

@@ -1,14 +1,15 @@
 package com.figaf.integration.cpi.entity.partner_directory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Base64;
 
 @Getter
 @Setter
-@AllArgsConstructor
+@NoArgsConstructor
 @ToString
 public class BinaryParameterCreationRequest {
 
@@ -18,9 +19,34 @@ public class BinaryParameterCreationRequest {
     @JsonProperty("Pid")
     private String pid;
 
-    @JsonProperty("Value")
-    private String value;
+    @JsonIgnore
+    private byte[] value;
+
+    @JsonIgnore
+    private String base64FormatValue;
 
     @JsonProperty("ContentType")
     private String contentType;
+
+    public BinaryParameterCreationRequest(String id, String pid, byte[] value, String contentType) {
+        this.id = id;
+        this.pid = pid;
+        this.value = value;
+        this.contentType = contentType;
+    }
+
+    public BinaryParameterCreationRequest(String id, String pid, String base64FormatValue, String contentType) {
+        this.id = id;
+        this.pid = pid;
+        this.base64FormatValue = base64FormatValue;
+        this.contentType = contentType;
+    }
+
+    @JsonProperty("Value")
+    public String getValueAsBase64() {
+        if (StringUtils.isNotBlank(base64FormatValue)) {
+            return base64FormatValue;
+        }
+        return this.value == null ? null : Base64.getEncoder().encodeToString(this.value);
+    }
 }

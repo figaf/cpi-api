@@ -4,7 +4,6 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.partner_directory.*;
-import com.figaf.integration.cpi.entity.partner_directory.exception.PartnerDirectoryClientException;
 import com.figaf.integration.cpi.response_parser.PartnerDirectoryParser;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
@@ -25,46 +24,48 @@ public class PartnerDirectoryClient extends CpiBaseClient {
 
     public List<PartnerDirectoryParameter> retrieveBinaryParameters(RequestContext requestContext) {
         log.debug("#retrieveBinaryParameters(RequestContext requestContext): {}", requestContext);
-        JSONArray apiParameters = callRestWs(
-            requestContext,
-            API_BINARY_PARAMETERS,
-            response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-        );
-
-        if (!Optional.ofNullable(apiParameters).isPresent()) {
-            String errorMsg = "couldn't fetch binary parameters";
-            log.error(errorMsg);
-            throw new PartnerDirectoryClientException(errorMsg);
+        JSONArray apiParameters;
+        try {
+            apiParameters = callRestWs(
+                requestContext,
+                API_BINARY_PARAMETERS,
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+            );
+        } catch (Exception e) {
+            String errorMsg = String.format("Couldn't fetch binary parameters: %s", e.getMessage());
+            throw new ClientIntegrationException(errorMsg, e);
         }
         return PartnerDirectoryParser.buildBinaryParameters(apiParameters);
     }
 
-    public PartnerDirectoryParameter retrieveBinaryParameter(String id, String pid, RequestContext requestContext) {
+    public Optional<PartnerDirectoryParameter> retrieveBinaryParameter(String id, String pid, RequestContext requestContext) {
         log.debug("#retrieveBinaryParameter(String id, String pid, RequestContext requestContext): {}, {}, {}", id, pid, requestContext);
-        JSONObject apiParameter = retrieveApiParameter(id, pid, API_BINARY_PARAMETER, requestContext);
-        return PartnerDirectoryParser.createBinaryParameter(apiParameter);
+        Optional<JSONObject> apiParameter = retrieveApiParameter(id, pid, API_BINARY_PARAMETER, requestContext);
+        return apiParameter.map(PartnerDirectoryParser::createBinaryParameter);
     }
 
     public List<PartnerDirectoryParameter> retrieveStringParameters(RequestContext requestContext) {
         log.debug("#retrieveStringParameters(RequestContext requestContext): {}", requestContext);
-        JSONArray apiParameters = callRestWs(
-            requestContext,
-            API_STRING_PARAMETERS,
-            response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-        );
+        JSONArray apiParameters;
+        try {
+            apiParameters = callRestWs(
+                requestContext,
+                API_STRING_PARAMETERS,
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+            );
 
-        if (!Optional.ofNullable(apiParameters).isPresent()) {
-            String errorMsg = "couldn't fetch string parameters";
-            log.error(errorMsg);
-            throw new PartnerDirectoryClientException(errorMsg);
+        } catch (Exception e) {
+            String errorMsg = String.format("Couldn't fetch string parameters: %s", e.getMessage());
+            throw new ClientIntegrationException(errorMsg, e);
         }
+
         return PartnerDirectoryParser.buildStringParameters(apiParameters);
     }
 
-    public PartnerDirectoryParameter retrieveStringParameter(String id, String pid, RequestContext requestContext) {
+    public Optional<PartnerDirectoryParameter> retrieveStringParameter(String id, String pid, RequestContext requestContext) {
         log.debug("#retrieveStringParameter(String id, String pid, RequestContext requestContext): {}, {}, {}", id, pid, requestContext);
-        JSONObject apiParameter = retrieveApiParameter(id, pid, API_STRING_PARAMETER, requestContext);
-        return PartnerDirectoryParser.createStringParameter(apiParameter);
+        Optional<JSONObject> apiParameter = retrieveApiParameter(id, pid, API_STRING_PARAMETER, requestContext);
+        return apiParameter.map(PartnerDirectoryParser::createStringParameter);
     }
 
     public void createBinaryParameter(BinaryParameterCreationRequest binaryParameterCreationRequest, RequestContext requestContext) {
@@ -243,18 +244,19 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         }
     }
 
-    private JSONObject retrieveApiParameter(String id, String pid, String url, RequestContext requestContext) {
-        JSONObject apiParameter = callRestWs(
-            requestContext,
-            String.format(url, pid, id),
-            response -> new JSONObject(response).getJSONObject("d")
-        );
-        if (!Optional.ofNullable(apiParameter).isPresent()) {
-            String errorMsg = String.format("couldn't fetch parameter with id %s and pid %s", id, pid);
-            log.error(errorMsg);
-            throw new PartnerDirectoryClientException(errorMsg);
+    private Optional<JSONObject> retrieveApiParameter(String id, String pid, String url, RequestContext requestContext) {
+        try {
+            JSONObject apiParameter = callRestWs(
+                requestContext,
+                String.format(url, pid, id),
+                response -> new JSONObject(response).getJSONObject("d")
+            );
+            return Optional.ofNullable(apiParameter);
+        } catch (Exception e) {
+            String errorMsg = String.format("Couldn't fetch parameter with id %s and pid %s: %s", id, pid, e.getMessage());
+            log.error(errorMsg, e);
+            return Optional.empty();
         }
-        return apiParameter;
     }
 
     @Override

@@ -6,16 +6,26 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.partner_directory.*;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Kostas Charalambous
@@ -24,12 +34,37 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PartnerDirectoryClientTest {
 
     private static PartnerDirectoryClient partnerDirectoryClient;
-    private PartnerDirectoryParameter partnerDirectoryParameterForDataCleaning;
-    private RequestContext requestContextForDataCleaning;
+    private ParameterDataForCleaning parameterDataForCleaning;
 
     @BeforeAll
     static void setUp() {
         partnerDirectoryClient = new PartnerDirectoryClient(new HttpClientsFactory());
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (!Optional.ofNullable(this.parameterDataForCleaning).isPresent()) {
+            return;
+        }
+        try {
+            if (this.parameterDataForCleaning.getTypeOfParam().equals(TypeOfParam.BINARY_PARAMETER)) {
+                partnerDirectoryClient.deleteBinaryParameter(
+                    this.parameterDataForCleaning.getId(),
+                    this.parameterDataForCleaning.getPid(),
+                    this.parameterDataForCleaning.requestContext
+                );
+            } else {
+                partnerDirectoryClient.deleteStringParameter(
+                    this.parameterDataForCleaning.getId(),
+                    this.parameterDataForCleaning.getPid(),
+                    this.parameterDataForCleaning.requestContext
+                );
+            }
+            log.debug("Cleaned up test data for parameter ID: {}", parameterDataForCleaning.getId());
+        } catch (Exception e) {
+            log.error("Failed to clean up test data for parameter ID: {}", parameterDataForCleaning.getId(), e);
+        }
+        this.parameterDataForCleaning = null;
     }
 
     @ParameterizedTest
@@ -54,25 +89,33 @@ class PartnerDirectoryClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_createBinaryParameter(AgentTestData agentTestData) {
+    void test_createBinaryParameter(AgentTestData agentTestData) throws IOException {
+        File testFileForCreation = ResourceUtils.getFile("classpath:partner-directory/test-creation.json");
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         BinaryParameterCreationRequest binaryParameterCreationRequest = new BinaryParameterCreationRequest(
             "test_param_to_check_uniqueness",
             "21341235",
-            "ewogdmFsdWUgOiAidGVzdCIKfQ==",
+            FileUtils.readFileToByteArray(testFileForCreation),
             "json"
+        );
+        this.parameterDataForCleaning = new ParameterDataForCleaning(
+            binaryParameterCreationRequest.getId(),
+            binaryParameterCreationRequest.getPid(),
+            TypeOfParam.BINARY_PARAMETER,
+            requestContext
         );
 
         partnerDirectoryClient.createBinaryParameter(binaryParameterCreationRequest, requestContext);
-        PartnerDirectoryParameter partnerDirectoryParameter = partnerDirectoryClient.retrieveBinaryParameter(
+        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameter = partnerDirectoryClient.retrieveBinaryParameter(
             binaryParameterCreationRequest.getId(),
             binaryParameterCreationRequest.getPid(),
             requestContext
         );
 
-        this.partnerDirectoryParameterForDataCleaning = partnerDirectoryParameter;
-        this.requestContextForDataCleaning = requestContext;
-        assertThat(partnerDirectoryParameter.getId()).as("binary parameter doesnt exist").isEqualTo(binaryParameterCreationRequest.getId());
+        assertTrue(optionalPartnerDirectoryParameter.isPresent(), "binary parameter doesn't exist");
+
+        optionalPartnerDirectoryParameter.ifPresent(partnerDirectoryParameter -> assertEquals(binaryParameterCreationRequest.getId(), partnerDirectoryParameter.getId(),
+            "ID of the binary parameter does not match the expected ID"));
     }
 
     @ParameterizedTest
@@ -84,56 +127,91 @@ class PartnerDirectoryClientTest {
             "213241235",
             "test"
         );
+        this.parameterDataForCleaning = new ParameterDataForCleaning(
+            stringParameterCreationRequest.getId(),
+            stringParameterCreationRequest.getPid(),
+            TypeOfParam.STRING_PARAMETER,
+            requestContext
+        );
 
         partnerDirectoryClient.createStringParameter(stringParameterCreationRequest, requestContext);
-        PartnerDirectoryParameter partnerDirectoryParameter = partnerDirectoryClient.retrieveStringParameter(
+        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameter = partnerDirectoryClient.retrieveStringParameter(
             stringParameterCreationRequest.getId(),
             stringParameterCreationRequest.getPid(),
             requestContext
         );
 
-        this.partnerDirectoryParameterForDataCleaning = partnerDirectoryParameter;
-        this.requestContextForDataCleaning = requestContext;
-        assertThat(partnerDirectoryParameter.getId()).as("string parameter doesnt exist").isEqualTo(stringParameterCreationRequest.getId());
+        assertThat(optionalPartnerDirectoryParameter).as("string parameter doesn't exist").isPresent();
+
+        optionalPartnerDirectoryParameter.ifPresent(partnerDirectoryParameter -> {
+            assertThat(partnerDirectoryParameter.getId())
+                .as("ID of the string parameter does not match the expected ID")
+                .isEqualTo(stringParameterCreationRequest.getId());
+        });
+
     }
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_updateBinaryParameters(AgentTestData agentTestData) {
+    void test_updateBinaryParameter(AgentTestData agentTestData) throws IOException {
+        File testFileForCreation = ResourceUtils.getFile("classpath:partner-directory/test-creation.json");
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         BinaryParameterCreationRequest binaryParameterCreationRequest = new BinaryParameterCreationRequest(
             "test_param_to_check_uniqueness",
             "21341235",
-            "ewogdmFsdWUgOiAidGVzdCIKfQ==",
+            FileUtils.readFileToByteArray(testFileForCreation),
             "json"
         );
+
+        this.parameterDataForCleaning = new ParameterDataForCleaning(
+            binaryParameterCreationRequest.getId(),
+            binaryParameterCreationRequest.getPid(),
+            TypeOfParam.BINARY_PARAMETER,
+            requestContext
+        );
+
         partnerDirectoryClient.createBinaryParameter(binaryParameterCreationRequest, requestContext);
-        PartnerDirectoryParameter partnerDirectoryParameterBeforeUpdate = partnerDirectoryClient.retrieveBinaryParameter(
+        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterBeforeUpdate = partnerDirectoryClient.retrieveBinaryParameter(
             binaryParameterCreationRequest.getId(),
             binaryParameterCreationRequest.getPid(),
             requestContext
         );
-        this.partnerDirectoryParameterForDataCleaning = partnerDirectoryParameterBeforeUpdate;
-        this.requestContextForDataCleaning = requestContext;
+
+        assertThat(optionalPartnerDirectoryParameterBeforeUpdate).as("binary parameter before update doesn't exist").isPresent();
+
+        File testFileToUpdate = ResourceUtils.getFile("classpath:partner-directory/test-update.xml");
         BinaryParameterUpdateRequest binaryParameterUpdateRequest = new BinaryParameterUpdateRequest(
-            "T2JqZWN0IFR5cGU7UGFja2FnZSBOYW1lOw==",
+            FileUtils.readFileToByteArray(testFileToUpdate),
             "xml"
         );
 
-        partnerDirectoryClient.updateBinaryParameter(
-            partnerDirectoryParameterBeforeUpdate.getId(),
-            partnerDirectoryParameterBeforeUpdate.getPid(),
-            binaryParameterUpdateRequest,
-            requestContext
-        );
-        PartnerDirectoryParameter partnerDirectoryParameterAfterUpdate = partnerDirectoryClient.retrieveBinaryParameter(
-            partnerDirectoryParameterBeforeUpdate.getId(),
-            partnerDirectoryParameterBeforeUpdate.getPid(),
-            requestContext
-        );
+        optionalPartnerDirectoryParameterBeforeUpdate.ifPresent(partnerDirectoryParameterBeforeUpdate -> {
+            partnerDirectoryClient.updateBinaryParameter(
+                partnerDirectoryParameterBeforeUpdate.getId(),
+                partnerDirectoryParameterBeforeUpdate.getPid(),
+                binaryParameterUpdateRequest,
+                requestContext
+            );
 
-        assertThat(partnerDirectoryParameterAfterUpdate.getValue()).as("binary parameter value wasn't updated").isEqualTo(binaryParameterUpdateRequest.getValue());
-        assertThat(partnerDirectoryParameterAfterUpdate.getContentType()).as("binary parameter value wasn't updated").isEqualTo(binaryParameterUpdateRequest.getContentType());
+            Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterAfterUpdate = partnerDirectoryClient.retrieveBinaryParameter(
+                partnerDirectoryParameterBeforeUpdate.getId(),
+                partnerDirectoryParameterBeforeUpdate.getPid(),
+                requestContext
+            );
+
+            optionalPartnerDirectoryParameterAfterUpdate.ifPresent(partnerDirectoryParameterAfterUpdate -> {
+                assertArrayEquals(
+                    Base64.getDecoder().decode(partnerDirectoryParameterAfterUpdate.getValue().getBytes(StandardCharsets.UTF_8)),
+                    binaryParameterUpdateRequest.getValue(),
+                    "binary parameter value wasn't updated"
+                );
+                assertEquals(
+                    partnerDirectoryParameterAfterUpdate.getContentType(),
+                    binaryParameterUpdateRequest.getContentType(),
+                    "binary parameter content type wasn't updated"
+                );
+            });
+        });
     }
 
     @ParameterizedTest
@@ -145,57 +223,53 @@ class PartnerDirectoryClientTest {
             "213241235",
             "test"
         );
+        this.parameterDataForCleaning = new ParameterDataForCleaning(
+            stringParameterCreationRequest.getId(),
+            stringParameterCreationRequest.getPid(),
+            TypeOfParam.STRING_PARAMETER,
+            requestContext
+        );
+
         partnerDirectoryClient.createStringParameter(stringParameterCreationRequest, requestContext);
-        PartnerDirectoryParameter partnerDirectoryParameterBeforeUpdate = partnerDirectoryClient.retrieveStringParameter(
+        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterBeforeUpdate = partnerDirectoryClient.retrieveStringParameter(
             stringParameterCreationRequest.getId(),
             stringParameterCreationRequest.getPid(),
             requestContext
         );
-        this.partnerDirectoryParameterForDataCleaning = partnerDirectoryParameterBeforeUpdate;
-        this.requestContextForDataCleaning = requestContext;
-        StringParameterUpdateRequest stringParameterUpdateRequest = new StringParameterUpdateRequest("testUpdate");
 
-        partnerDirectoryClient.updateStringParameter(
-            partnerDirectoryParameterBeforeUpdate.getId(),
-            partnerDirectoryParameterBeforeUpdate.getPid(),
-            stringParameterUpdateRequest,
-            requestContext
-        );
-        PartnerDirectoryParameter partnerDirectoryParameterAfterUpdate = partnerDirectoryClient.retrieveStringParameter(
-            partnerDirectoryParameterBeforeUpdate.getId(),
-            partnerDirectoryParameterBeforeUpdate.getPid(),
-            requestContext
-        );
+        assertThat(optionalPartnerDirectoryParameterBeforeUpdate).as("string parameter before update doesn't exist").isPresent();
 
-        assertThat(partnerDirectoryParameterAfterUpdate.getValue())
-            .as("string parameter value wasn't updated")
-            .isEqualTo(stringParameterUpdateRequest.getValue());
+        optionalPartnerDirectoryParameterBeforeUpdate.ifPresent(partnerDirectoryParameterBeforeUpdate -> {
+            StringParameterUpdateRequest stringParameterUpdateRequest = new StringParameterUpdateRequest("testUpdate");
+            partnerDirectoryClient.updateStringParameter(
+                partnerDirectoryParameterBeforeUpdate.getId(),
+                partnerDirectoryParameterBeforeUpdate.getPid(),
+                stringParameterUpdateRequest,
+                requestContext
+            );
+
+            Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterAfterUpdate = partnerDirectoryClient.retrieveStringParameter(
+                partnerDirectoryParameterBeforeUpdate.getId(),
+                partnerDirectoryParameterBeforeUpdate.getPid(),
+                requestContext
+            );
+
+            assertThat(optionalPartnerDirectoryParameterAfterUpdate).as("string parameter after update doesn't exist").isPresent();
+
+            optionalPartnerDirectoryParameterAfterUpdate.ifPresent(partnerDirectoryParameterAfterUpdate -> assertThat(partnerDirectoryParameterAfterUpdate.getValue())
+                .as("string parameter value wasn't updated")
+                .isEqualTo(stringParameterUpdateRequest.getValue()));
+        });
     }
 
-    @AfterEach
-    void tearDown() {
-        if (!Optional.ofNullable(this.partnerDirectoryParameterForDataCleaning).isPresent()) {
-            return;
-        }
-        try {
-            if (this.partnerDirectoryParameterForDataCleaning.getType().equals(TypeOfParam.BINARY_PARAMETER)) {
-                partnerDirectoryClient.deleteBinaryParameter(
-                    this.partnerDirectoryParameterForDataCleaning.getId(),
-                    this.partnerDirectoryParameterForDataCleaning.getPid(),
-                    requestContextForDataCleaning
-                );
-            } else {
-                partnerDirectoryClient.deleteStringParameter(
-                    this.partnerDirectoryParameterForDataCleaning.getId(),
-                    this.partnerDirectoryParameterForDataCleaning.getPid(),
-                    requestContextForDataCleaning
-                );
-            }
-            log.debug("Cleaned up test data for parameter ID: {}", partnerDirectoryParameterForDataCleaning.getId());
-        } catch (Exception e) {
-            log.error("Failed to clean up test data for parameter ID: {}", partnerDirectoryParameterForDataCleaning.getId(), e);
-        }
-        this.partnerDirectoryParameterForDataCleaning = null;
-        this.requestContextForDataCleaning = null;
+    @AllArgsConstructor
+    @Setter
+    @Getter
+    public static class ParameterDataForCleaning {
+
+        private String id;
+        private String pid;
+        private TypeOfParam typeOfParam;
+        private RequestContext requestContext;
     }
 }
