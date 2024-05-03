@@ -44,8 +44,8 @@ public class BinaryParameterCreationRequest {
 
     @JsonProperty("Value")
     public String getValueAsBase64() {
-        if (StringUtils.isNotBlank(base64FormatValue)) {
-            return base64FormatValue;
+        if (StringUtils.isNotBlank(this.base64FormatValue)) {
+            return this.base64FormatValue;
         }
         return this.value == null ? null : Base64.getEncoder().encodeToString(this.value);
     }
