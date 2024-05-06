@@ -72,7 +72,7 @@ class PartnerDirectoryClientTest {
     void test_retrieveBinaryParameters(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
-        List<PartnerDirectoryParameter> binaryParameters = partnerDirectoryClient.retrieveBinaryParameters(requestContext);
+        List<PartnerDirectoryParameter> binaryParameters = partnerDirectoryClient.retrieveBinaryParametersMetadata(requestContext);
 
         assertThat(binaryParameters).as("binaryParameters shouldn't be empty").isNotEmpty();
     }

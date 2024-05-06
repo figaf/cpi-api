@@ -22,17 +22,17 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         super(httpClientsFactory);
     }
 
-    public List<PartnerDirectoryParameter> retrieveBinaryParameters(RequestContext requestContext) {
-        log.debug("#retrieveBinaryParameters(RequestContext requestContext): {}", requestContext);
+    public List<PartnerDirectoryParameter> retrieveBinaryParametersMetadata(RequestContext requestContext) {
+        log.debug("#retrieveBinaryParametersMetadata(RequestContext requestContext): {}", requestContext);
         JSONArray apiParameters;
         try {
             apiParameters = callRestWs(
                 requestContext,
-                API_BINARY_PARAMETERS,
+                API_BINARY_PARAMETERS_META_DATA,
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
         } catch (Exception e) {
-            String errorMsg = String.format("Couldn't fetch binary parameters: %s", e.getMessage());
+            String errorMsg = String.format("Couldn't fetch binary parameters metadata: %s", e.getMessage());
             throw new ClientIntegrationException(errorMsg, e);
         }
         return PartnerDirectoryParser.buildBinaryParameters(apiParameters);
