@@ -69,10 +69,20 @@ class PartnerDirectoryClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
+    void test_retrieveBinaryParametersByFilter(AgentTestData agentTestData) {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+
+        List<PartnerDirectoryParameter> binaryParameters = partnerDirectoryClient.retrieveBinaryParametersMetadata(requestContext, new BinaryParameterFilterRequest("SAPERP~Invoice01~ERP"));
+
+        assertThat(binaryParameters).as("binaryParameters fetched by filter shouldn't be empty").isNotEmpty();
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(AgentTestDataProvider.class)
     void test_retrieveBinaryParameters(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
-        List<PartnerDirectoryParameter> binaryParameters = partnerDirectoryClient.retrieveBinaryParametersMetadata(requestContext);
+        List<PartnerDirectoryParameter> binaryParameters = partnerDirectoryClient.retrieveBinaryParametersMetadata(requestContext, new BinaryParameterFilterRequest());
 
         assertThat(binaryParameters).as("binaryParameters shouldn't be empty").isNotEmpty();
     }

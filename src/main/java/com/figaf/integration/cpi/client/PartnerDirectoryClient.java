@@ -22,13 +22,13 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         super(httpClientsFactory);
     }
 
-    public List<PartnerDirectoryParameter> retrieveBinaryParametersMetadata(RequestContext requestContext) {
+    public List<PartnerDirectoryParameter> retrieveBinaryParametersMetadata(RequestContext requestContext, BinaryParameterFilterRequest binaryParameterFilterRequest) {
         log.debug("#retrieveBinaryParametersMetadata(RequestContext requestContext): {}", requestContext);
         JSONArray apiParameters;
         try {
             apiParameters = callRestWs(
                 requestContext,
-                API_BINARY_PARAMETERS_META_DATA,
+                String.format(API_BINARY_PARAMETERS_META_DATA, binaryParameterFilterRequest.createFilter()),
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
         } catch (Exception e) {
