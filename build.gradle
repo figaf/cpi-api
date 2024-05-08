@@ -8,7 +8,7 @@ configurations.all {
 }
 
 group = 'com.github.figaf'
-version = '2.29'
+version = '2.30'
 
 repositories {
     mavenLocal()
