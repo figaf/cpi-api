@@ -6,6 +6,7 @@ import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Base64;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -24,7 +25,7 @@ public class BinaryParameterUpdateRequest {
 
     @JsonProperty("Value")
     public String getValueAsBase64() {
-        if (StringUtils.isNotBlank(this.base64FormatValue)) {
+        if (Optional.ofNullable(this.base64FormatValue).isPresent()) {
             return this.base64FormatValue;
         }
         return this.value == null ? null : Base64.getEncoder().encodeToString(this.value);
