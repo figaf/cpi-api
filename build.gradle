@@ -3,16 +3,29 @@ plugins {
     id 'maven-publish'
 }
 
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}
-
 group = 'com.github.figaf'
 version = '2.30'
+
+ext {
+    enableSnapshotsForDependencyResolutionAndPublishing = project.findProperty('enableSnapshots') ?: 'false'
+    snapshotsRepoUrl = project.findProperty('snapshotsRepoUrl') ?: ''
+    snapshotsRepoUsername = project.findProperty('snapshotsRepoUsername') ?: ''
+    snapshotsRepoPassword = project.findProperty('snapshotsRepoPassword') ?: ''
+}
 
 repositories {
     mavenLocal()
     mavenCentral()
+    if (enableSnapshotsForDependencyResolutionAndPublishing == 'true') {
+        maven {
+            url "$snapshotsRepoUrl/content/groups/public/"
+            allowInsecureProtocol true
+            credentials {
+                username "$snapshotsRepoUsername"
+                password "$snapshotsRepoPassword"
+            }
+        }
+    }
     maven { url "https://jitpack.io" }
 }
 
@@ -41,14 +54,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-}
-
 test {
     useJUnitPlatform()
 
@@ -64,4 +69,41 @@ test {
     }
 
     maxHeapSize = "2G"
+}
+
+configurations.configureEach {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            def snapshotsRepoUrl = "$snapshotsRepoUrl/content/repositories/snapshots"
+            url snapshotsRepoUrl
+            allowInsecureProtocol true
+            credentials {
+                username snapshotsRepoUsername
+                password snapshotsRepoPassword
+            }
+        }
+    }
+}
+
+tasks.withType(PublishToMavenRepository).configureEach {
+    doFirst {
+        if (enableSnapshotsForDependencyResolutionAndPublishing != 'true') {
+            throw new GradleException("It's not possible to perform publishing because property 'enableSnapshots' " +
+                "is not configured or set to 'false'")
+        }
+        // Prevent release publishing
+        if (!version.endsWith("-SNAPSHOT")) {
+            throw new GradleException("Release publishing is not allowed, it's done by JitPack")
+        }
+    }
 }
