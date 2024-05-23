@@ -4,16 +4,21 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.partner_directory.*;
+import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
 import com.figaf.integration.cpi.response_parser.PartnerDirectoryParser;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
+
+import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.BINARY_PARAMETER;
+import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.STRING_PARAMETER;
 
 @Slf4j
 public class PartnerDirectoryClient extends CpiBaseClient {
@@ -68,51 +73,51 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         return apiParameter.map(PartnerDirectoryParser::createStringParameter);
     }
 
-    public void createBinaryParameter(BinaryParameterCreationRequest binaryParameterCreationRequest, RequestContext requestContext) {
+    public PartnerDirectoryParameter createBinaryParameter(BinaryParameterCreationRequest binaryParameterCreationRequest, RequestContext requestContext) {
         log.debug(
             "#createBinaryParameter(BinaryParameterCreationRequest binaryParameterCreationRequest, RequestContext requestContext): {}, {}",
             binaryParameterCreationRequest,
             requestContext
         );
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Accept", "application/json");
 
-        executeMethodPublicApi(
+        return executeMethodPublicApiUsingCustomHeaders(
             requestContext,
             API_BINARY_PARAMETERS_CREATION,
             binaryParameterCreationRequest,
             HttpMethod.POST,
-            (responseEntity) -> {
-                handleResponse(
-                    responseEntity,
-                    binaryParameterCreationRequest.getId(),
-                    binaryParameterCreationRequest.getPid(),
-                    "Create"
-                );
-                return null;
-            }
+            httpHeaders,
+            (responseEntity) -> createPartnerDirectoryParameter(
+                responseEntity,
+                binaryParameterCreationRequest.getId(),
+                binaryParameterCreationRequest.getPid(),
+                BINARY_PARAMETER
+            )
         );
     }
 
-    public void createStringParameter(StringParameterCreationRequest stringParameterCreationRequest, RequestContext requestContext) {
+    public PartnerDirectoryParameter createStringParameter(StringParameterCreationRequest stringParameterCreationRequest, RequestContext requestContext) {
         log.debug(
             "#createStringParameter(StringParameterCreationRequest stringParameterCreationRequest, RequestContext requestContext): {}, {}",
             stringParameterCreationRequest,
             requestContext
         );
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Accept", "application/json");
 
-        executeMethodPublicApi(
+        return executeMethodPublicApiUsingCustomHeaders(
             requestContext,
             API_STRING_PARAMETER_CREATION,
             stringParameterCreationRequest,
             HttpMethod.POST,
-            (responseEntity) -> {
-                handleResponse(
-                    responseEntity,
-                    stringParameterCreationRequest.getId(),
-                    stringParameterCreationRequest.getPid(),
-                    "Create"
-                );
-                return null;
-            }
+            httpHeaders,
+            (responseEntity) -> createPartnerDirectoryParameter(
+                responseEntity,
+                stringParameterCreationRequest.getId(),
+                stringParameterCreationRequest.getPid(),
+                STRING_PARAMETER
+            )
         );
     }
 
@@ -203,7 +208,6 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         );
     }
 
-
     public void deleteStringParameter(String id, String pid, RequestContext requestContext) {
         log.debug(
             "#deleteStringParameter(String id, String pid, RequestContext requestContext: {}, {}, {}",
@@ -232,7 +236,6 @@ public class PartnerDirectoryClient extends CpiBaseClient {
     private void handleResponse(ResponseEntity<String> responseEntity, String id, String pid, String operation) {
         switch (responseEntity.getStatusCode().value()) {
             case 200:
-            case 201:
             case 202:
             case 204:
                 log.debug("{} operation on parameter {} with pid: {} was successful", operation, id, pid);
@@ -241,6 +244,45 @@ public class PartnerDirectoryClient extends CpiBaseClient {
                 throw new ClientIntegrationException(String.format(
                     "%s operation failed for parameter %s with PID %s: Code: %d, Message: %s",
                     operation, id, pid, responseEntity.getStatusCode().value(), responseEntity.getBody()));
+        }
+    }
+
+    private PartnerDirectoryParameter createPartnerDirectoryParameter(
+        ResponseEntity<String> responseEntity,
+        String id,
+        String pid,
+        TypeOfParam typeOfParam
+    ) {
+        if (responseEntity == null) {
+            throw new ClientIntegrationException(String.format(
+                "Creation operation failed for parameter %s with PID %s: ResponseEntity is null", id, pid));
+        }
+
+        int statusCode = responseEntity.getStatusCode().value();
+        String responseBody = getResponseBody(responseEntity);
+
+        switch (statusCode) {
+            case 200:
+            case 201:
+                log.debug("Creation operation on parameter {} with pid: {} was successful. Response: {}", id, pid, responseBody);
+                if (BINARY_PARAMETER.equals(typeOfParam)) {
+                    return PartnerDirectoryParser.createBinaryParameter(new JSONObject(responseBody).getJSONObject("d"));
+                } else {
+                    return PartnerDirectoryParser.createStringParameter(new JSONObject(responseBody).getJSONObject("d"));
+                }
+            default:
+                log.error("Creation failed for parameter {} with PID {}: Code: {}, Response: {}", id, pid, statusCode, responseBody);
+                throw new ClientIntegrationException(String.format(
+                    "Creation operation failed for parameter %s with PID %s: Code: %d, Response: %s", id, pid, statusCode, responseBody));
+        }
+    }
+
+    private String getResponseBody(ResponseEntity<String> responseEntity) {
+        try {
+            return responseEntity.getBody();
+        } catch (Exception e) {
+            log.error("Failed to extract response body", e);
+            return "Unable to retrieve response body";
         }
     }
 
