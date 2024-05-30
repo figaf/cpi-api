@@ -115,17 +115,12 @@ class PartnerDirectoryClientTest {
             requestContext
         );
 
-        partnerDirectoryClient.createBinaryParameter(binaryParameterCreationRequest, requestContext);
-        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameter = partnerDirectoryClient.retrieveBinaryParameter(
-            binaryParameterCreationRequest.getId(),
-            binaryParameterCreationRequest.getPid(),
-            requestContext
-        );
+        PartnerDirectoryParameter createdPartnerDirectoryParameter = partnerDirectoryClient.createBinaryParameter(binaryParameterCreationRequest, requestContext);
 
-        assertTrue(optionalPartnerDirectoryParameter.isPresent(), "binary parameter doesn't exist");
+        assertTrue(Optional.ofNullable(createdPartnerDirectoryParameter).isPresent(), "binary parameter doesn't exist");
 
-        optionalPartnerDirectoryParameter.ifPresent(partnerDirectoryParameter -> assertEquals(binaryParameterCreationRequest.getId(), partnerDirectoryParameter.getId(),
-            "ID of the binary parameter does not match the expected ID"));
+        assertEquals(binaryParameterCreationRequest.getId(), createdPartnerDirectoryParameter.getId(),
+            "ID of the binary parameter does not match the expected ID");
     }
 
     @ParameterizedTest
@@ -144,20 +139,12 @@ class PartnerDirectoryClientTest {
             requestContext
         );
 
-        partnerDirectoryClient.createStringParameter(stringParameterCreationRequest, requestContext);
-        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameter = partnerDirectoryClient.retrieveStringParameter(
-            stringParameterCreationRequest.getId(),
-            stringParameterCreationRequest.getPid(),
-            requestContext
-        );
+        PartnerDirectoryParameter createdPartnerDirectoryParameter = partnerDirectoryClient.createStringParameter(stringParameterCreationRequest, requestContext);
 
-        assertThat(optionalPartnerDirectoryParameter).as("string parameter doesn't exist").isPresent();
-
-        optionalPartnerDirectoryParameter.ifPresent(partnerDirectoryParameter -> {
-            assertThat(partnerDirectoryParameter.getId())
-                .as("ID of the string parameter does not match the expected ID")
-                .isEqualTo(stringParameterCreationRequest.getId());
-        });
+        assertTrue(Optional.ofNullable(createdPartnerDirectoryParameter).isPresent(), "string parameter doesn't exist");
+        assertThat(createdPartnerDirectoryParameter.getId())
+            .as("ID of the string parameter does not match the expected ID")
+            .isEqualTo(stringParameterCreationRequest.getId());
 
     }
 
@@ -180,14 +167,9 @@ class PartnerDirectoryClientTest {
             requestContext
         );
 
-        partnerDirectoryClient.createBinaryParameter(binaryParameterCreationRequest, requestContext);
-        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterBeforeUpdate = partnerDirectoryClient.retrieveBinaryParameter(
-            binaryParameterCreationRequest.getId(),
-            binaryParameterCreationRequest.getPid(),
-            requestContext
-        );
+        PartnerDirectoryParameter createdPartnerDirectoryParameter = partnerDirectoryClient.createBinaryParameter(binaryParameterCreationRequest, requestContext);
 
-        assertThat(optionalPartnerDirectoryParameterBeforeUpdate).as("binary parameter before update doesn't exist").isPresent();
+        assertTrue(Optional.ofNullable(createdPartnerDirectoryParameter).isPresent(), "binary parameter doesn't exist");
 
         File testFileToUpdate = ResourceUtils.getFile("classpath:partner-directory/test-update.xml");
         BinaryParameterUpdateRequest binaryParameterUpdateRequest = new BinaryParameterUpdateRequest(
@@ -195,33 +177,32 @@ class PartnerDirectoryClientTest {
             "xml"
         );
 
-        optionalPartnerDirectoryParameterBeforeUpdate.ifPresent(partnerDirectoryParameterBeforeUpdate -> {
-            partnerDirectoryClient.updateBinaryParameter(
-                partnerDirectoryParameterBeforeUpdate.getId(),
-                partnerDirectoryParameterBeforeUpdate.getPid(),
-                binaryParameterUpdateRequest,
-                requestContext
-            );
+        partnerDirectoryClient.updateBinaryParameter(
+            createdPartnerDirectoryParameter.getId(),
+            createdPartnerDirectoryParameter.getPid(),
+            binaryParameterUpdateRequest,
+            requestContext
+        );
 
-            Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterAfterUpdate = partnerDirectoryClient.retrieveBinaryParameter(
-                partnerDirectoryParameterBeforeUpdate.getId(),
-                partnerDirectoryParameterBeforeUpdate.getPid(),
-                requestContext
-            );
+        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterAfterUpdate = partnerDirectoryClient.retrieveBinaryParameter(
+            createdPartnerDirectoryParameter.getId(),
+            createdPartnerDirectoryParameter.getPid(),
+            requestContext
+        );
 
-            optionalPartnerDirectoryParameterAfterUpdate.ifPresent(partnerDirectoryParameterAfterUpdate -> {
-                assertArrayEquals(
-                    Base64.getDecoder().decode(partnerDirectoryParameterAfterUpdate.getValue().getBytes(StandardCharsets.UTF_8)),
-                    binaryParameterUpdateRequest.getValue(),
-                    "binary parameter value wasn't updated"
-                );
-                assertEquals(
-                    partnerDirectoryParameterAfterUpdate.getContentType(),
-                    binaryParameterUpdateRequest.getContentType(),
-                    "binary parameter content type wasn't updated"
-                );
-            });
+        optionalPartnerDirectoryParameterAfterUpdate.ifPresent(partnerDirectoryParameterAfterUpdate -> {
+            assertArrayEquals(
+                Base64.getDecoder().decode(partnerDirectoryParameterAfterUpdate.getValue().getBytes(StandardCharsets.UTF_8)),
+                binaryParameterUpdateRequest.getValue(),
+                "binary parameter value wasn't updated"
+            );
+            assertEquals(
+                partnerDirectoryParameterAfterUpdate.getContentType(),
+                binaryParameterUpdateRequest.getContentType(),
+                "binary parameter content type wasn't updated"
+            );
         });
+
     }
 
     @ParameterizedTest
@@ -240,36 +221,29 @@ class PartnerDirectoryClientTest {
             requestContext
         );
 
-        partnerDirectoryClient.createStringParameter(stringParameterCreationRequest, requestContext);
-        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterBeforeUpdate = partnerDirectoryClient.retrieveStringParameter(
-            stringParameterCreationRequest.getId(),
-            stringParameterCreationRequest.getPid(),
+        PartnerDirectoryParameter createdPartnerDirectoryParameter = partnerDirectoryClient.createStringParameter(stringParameterCreationRequest, requestContext);
+        assertTrue(Optional.ofNullable(createdPartnerDirectoryParameter).isPresent(), "created string parameter doesn't exist");
+
+        StringParameterUpdateRequest stringParameterUpdateRequest = new StringParameterUpdateRequest("testUpdate");
+        partnerDirectoryClient.updateStringParameter(
+            createdPartnerDirectoryParameter.getId(),
+            createdPartnerDirectoryParameter.getPid(),
+            stringParameterUpdateRequest,
             requestContext
         );
 
-        assertThat(optionalPartnerDirectoryParameterBeforeUpdate).as("string parameter before update doesn't exist").isPresent();
+        Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterAfterUpdate = partnerDirectoryClient.retrieveStringParameter(
+            createdPartnerDirectoryParameter.getId(),
+            createdPartnerDirectoryParameter.getPid(),
+            requestContext
+        );
 
-        optionalPartnerDirectoryParameterBeforeUpdate.ifPresent(partnerDirectoryParameterBeforeUpdate -> {
-            StringParameterUpdateRequest stringParameterUpdateRequest = new StringParameterUpdateRequest("testUpdate");
-            partnerDirectoryClient.updateStringParameter(
-                partnerDirectoryParameterBeforeUpdate.getId(),
-                partnerDirectoryParameterBeforeUpdate.getPid(),
-                stringParameterUpdateRequest,
-                requestContext
-            );
+        assertThat(optionalPartnerDirectoryParameterAfterUpdate).as("string parameter after update doesn't exist").isPresent();
 
-            Optional<PartnerDirectoryParameter> optionalPartnerDirectoryParameterAfterUpdate = partnerDirectoryClient.retrieveStringParameter(
-                partnerDirectoryParameterBeforeUpdate.getId(),
-                partnerDirectoryParameterBeforeUpdate.getPid(),
-                requestContext
-            );
+        optionalPartnerDirectoryParameterAfterUpdate.ifPresent(partnerDirectoryParameterAfterUpdate -> assertThat(partnerDirectoryParameterAfterUpdate.getValue())
+            .as("string parameter value wasn't updated")
+            .isEqualTo(stringParameterUpdateRequest.getValue()));
 
-            assertThat(optionalPartnerDirectoryParameterAfterUpdate).as("string parameter after update doesn't exist").isPresent();
-
-            optionalPartnerDirectoryParameterAfterUpdate.ifPresent(partnerDirectoryParameterAfterUpdate -> assertThat(partnerDirectoryParameterAfterUpdate.getValue())
-                .as("string parameter value wasn't updated")
-                .isEqualTo(stringParameterUpdateRequest.getValue()));
-        });
     }
 
     @AllArgsConstructor
