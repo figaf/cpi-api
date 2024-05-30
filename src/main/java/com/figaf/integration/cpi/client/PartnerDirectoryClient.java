@@ -82,7 +82,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Accept", "application/json");
 
-        return executeMethodPublicApiUsingCustomHeaders(
+        return executeMethodPublicApiAppendingCustomHeaders(
             requestContext,
             API_BINARY_PARAMETERS_CREATION,
             binaryParameterCreationRequest,
@@ -106,7 +106,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Accept", "application/json");
 
-        return executeMethodPublicApiUsingCustomHeaders(
+        return executeMethodPublicApiAppendingCustomHeaders(
             requestContext,
             API_STRING_PARAMETER_CREATION,
             stringParameterCreationRequest,
