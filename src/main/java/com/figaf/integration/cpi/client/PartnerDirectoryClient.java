@@ -13,15 +13,18 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.Optional;
-
+import java.util.concurrent.TimeUnit;
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.BINARY_PARAMETER;
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.STRING_PARAMETER;
 
 @Slf4j
 public class PartnerDirectoryClient extends CpiBaseClient {
+    private static final int MAX_ATTEMPTS = 5;
+    private static final long INITIAL_DELAY = 2000L;
 
     public PartnerDirectoryClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -287,17 +290,51 @@ public class PartnerDirectoryClient extends CpiBaseClient {
     }
 
     private Optional<JSONObject> retrieveApiParameter(String id, String pid, String url, RequestContext requestContext) {
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                JSONObject apiParameter = this.callRestWs(requestContext, String.format(url, pid, id), (response) -> (new JSONObject(response)).getJSONObject("d"));
+                return Optional.ofNullable(apiParameter);
+            } catch (HttpClientErrorException.TooManyRequests tooManyRequestsEx) {
+                handleTooManyRequests(tooManyRequestsEx, attempt);
+            } catch (Exception e) {
+                String errorMsg = String.format("Couldn't fetch parameter with id %s and pid %s: %s", id, pid, e.getMessage());
+                log.error(errorMsg, e);
+                return Optional.empty();
+            }
+        }
+        String errorMsg = String.format("Max retry attempts exceeded for id %s and pid %s", id, pid);
+        log.error(errorMsg);
+        return Optional.empty();
+    }
+
+    private void handleTooManyRequests(HttpClientErrorException.TooManyRequests tooManyRequestsEx, int attempt) {
+        if (tooManyRequestsEx.getResponseHeaders() != null) {
+            String retryAfter = tooManyRequestsEx.getResponseHeaders().getFirst("Retry-After");
+            if (retryAfter != null) {
+                try {
+                    long retryAfterSeconds = Long.parseLong(retryAfter);
+                    log.warn("Rate limit exceeded. Retrying after {} seconds (attempt {}/{})", retryAfterSeconds, attempt, MAX_ATTEMPTS);
+                    TimeUnit.SECONDS.sleep(retryAfterSeconds);
+                    return;
+                } catch (NumberFormatException nfe) {
+                    log.error("Invalid Retry-After header value: {}", retryAfter, nfe);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.error("Retry sleep interrupted", ie);
+                    return;
+                }
+            }
+        }
+        applyDefaultRetry(attempt);
+    }
+
+    private void applyDefaultRetry(int attempt) {
         try {
-            JSONObject apiParameter = callRestWs(
-                requestContext,
-                String.format(url, pid, id),
-                response -> new JSONObject(response).getJSONObject("d")
-            );
-            return Optional.ofNullable(apiParameter);
-        } catch (Exception e) {
-            String errorMsg = String.format("Couldn't fetch parameter with id %s and pid %s: %s", id, pid, e.getMessage());
-            log.error(errorMsg, e);
-            return Optional.empty();
+            log.warn("Rate limit exceeded. Retrying after {} milliseconds (attempt {}/{})", INITIAL_DELAY, attempt, MAX_ATTEMPTS);
+            TimeUnit.MILLISECONDS.sleep(INITIAL_DELAY);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            log.error("Retry sleep interrupted", ie);
         }
     }
 
