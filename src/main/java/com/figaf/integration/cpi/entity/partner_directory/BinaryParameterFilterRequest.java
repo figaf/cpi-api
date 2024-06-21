@@ -1,6 +1,5 @@
 package com.figaf.integration.cpi.entity.partner_directory;
 
-;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
