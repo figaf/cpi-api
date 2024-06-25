@@ -3,14 +3,13 @@ package com.figaf.integration.cpi.entity.partner_directory;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Base64;
 import java.util.Optional;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"value", "base64FormatValue"})
 @NoArgsConstructor
 public class BinaryParameterUpdateRequest {
 

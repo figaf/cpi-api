@@ -3,7 +3,6 @@ package com.figaf.integration.cpi.entity.partner_directory;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Base64;
 import java.util.Optional;
@@ -11,7 +10,7 @@ import java.util.Optional;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString
+@ToString(exclude = {"value", "base64FormatValue"})
 public class BinaryParameterCreationRequest {
 
     @JsonProperty("Id")
