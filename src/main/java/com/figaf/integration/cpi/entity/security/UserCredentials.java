@@ -11,17 +11,12 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@ToString
-public class UserCredentials {
+@ToString(callSuper = true)
+public class UserCredentials extends SecurityContent  {
 
-    private String name;
     private String kind;
-    private String description;
     private String user;
     private String password;
     private String companyId;
     private String type;
-    private String deployedBy;
-    private Date deployedOn;
-    private String status;
 }
