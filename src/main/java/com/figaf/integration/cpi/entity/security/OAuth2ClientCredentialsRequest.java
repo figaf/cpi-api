@@ -9,7 +9,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class OAuth2ClientCredentialsCreationRequest {
+public class OAuth2ClientCredentialsRequest {
 
     @JsonProperty("Name")
     private String name;

@@ -12,9 +12,9 @@ import java.util.Date;
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class UserCredentials extends SecurityContent  {
+public class UserCredentials extends SecurityContent {
 
-    private String kind;
+    private UserCredentialsKind kind;
     private String user;
     private String password;
     private String companyId;
