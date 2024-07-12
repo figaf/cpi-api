@@ -5,15 +5,20 @@ import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.common.utils.Utils;
 import com.figaf.integration.cpi.entity.security.*;
+import com.figaf.integration.cpi.entity.security.request.OAuth2ClientCredentialsRequest;
+import com.figaf.integration.cpi.entity.security.request.SecureParameterRequest;
+import com.figaf.integration.cpi.entity.security.request.UserCredentialsRequest;
 import com.figaf.integration.cpi.utils.CpiApiUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -131,6 +136,9 @@ public class SecurityContentClient extends CpiBaseClient {
                     return getUserCredentialsFromJson(userCredentialsJsonObject);
                 }
             );
+        } catch (HttpClientErrorException.NotFound ex) {
+            log.error("User credentials are not found by {}: {}", name, ExceptionUtils.getMessage(ex));
+            return null;
         } catch (Exception ex) {
             log.error("Error occurred while fetching user credentials " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while fetching user credentials: " + ex.getMessage(), ex);
@@ -149,6 +157,9 @@ public class SecurityContentClient extends CpiBaseClient {
                         return getOAuth2ClientCredentialsFromJson(oauth2ClientCredentialsJsonObject);
                     }
             );
+        } catch (HttpClientErrorException.NotFound ex) {
+            log.error("OAuth2 client credentials are not found by {}: {}", name, ExceptionUtils.getMessage(ex));
+            return null;
         } catch (Exception ex) {
             log.error("Error occurred while fetching OAuth2 client credentials " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while fetching OAuth2 client credentials: " + ex.getMessage(), ex);
@@ -167,6 +178,9 @@ public class SecurityContentClient extends CpiBaseClient {
                         return getSecureParameterFromJson(secureParameterJsonObject);
                     }
             );
+        } catch (HttpClientErrorException.NotFound ex) {
+            log.error("Secure parameter not found by {}: {}", name, ExceptionUtils.getMessage(ex));
+            return null;
         } catch (Exception ex) {
             log.error("Error occurred while fetching secure parameter " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while fetching secure parameter: " + ex.getMessage(), ex);

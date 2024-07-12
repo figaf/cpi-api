@@ -1,4 +1,4 @@
-package com.figaf.integration.cpi.entity.security;
+package com.figaf.integration.cpi.entity.security.request;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,14 +8,8 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
-public class OAuth2ClientCredentialsRequest {
-
-    @JsonProperty("Name")
-    private String name;
-
-    @JsonProperty("Description")
-    private String description;
+@ToString(callSuper = true, exclude = "clientSecret")
+public class OAuth2ClientCredentialsRequest extends SecurityContentRequest {
 
     @JsonProperty("TokenServiceUrl")
     private String tokenServiceUrl;

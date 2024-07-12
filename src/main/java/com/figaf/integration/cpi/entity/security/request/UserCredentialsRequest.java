@@ -1,24 +1,19 @@
-package com.figaf.integration.cpi.entity.security;
+package com.figaf.integration.cpi.entity.security.request;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.figaf.integration.cpi.entity.security.UserCredentialsKind;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
-public class UserCredentialsRequest {
-
-    @JsonProperty("Name")
-    private String name;
+@ToString(callSuper = true, exclude = "password")
+public class UserCredentialsRequest extends SecurityContentRequest {
 
     @JsonProperty("Kind")
     private UserCredentialsKind kind;
-
-    @JsonProperty("Description")
-    private String description;
 
     @JsonProperty("User")
     private String user;
