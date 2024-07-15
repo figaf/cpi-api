@@ -9,7 +9,6 @@ import com.figaf.integration.cpi.entity.runtime_artifacts.IntegrationContent;
 import com.figaf.integration.cpi.entity.runtime_artifacts.IntegrationContentErrorInformation;
 import com.figaf.integration.cpi.utils.CpiApiUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,7 +55,7 @@ public class IntegrationContentClient extends CpiBaseClient {
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching integration runtime artifacts " + ex.getMessage(), ex);
-            throw new RuntimeException("Error occurred while fetching integration runtime artifacts: " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while fetching integration runtime artifacts: " + ex.getMessage(), ex);
         }
     }
 
@@ -75,7 +74,7 @@ public class IntegrationContentClient extends CpiBaseClient {
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching integration runtime artifact " + ex.getMessage(), ex);
-            throw new RuntimeException("Error occurred while fetching integration runtime artifact: " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while fetching integration runtime artifact: " + ex.getMessage(), ex);
         }
     }
 
@@ -95,14 +94,14 @@ public class IntegrationContentClient extends CpiBaseClient {
                             return new IntegrationContentErrorInformation();
                         }
                         default: {
-                            throw new RuntimeException("Couldn't error information about runtime artifact GET request:\n" + responseEntity.getBody());
+                            throw new ClientIntegrationException("Couldn't error information about runtime artifact GET request:\n" + responseEntity.getBody());
                         }
                     }
                 }
             );
         } catch (Exception ex) {
             log.error("Error occurred while fetching error information about runtime artifact " + ex.getMessage(), ex);
-            throw new RuntimeException("Error occurred while fetching error information about runtime artifact: " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while fetching error information about runtime artifact: " + ex.getMessage(), ex);
         }
 
     }
@@ -131,7 +130,7 @@ public class IntegrationContentClient extends CpiBaseClient {
 
         } catch (Exception ex) {
             log.error("Error occurred while fetching integration design artifacts configurations " + ex.getMessage(), ex);
-            throw new RuntimeException("Error occurred while fetching integration design artifacts configurations: " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while fetching integration design artifacts configurations: " + ex.getMessage(), ex);
         }
 
     }

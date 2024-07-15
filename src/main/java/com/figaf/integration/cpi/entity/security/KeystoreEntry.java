@@ -10,7 +10,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class KeystoreEntry {
+public class KeystoreEntry extends SecurityContent {
 
     private String hexalias;
     private String alias;
