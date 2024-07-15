@@ -11,7 +11,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@ToString(callSuper = true)
+@ToString(callSuper = true, exclude = "password")
 public class UserCredentials extends SecurityContent {
 
     private UserCredentialsKind kind;

@@ -6,7 +6,7 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString(callSuper = true)
+@ToString(callSuper = true, exclude = "secureParam")
 public class SecureParameter extends SecurityContent {
 
     private String secureParam;

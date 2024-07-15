@@ -1,4 +1,4 @@
-package com.figaf.integration.cpi.entity.security;
+package com.figaf.integration.cpi.entity.security.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class SecureParameterRequest {
+public abstract class SecurityContentRequest {
 
     @JsonProperty("Name")
     private String name;
@@ -16,6 +16,4 @@ public class SecureParameterRequest {
     @JsonProperty("Description")
     private String description;
 
-    @JsonProperty("SecureParam")
-    private String secureParam;
 }

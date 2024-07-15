@@ -6,7 +6,7 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString(callSuper = true)
+@ToString(callSuper = true, exclude = "clientSecret")
 public class OAuth2ClientCredentials extends SecurityContent {
 
     private String tokenServiceUrl;
