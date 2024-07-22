@@ -72,7 +72,7 @@ class PartnerDirectoryClientTest {
     void test_retrieveBinaryParametersByFilter(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
-        List<PartnerDirectoryParameter> binaryParameters = partnerDirectoryClient.retrieveBinaryParametersMetadata(requestContext, new BinaryParameterFilterRequest("SAPERP~Invoice01~ERP"));
+        List<PartnerDirectoryParameter> binaryParameters = partnerDirectoryClient.retrieveBinaryParametersMetadata(requestContext, new PartnerDirectoryParameterFilterRequest("SAPERP~Invoice01~ERP"));
 
         assertThat(binaryParameters).as("binaryParameters fetched by filter shouldn't be empty").isNotEmpty();
     }
@@ -82,7 +82,7 @@ class PartnerDirectoryClientTest {
     void test_retrieveBinaryParameters(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
-        List<PartnerDirectoryParameter> binaryParameters = partnerDirectoryClient.retrieveBinaryParametersMetadata(requestContext, new BinaryParameterFilterRequest());
+        List<PartnerDirectoryParameter> binaryParameters = partnerDirectoryClient.retrieveBinaryParametersMetadata(requestContext, new PartnerDirectoryParameterFilterRequest());
 
         assertThat(binaryParameters).as("binaryParameters shouldn't be empty").isNotEmpty();
     }
@@ -92,7 +92,7 @@ class PartnerDirectoryClientTest {
     void test_retrieveStringParameters(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
-        List<PartnerDirectoryParameter> stringParameters = partnerDirectoryClient.retrieveStringParameters(requestContext);
+        List<PartnerDirectoryParameter> stringParameters = partnerDirectoryClient.retrieveStringParameters(requestContext, new PartnerDirectoryParameterFilterRequest());
 
         assertThat(stringParameters).as("stringParameters shouldn't be empty").isNotEmpty();
     }

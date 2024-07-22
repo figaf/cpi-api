@@ -18,6 +18,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.BINARY_PARAMETER;
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.STRING_PARAMETER;
 
@@ -30,13 +31,16 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         super(httpClientsFactory);
     }
 
-    public List<PartnerDirectoryParameter> retrieveBinaryParametersMetadata(RequestContext requestContext, BinaryParameterFilterRequest binaryParameterFilterRequest) {
-        log.debug("#retrieveBinaryParametersMetadata(RequestContext requestContext): {}", requestContext);
+    public List<PartnerDirectoryParameter> retrieveBinaryParametersMetadata(
+        RequestContext requestContext,
+        PartnerDirectoryParameterFilterRequest partnerDirectoryParameterFilterRequest
+    ) {
+        log.debug("#retrieveBinaryParametersMetadata(RequestContext requestContext, partnerDirectoryParameterFilterRequest): {}, {}", requestContext, partnerDirectoryParameterFilterRequest);
         JSONArray apiParameters;
         try {
             apiParameters = callRestWs(
                 requestContext,
-                String.format(API_BINARY_PARAMETERS_META_DATA, binaryParameterFilterRequest.createFilter()),
+                String.format(API_BINARY_PARAMETERS_META_DATA, partnerDirectoryParameterFilterRequest.createFilter()),
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
         } catch (Exception e) {
@@ -52,13 +56,13 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         return apiParameter.map(PartnerDirectoryParser::createBinaryParameter);
     }
 
-    public List<PartnerDirectoryParameter> retrieveStringParameters(RequestContext requestContext) {
+    public List<PartnerDirectoryParameter> retrieveStringParameters(RequestContext requestContext, PartnerDirectoryParameterFilterRequest partnerDirectoryParameterFilterRequest) {
         log.debug("#retrieveStringParameters(RequestContext requestContext): {}", requestContext);
         JSONArray apiParameters;
         try {
             apiParameters = callRestWs(
                 requestContext,
-                API_STRING_PARAMETERS,
+                String.format(API_STRING_PARAMETERS, partnerDirectoryParameterFilterRequest.createFilter()),
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
