@@ -5,7 +5,6 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.configuration.CpiConfigurations;
 import com.figaf.integration.cpi.response_parser.ConfigurationsParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 /**
@@ -31,10 +30,6 @@ public class ConfigurationsClient extends CpiBaseClient {
         }
 
         return executeGet(requestContext, path, ConfigurationsParser::parseConfigurationsFromJsonString);
-    }
-
-    private boolean isIntegrationSuiteHost(String host) {
-        return StringUtils.containsIgnoreCase(host, "integrationsuite");
     }
 
     @Override
