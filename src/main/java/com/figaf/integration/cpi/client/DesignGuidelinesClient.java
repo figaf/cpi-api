@@ -20,10 +20,10 @@ public class DesignGuidelinesClient extends CpiBaseClient {
     }
 
     public DesignGuidelines getDesignGuidelines(
+        RequestContext requestContext,
         String packageExternalId,
         String artifactExternalId,
-        String iFlowTechnicalName,
-        RequestContext requestContext
+        String iFlowTechnicalName
     ) {
         log.debug("#getConfigurations(RequestContext requestContext): {}", requestContext);
 

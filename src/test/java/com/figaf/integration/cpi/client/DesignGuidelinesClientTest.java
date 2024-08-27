@@ -41,10 +41,10 @@ class DesignGuidelinesClientTest {
         assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_IFLOW_NAME).isNotNull();
 
         DesignGuidelines designGuidelines = designGuidelinesClient.getDesignGuidelines(
+            requestContext,
             iFlow.getPackageExternalId(),
             iFlow.getExternalId(),
-            iFlow.getTechnicalName(),
-            requestContext
+            iFlow.getTechnicalName()
         );
 
         assertThat(designGuidelines).as("designGuidelines fetched shouldn't be empty").isNotNull();
