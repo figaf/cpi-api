@@ -10,7 +10,7 @@ import lombok.*;
 public class RuleResult {
 
     private String status;
-    private boolean isRuleSkipped;
+    private Boolean isRuleSkipped;
     private String ruleSkippedBy;
     private String ruleSkipComment;
     private String rulesetId;
