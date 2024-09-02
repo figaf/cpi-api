@@ -25,7 +25,13 @@ public class DesignGuidelinesClient extends CpiBaseClient {
         String artifactExternalId,
         String iFlowTechnicalName
     ) {
-        log.debug("#getConfigurations(RequestContext requestContext): {}", requestContext);
+        log.debug(
+            "#getDesignGuidelines: requestContext={}, packageExternalId={}, artifactExternalId={}, iFlowTechnicalName={}",
+            requestContext,
+            packageExternalId,
+            artifactExternalId,
+            iFlowTechnicalName
+        );
 
         String path;
         String apiRetrieveDesignGuidelines = String.format(
