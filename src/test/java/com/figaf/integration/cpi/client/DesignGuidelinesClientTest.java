@@ -35,18 +35,18 @@ class DesignGuidelinesClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_retrieveBinaryParametersByFilter(AgentTestData agentTestData) {
+    void test_executeDesignGuidelines(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         CpiArtifact iFlow = iFlowUtils.findTestIFlowInTestPackageIfExist(requestContext);
         assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_IFLOW_NAME).isNotNull();
 
-        DesignGuidelines designGuidelines = designGuidelinesClient.getDesignGuidelines(
+        DesignGuidelines designGuidelines = designGuidelinesClient.executeDesignGuidelines(
             requestContext,
             iFlow.getPackageExternalId(),
             iFlow.getExternalId(),
             iFlow.getTechnicalName()
         );
 
-        assertThat(designGuidelines).as("designGuidelines fetched shouldn't be empty").isNotNull();
+        assertThat(designGuidelines).as("failed to execute Design Guidelines").isNotNull();
     }
 }
