@@ -4,18 +4,21 @@ import com.figaf.integration.common.data_provider.AgentTestData;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
-import com.figaf.integration.cpi.entity.designtime_artifacts.*;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdatePackageRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import com.figaf.integration.cpi.entity.runtime_artifacts.CpiExternalConfiguration;
 import com.figaf.integration.cpi.entity.runtime_artifacts.IntegrationContent;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
+import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,7 +72,7 @@ class CommonCpiApiTest {
     void test_testPrivateApiWrite(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
-        List<IntegrationPackage> integrationPackages = integrationPackageClient.getIntegrationPackages(requestContext, "TechnicalName eq 'Figaftest2'");
+        List<IntegrationPackage> integrationPackages = integrationPackageClient.getIntegrationPackages(requestContext, format("TechnicalName eq '%s'", API_TEST_PACKAGE_NAME));
         assertThat(integrationPackages).isNotEmpty();
         IntegrationPackage integrationPackage = integrationPackages.get(0);
 

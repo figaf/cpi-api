@@ -116,6 +116,7 @@ public class ValueMappingUtils {
             .name(valueMappingName)
             .description("Value Mapping for api tests")
             .packageExternalId(packageExternalId)
+            .packageTechnicalName(API_TEST_PACKAGE_NAME)
             .bundledModel(payload)
             .build();
         cpiValueMappingClient.createValueMapping(requestContext, createValueMappingRequest);

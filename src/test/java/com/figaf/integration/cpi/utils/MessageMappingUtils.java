@@ -116,6 +116,7 @@ public class MessageMappingUtils {
             .name(messageMappingName)
             .description("Message mapping for api tests")
             .packageExternalId(packageExternalId)
+            .packageTechnicalName(API_TEST_PACKAGE_NAME)
             .bundledModel(payload)
             .build();
         cpiMessageMappingClient.createMessageMapping(requestContext, createMessageMappingRequest);

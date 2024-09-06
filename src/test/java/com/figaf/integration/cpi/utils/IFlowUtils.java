@@ -110,6 +110,7 @@ public class IFlowUtils {
             .id(iFlowName)
             .name(iFlowName)
             .description("IFlow for api tests")
+            .packageTechnicalName(API_TEST_PACKAGE_NAME)
             .packageExternalId(packageExternalId)
             .bundledModel(payload)
             .build();

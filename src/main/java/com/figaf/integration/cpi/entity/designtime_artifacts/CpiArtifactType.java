@@ -15,7 +15,8 @@ public enum CpiArtifactType {
     ODATA_API("CPI_ODATA_API", "OData Service"),
     SCRIPT_COLLECTION("SCRIPT_COLLECTION", "ScriptCollection"),
     MESSAGE_MAPPING("CPI_MESSAGE_MAPPING", "MessageMapping"),
-    FUNCTION_LIBRARIES("CPI_FUNCTION_LIBRARIES", "FunctionLibraries");
+    FUNCTION_LIBRARIES("CPI_FUNCTION_LIBRARIES", "FunctionLibraries"),
+    IMPORTED_ARCHIVES("CPI_IMPORTED_ARCHIVES", "ImportedArchives");
 
     private final String trackedObjectType;
     private final String queryTitle;
