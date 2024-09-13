@@ -4,13 +4,18 @@ plugins {
 }
 
 group = 'com.github.figaf'
-version = '2.33-rev2-SNAPSHOT'
+version = '3.0-SNAPSHOT'
 
 ext {
     enableSnapshotsForDependencyResolutionAndPublishing = project.findProperty('enableSnapshots') ?: 'false'
     snapshotsRepoUrl = project.findProperty('snapshotsRepoUrl') ?: ''
     snapshotsRepoUsername = project.findProperty('snapshotsRepoUsername') ?: ''
     snapshotsRepoPassword = project.findProperty('snapshotsRepoPassword') ?: ''
+
+    lombokVersion = '1.18.34'
+    gsonVersion = '2.11.0'
+    integrationCommonsVersion = '2.0-SNAPSHOT'
+    integrationCommonsTestVersion = '2.0-SNAPSHOT'
 }
 
 repositories {
@@ -31,27 +36,19 @@ repositories {
 
 dependencies {
 
-    compileOnly 'org.projectlombok:lombok:1.18.8'
-    annotationProcessor 'org.projectlombok:lombok:1.18.8'
-    testCompileOnly 'org.projectlombok:lombok:1.18.8'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.8'
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
-    api 'com.github.figaf:integration-commons:1.28'
-    implementation ('org.slf4j:slf4j-api') {
-        version {
-            strictly '1.7.25'
-        }
-    }
-    implementation 'org.apache.httpcomponents:httpmime:4.5.3'
-    implementation 'com.google.code.gson:gson:2.10'
+    api "com.github.figaf:integration-commons:${integrationCommonsVersion}"
+    implementation "com.google.code.gson:gson:${gsonVersion}"
 
-    testImplementation 'com.github.figaf:integration-commons-test:1.4'
-    testImplementation 'org.assertj:assertj-core:3.18.0'
-    testImplementation 'org.mockito:mockito-core:3.6.0'
-    testImplementation 'org.mockito:mockito-junit-jupiter:3.6.0'
-    testImplementation 'ch.qos.logback:logback-classic:1.2.3'
+    testImplementation "com.github.figaf:integration-commons-test:${integrationCommonsTestVersion}"
+}
 
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+java {
+    withSourcesJar()
 }
 
 test {

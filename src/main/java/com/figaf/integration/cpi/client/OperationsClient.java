@@ -11,12 +11,10 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.monitoring.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.slf4j.Logger;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
@@ -24,6 +22,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+
+import static java.lang.String.format;
 
 /**
  * @author Arsenii Istlentev
@@ -63,7 +63,6 @@ public class OperationsClient extends CpiBaseClient {
             .encode()
             .toUri();
 
-        HttpResponse participantListHttpResponse = null;
         try {
 
             ParticipantListCommandRequest participantListCommandRequest = new ParticipantListCommandRequest();
@@ -74,25 +73,22 @@ public class OperationsClient extends CpiBaseClient {
             createPackageRequest.setHeader(createCsrfTokenHeader(csrfToken));
             createPackageRequest.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_XML));
 
-            participantListHttpResponse = client.execute(createPackageRequest);
-
-            if (participantListHttpResponse.getStatusLine().getStatusCode() == 200) {
-                String responseBody = IOUtils.toString(participantListHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
-                ParticipantListCommandResponse participantListCommandResponse = xmlObjectMapper.readValue(responseBody, ParticipantListCommandResponse.class);
-                return participantListCommandResponse;
-            } else {
-                throw new ClientIntegrationException(String.format(
-                    "Couldn't get participantListCommandResponse. Code: %d, Message: %s",
-                    participantListHttpResponse.getStatusLine().getStatusCode(),
-                    IOUtils.toString(participantListHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
-                );
-            }
+            return client.execute(createPackageRequest, participantListHttpResponse -> {
+                if (participantListHttpResponse.getCode() == 200) {
+                    String responseBody = IOUtils.toString(participantListHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+                    return xmlObjectMapper.readValue(responseBody, ParticipantListCommandResponse.class);
+                } else {
+                    throw new ClientIntegrationException(format(
+                        "Couldn't get participantListCommandResponse. Code: %d, Message: %s",
+                        participantListHttpResponse.getCode(),
+                        IOUtils.toString(participantListHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
+                    );
+                }
+            });
 
         } catch (Exception ex) {
             log.error("Error occurred while getting participantListCommandResponse: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while getting participantListCommandResponse: " + ex.getMessage(), ex);
-        } finally {
-            HttpClientUtils.closeQuietly(participantListHttpResponse);
         }
     }
 
@@ -105,9 +101,7 @@ public class OperationsClient extends CpiBaseClient {
             .encode()
             .toUri();
 
-        HttpResponse nodeProcessStatisticCommandHttpResponse = null;
         try {
-
             String requestBody = xmlObjectMapper.writeValueAsString(nodeProcessStatisticCommandRequest);
 
             HttpPost nodeProcessStatisticCommandHttpRequest = new HttpPost(uri);
@@ -115,25 +109,22 @@ public class OperationsClient extends CpiBaseClient {
             nodeProcessStatisticCommandHttpRequest.setHeader(createCsrfTokenHeader(csrfToken));
             nodeProcessStatisticCommandHttpRequest.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_XML));
 
-            nodeProcessStatisticCommandHttpResponse = client.execute(nodeProcessStatisticCommandHttpRequest);
-
-            if (nodeProcessStatisticCommandHttpResponse.getStatusLine().getStatusCode() == 200) {
-                String responseBody = IOUtils.toString(nodeProcessStatisticCommandHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
-                NodeProcessStatisticCommandResponse nodeProcessStatisticCommandResponse = xmlObjectMapper.readValue(responseBody, NodeProcessStatisticCommandResponse.class);
-                return nodeProcessStatisticCommandResponse;
-            } else {
-                throw new ClientIntegrationException(String.format(
-                    "Couldn't get nodeProcessStatisticCommandResponse. Code: %d, Message: %s",
-                    nodeProcessStatisticCommandHttpResponse.getStatusLine().getStatusCode(),
-                    IOUtils.toString(nodeProcessStatisticCommandHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
-                );
-            }
+            return client.execute(nodeProcessStatisticCommandHttpRequest, nodeProcessStatisticCommandHttpResponse -> {
+                if (nodeProcessStatisticCommandHttpResponse.getCode() == 200) {
+                    String responseBody = IOUtils.toString(nodeProcessStatisticCommandHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+                    return xmlObjectMapper.readValue(responseBody, NodeProcessStatisticCommandResponse.class);
+                } else {
+                    throw new ClientIntegrationException(format(
+                        "Couldn't get nodeProcessStatisticCommandResponse. Code: %d, Message: %s",
+                        nodeProcessStatisticCommandHttpResponse.getCode(),
+                        IOUtils.toString(nodeProcessStatisticCommandHttpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
+                    );
+                }
+            });
 
         } catch (Exception ex) {
             log.error("Error occurred while getting nodeProcessStatisticCommandHttpResponse: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while getting nodeProcessStatisticCommandHttpResponse: " + ex.getMessage(), ex);
-        } finally {
-            HttpClientUtils.closeQuietly(nodeProcessStatisticCommandHttpResponse);
         }
     }
 
@@ -147,12 +138,10 @@ public class OperationsClient extends CpiBaseClient {
 
             ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 
-
             if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-                StatisticOverviewCommandResponse statisticOverviewCommandResponse = xmlObjectMapper.readValue(responseEntity.getBody(), StatisticOverviewCommandResponse.class);
-                return statisticOverviewCommandResponse;
+                return xmlObjectMapper.readValue(responseEntity.getBody(), StatisticOverviewCommandResponse.class);
             } else {
-                throw new ClientIntegrationException(String.format(
+                throw new ClientIntegrationException(format(
                     "Couldn't get statisticOverviewCommandResponse. Code: %d, Message: %s",
                     responseEntity.getStatusCode().value(),
                     requestEntity.getBody())
