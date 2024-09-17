@@ -113,6 +113,7 @@ public class FunctionLibrariesUtils {
             .name(functionLibrariesName)
             .description("Function libraries for api tests")
             .packageExternalId(packageExternalId)
+            .packageTechnicalName(API_TEST_PACKAGE_NAME)
             .bundledModel(payload)
             .build();
         cpiFunctionLibrariesClient.createFunctionLibraries(requestContext, createFunctionLibrariesRequest);

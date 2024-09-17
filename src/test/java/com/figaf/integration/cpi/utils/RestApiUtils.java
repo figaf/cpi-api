@@ -116,6 +116,7 @@ public class RestApiUtils {
             .name(restApiName)
             .description("Rest Api for api tests")
             .packageExternalId(packageExternalId)
+            .packageTechnicalName(API_TEST_PACKAGE_NAME)
             .bundledModel(payload)
             .build();
         cpiRestAndSoapApiClient.createRestApi(requestContext, createOrUpdateRestApiRequest);

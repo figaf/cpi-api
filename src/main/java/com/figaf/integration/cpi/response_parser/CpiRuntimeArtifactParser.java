@@ -75,7 +75,8 @@ public class CpiRuntimeArtifactParser {
             case IFLOW:
             case REST_API:
             case SCRIPT_COLLECTION:
-            case FUNCTION_LIBRARIES: {
+            case FUNCTION_LIBRARIES:
+            case IMPORTED_ARCHIVES: {
                 JSONObject jsonObject = new JSONObject(result);
                 String taskId = jsonObject.optString("taskId");
                 if (StringUtils.isNotEmpty(taskId)) {

@@ -1,9 +1,9 @@
 package com.figaf.integration.cpi.utils;
 
 import com.figaf.integration.common.entity.RequestContext;
-import com.figaf.integration.cpi.client.CpiScriptCollectionClient;
+import com.figaf.integration.cpi.client.CpiImportedArchivesClient;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
-import com.figaf.integration.cpi.entity.designtime_artifacts.CreateScriptCollectionRequest;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateImportedArchivesRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,117 +15,114 @@ import java.util.List;
 import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author Klochkov Sergey
- */
 @AllArgsConstructor
 @Slf4j
-public class ScriptCollectionUtils {
+public class ImportedArchivesUtils {
 
-    public static final String API_TEST_SCRIPT_COLLECTION_NAME = "FigafApiTestScriptCollection";
-    public static final String API_TEST_DUMMY_SCRIPT_COLLECTION_NAME = "FigafApiTestDummyScriptCollection";
+    public static final String API_TEST_IMPORTED_ARCHIVES_NAME = "FigafApiTestImportedArchives";
+    public static final String API_TEST_DUMMY_IMPORTED_ARCHIVES_NAME = "FigafApiTestDummyImportedArchives";
 
     private final PackageUtils packageUtils;
-    private final CpiScriptCollectionClient cpiScriptCollectionClient;
+    private final CpiImportedArchivesClient cpiImportedArchivesClient;
 
-    public CpiArtifact findTestScriptCollectionInTestPackageIfExist(RequestContext requestContext) {
+    public CpiArtifact findTestImportedArchivesInTestPackageIfExist(RequestContext requestContext) {
         IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-        return findScriptCollectionIfExist(
+        return findImportedArchivesIfExist(
             requestContext,
             API_TEST_PACKAGE_NAME,
             API_TEST_PACKAGE_NAME,
             integrationPackage.getExternalId(),
-            API_TEST_SCRIPT_COLLECTION_NAME
+            API_TEST_IMPORTED_ARCHIVES_NAME
         );
     }
 
-    public CpiArtifact findDummyScriptCollectionInTestPackageIfExist(RequestContext requestContext) {
+    public CpiArtifact findDummyImportedArchivesInTestPackageIfExist(RequestContext requestContext) {
         IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
-        return findScriptCollectionIfExist(
+        return findImportedArchivesIfExist(
             requestContext,
             API_TEST_PACKAGE_NAME,
             API_TEST_PACKAGE_NAME,
             integrationPackage.getExternalId(),
-            API_TEST_DUMMY_SCRIPT_COLLECTION_NAME
+            API_TEST_DUMMY_IMPORTED_ARCHIVES_NAME
         );
     }
 
-    public CpiArtifact createDummyScriptCollectionInTestPackage(RequestContext requestContext) throws IOException {
+    public CpiArtifact createDummyImportedArchivesInTestPackage(RequestContext requestContext) throws IOException {
         IntegrationPackage integrationPackage = packageUtils.findTestPackageIfExist(requestContext);
         assertThat(integrationPackage).as("Package %s wasn't found", API_TEST_PACKAGE_NAME).isNotNull();
         byte[] payload = IOUtils.toByteArray(
-            this.getClass().getClassLoader().getResource("client/FigafApiTestDummyScriptCollectionUpdated.zip")
+            this.getClass().getClassLoader().getResource("client/FigafApiTestDummyImportedArchivesUpdated.zip")
         );
-        return createScriptCollection(
+        return createImportedArchives(
             requestContext,
             integrationPackage.getTechnicalName(),
             integrationPackage.getDisplayedName(),
             integrationPackage.getExternalId(),
-            API_TEST_DUMMY_SCRIPT_COLLECTION_NAME,
+            API_TEST_DUMMY_IMPORTED_ARCHIVES_NAME,
             payload
         );
     }
 
-    public CpiArtifact getOrCreateDummyScriptCollection(RequestContext requestContext) throws IOException {
-        CpiArtifact scriptCollection = findDummyScriptCollectionInTestPackageIfExist(requestContext);
-        if (scriptCollection == null) {
-            scriptCollection = createDummyScriptCollectionInTestPackage(requestContext);
+    public CpiArtifact getOrCreateDummyImportedArchives(RequestContext requestContext) throws IOException {
+        CpiArtifact importedArchives = findDummyImportedArchivesInTestPackageIfExist(requestContext);
+        if (importedArchives == null) {
+            importedArchives = createDummyImportedArchivesInTestPackage(requestContext);
         }
-        return scriptCollection;
+        return importedArchives;
     }
 
-    public void deleteScriptCollection(RequestContext requestContext, CpiArtifact scriptCollection) {
-        cpiScriptCollectionClient.deleteScriptCollection(
-            scriptCollection.getPackageExternalId(),
-            scriptCollection.getExternalId(),
-            scriptCollection.getTechnicalName(),
+    public void deleteImportedArchives(RequestContext requestContext, CpiArtifact importedArchives) {
+        cpiImportedArchivesClient.deleteArtifact(
+            importedArchives.getPackageExternalId(),
+            importedArchives.getExternalId(),
+            importedArchives.getTechnicalName(),
             requestContext
         );
     }
 
-    private CpiArtifact findScriptCollectionIfExist(
+    private CpiArtifact findImportedArchivesIfExist(
         RequestContext requestContext,
         String packageTechnicalName,
         String packageDisplayedName,
         String packageExternalId,
-        String scriptCollectionName
+        String importedArchivesName
     ) {
-        List<CpiArtifact> artifacts = cpiScriptCollectionClient.getScriptCollectionsByPackage(
+        List<CpiArtifact> artifacts = cpiImportedArchivesClient.getImportedArchivesByPackage(
             requestContext,
             packageTechnicalName,
             packageDisplayedName,
             packageExternalId
         );
 
-        return artifacts.stream().filter(cpiArtifact -> scriptCollectionName.equals(cpiArtifact.getTechnicalName()))
+        return artifacts.stream().filter(cpiArtifact -> importedArchivesName.equals(cpiArtifact.getTechnicalName()))
             .findFirst().orElse(null);
     }
 
-    private CpiArtifact createScriptCollection(
+    private CpiArtifact createImportedArchives(
         RequestContext requestContext,
         String packageTechnicalName,
         String packageDisplayedName,
         String packageExternalId,
-        String scriptCollectionName,
+        String importedArchivesName,
         byte[] payload
     ) {
-        CreateScriptCollectionRequest createScriptCollectionRequest = CreateScriptCollectionRequest.builder()
-            .id(scriptCollectionName)
-            .name(scriptCollectionName)
-            .description("Script Collection for api tests")
+        CreateImportedArchivesRequest createImportedArchivesRequest = CreateImportedArchivesRequest.builder()
+            .id(importedArchivesName)
+            .name(importedArchivesName)
+            .description("Imported archives for api tests")
             .packageExternalId(packageExternalId)
             .packageTechnicalName(API_TEST_PACKAGE_NAME)
             .bundledModel(payload)
             .build();
-        cpiScriptCollectionClient.createScriptCollection(requestContext, createScriptCollectionRequest);
-        return findScriptCollectionIfExist(
+        cpiImportedArchivesClient.createImportedArchives(requestContext, createImportedArchivesRequest);
+        return findImportedArchivesIfExist(
             requestContext,
             packageTechnicalName,
             packageDisplayedName,
             packageExternalId,
-            scriptCollectionName
+            importedArchivesName
         );
     }
 
