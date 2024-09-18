@@ -32,7 +32,7 @@ import static java.lang.String.format;
  * @author Arsenii Istlentev
  */
 @Slf4j
-public class MessageProcessingLogClient extends CpiBaseClient {
+public class MessageProcessingLogClient extends AbstractMessageProcessingLogClient {
 
     private final static int MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION = 500;
     private final static FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
@@ -236,26 +236,6 @@ public class MessageProcessingLogClient extends CpiBaseClient {
         }
     }
 
-    private Pair<List<MessageProcessingLog>, Integer> extractMplsAndCountFromResponse(JSONObject jsonObjectD) {
-        String totalCountString = optString(jsonObjectD, "__count");
-        Integer totalMessagesCount = null;
-        if (NumberUtils.isCreatable(totalCountString)) {
-            totalMessagesCount = NumberUtils.toInt(totalCountString);
-        }
-
-        JSONArray messageProcessingLogsJsonArray = jsonObjectD.getJSONArray("results");
-        List<MessageProcessingLog> messageProcessingLogs = new ArrayList<>();
-
-        for (int ind = 0; ind < messageProcessingLogsJsonArray.length(); ind++) {
-            JSONObject messageProcessingLogElement = messageProcessingLogsJsonArray.getJSONObject(ind);
-
-            MessageProcessingLog messageProcessingLog = MessageProcessingLogParser.fillMessageProcessingLog(messageProcessingLogElement);
-            messageProcessingLogs.add(messageProcessingLog);
-        }
-
-        return new MutablePair<>(messageProcessingLogs, totalMessagesCount);
-    }
-
     public List<CustomHeaderProperty> getCustomHeaderProperties(RequestContext requestContext, String messageGuid) {
         log.debug("#getCustomHeaderProperties(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
         String resourcePath = format("/api/v1/MessageProcessingLogs('%s')/CustomHeaderProperties?$format=json", messageGuid);
@@ -269,18 +249,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
             );
 
             JSONArray jsonArray = jsonObjectD.getJSONArray("results");
-            List<CustomHeaderProperty> customHeaderPropertyList = new ArrayList<>();
-
-            for (int ind = 0; ind < jsonArray.length(); ind++) {
-                JSONObject customHeaderObject = jsonArray.getJSONObject(ind);
-                CustomHeaderProperty customHeaderProperty = new CustomHeaderProperty();
-                customHeaderProperty.setId(optString(customHeaderObject, "Id"));
-                customHeaderProperty.setName(optString(customHeaderObject, "Name"));
-                customHeaderProperty.setValue(optString(customHeaderObject, "Value"));
-                customHeaderPropertyList.add(customHeaderProperty);
-            }
-
-            return customHeaderPropertyList;
+            return createCustomHeaderProperties(jsonArray);
 
         } catch (JSONException ex) {
             log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
@@ -360,26 +329,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
-            List<MessageProcessingLogAttachment> attachments = new ArrayList<>();
-
-            for (int ind = 0; ind < attachmentsJsonArray.length(); ind++) {
-                JSONObject attachmentElement = attachmentsJsonArray.getJSONObject(ind);
-
-                MessageProcessingLogAttachment attachment = new MessageProcessingLogAttachment();
-                attachment.setId(optString(attachmentElement, "Id"));
-                attachment.setMessageGuid(optString(attachmentElement, "MessageGuid"));
-                attachment.setDate(CpiApiUtils.parseDate(optString(attachmentElement, "TimeStamp")));
-                attachment.setName(optString(attachmentElement, "Name"));
-                attachment.setContentType(optString(attachmentElement, "ContentType"));
-                String payloadSizeString = optString(attachmentElement, "PayloadSize");
-                if (NumberUtils.isCreatable(payloadSizeString)) {
-                    attachment.setPayloadSize(NumberUtils.toInt(payloadSizeString));
-                }
-
-                attachments.add(attachment);
-            }
-
-            return attachments;
+            return createMessageProcessingLogAttachmentsForAttachments(attachmentsJsonArray);
         } catch (JSONException ex) {
             log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
@@ -397,24 +347,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
-            List<MessageProcessingLogAttachment> attachments = new ArrayList<>();
-
-            for (int ind = 0; ind < attachmentsJsonArray.length(); ind++) {
-                JSONObject attachmentElement = attachmentsJsonArray.getJSONObject(ind);
-
-                MessageProcessingLogAttachment attachment = new MessageProcessingLogAttachment();
-                attachment.setId(optString(attachmentElement, "Id"));
-                attachment.setMessageGuid(optString(attachmentElement, "MessageGuid"));
-                attachment.setDate(CpiApiUtils.parseDate(optString(attachmentElement, "TimeStamp")));
-                attachment.setMessageStoreId(optString(attachmentElement, "MessageStoreId"));
-                attachment.setName(format("%s-%s", attachment.getMessageStoreId(), attachment.getId().replace("sap-it-res:msg:", "")));
-                attachment.setContentType("Persisted payload");
-                attachment.setAttachmentType(AdditionalPayloadType.PERSISTED_MESSAGE);
-
-                attachments.add(attachment);
-            }
-
-            return attachments;
+            return createMessageProcessingLogAttachmentsForPayloads(attachmentsJsonArray);
         } catch (JSONException ex) {
             log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
@@ -514,24 +447,7 @@ public class MessageProcessingLogClient extends CpiBaseClient {
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
-            List<MessageProcessingLogRun> runs = new ArrayList<>();
-
-            for (int ind = 0; ind < runsJsonArray.length(); ind++) {
-                JSONObject runElement = runsJsonArray.getJSONObject(ind);
-
-                MessageProcessingLogRun run = new MessageProcessingLogRun();
-                run.setId(optString(runElement, "Id"));
-                run.setRunStart(CpiApiUtils.parseDate(optString(runElement, "RunStart")));
-                run.setRunStop(CpiApiUtils.parseDate(optString(runElement, "RunStop")));
-                run.setLogLevel(optString(runElement, "LogLevel"));
-                run.setOverallState(optString(runElement, "OverallState"));
-                run.setProcessId(optString(runElement, "ProcessId"));
-                run.setMessageProcessingLogId(messageGuid);
-
-                runs.add(run);
-            }
-
-            return runs;
+            return createMessageProcessingLogAttachmentsForRuns(runsJsonArray, messageGuid);
         } catch (JSONException ex) {
             log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
