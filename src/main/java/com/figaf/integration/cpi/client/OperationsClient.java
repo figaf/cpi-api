@@ -23,7 +23,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 /**
- * @author Kostas Charalambous
+ * @author Arsenii Istlentev
  */
 @Slf4j
 public class OperationsClient extends CpiBaseClient {

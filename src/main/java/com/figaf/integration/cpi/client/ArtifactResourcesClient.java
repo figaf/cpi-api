@@ -40,7 +40,7 @@ public class ArtifactResourcesClient extends CpiBaseClient {
         String externalIFlowId,
         String queryTitle
     ) {
-        log.debug("#IFlowResourcesClient(RequestContext requestContext, String externalPackageId, String externalIFlowId, String queryTitle): " +
+        log.debug("#getArtifactResources(RequestContext requestContext, String externalPackageId, String externalIFlowId, String queryTitle): " +
             "{}, {}, {}, {}", requestContext, externalPackageId, externalIFlowId, queryTitle);
         String path = String.format(API_ARTIFACT_RESOURCES, externalPackageId, externalIFlowId, externalIFlowId, queryTitle);
         return executeGet(requestContext, path, ArtifactResourcesParser::buildArtifactResources);

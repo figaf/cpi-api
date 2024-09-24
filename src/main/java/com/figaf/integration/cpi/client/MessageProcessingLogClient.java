@@ -3,7 +3,6 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
-import com.figaf.integration.cpi.entity.AdditionalPayloadType;
 import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
 import com.figaf.integration.cpi.entity.message_processing.*;
 import com.figaf.integration.cpi.response_parser.MessageProcessingLogParser;
@@ -26,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.figaf.integration.cpi.response_parser.MessageProcessingLogParser.*;
 import static java.lang.String.format;
 
 /**
@@ -35,6 +35,7 @@ import static java.lang.String.format;
 public class MessageProcessingLogClient extends AbstractMessageProcessingLogClient {
 
     private final static int MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION = 500;
+
     private final static FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
         "yyyy-MM-dd'T'HH:mm:ss.SSS",
         TimeZone.getTimeZone("GMT")
@@ -52,7 +53,7 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
 
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate) {
         log.debug("#getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
-        String resourcePath = format(API_MSG_PROC_LOGS,
+        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
             format("IntegrationFlowName eq '%s' and LogStart gt datetime'%s'",
                 integrationFlowName,
                 GMT_DATE_FORMAT.format(startDate)
@@ -63,7 +64,7 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
 
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
         log.debug("#getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
-        String resourcePath = format(API_MSG_PROC_LOGS,
+        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
             format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
                 integrationFlowName,
                 GMT_DATE_FORMAT.format(startDate),
@@ -76,7 +77,7 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate) {
         log.debug("#getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate): {}, {}, {}", requestContext, technicalNames, startDate);
         String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
-        String resourcePath = format(API_MSG_PROC_LOGS,
+        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
             format("LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
                 technicalNamesFilter,
                 GMT_DATE_FORMAT.format(startDate),
@@ -101,7 +102,7 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
             params.add(format("MessageGuid eq '%s'", messageGuid));
         }
 
-        String resourcePath = expandCustomHeaders ? API_MSG_PROC_LOGS + "&$expand=CustomHeaderProperties" : API_MSG_PROC_LOGS;
+        String resourcePath = expandCustomHeaders ? API_MSG_PROC_LOGS_WITH_PARAMS + "&$expand=CustomHeaderProperties" : API_MSG_PROC_LOGS_WITH_PARAMS;
 
         return getMessageProcessingLogs(
             requestContext,
@@ -119,7 +120,7 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
 
         return getMessageProcessingLogs(
             requestContext,
-            format(API_MSG_PROC_LOGS, StringUtils.join(params, " or "))
+            format(API_MSG_PROC_LOGS_WITH_PARAMS, StringUtils.join(params, " or "))
         );
     }
 
@@ -147,7 +148,7 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
             expandCustomHeaders,
             requestContext
         );
-        String resourcePath = String.format(API_MSG_PROC_LOGS,
+        String resourcePath = String.format(API_MSG_PROC_LOGS_WITH_PARAMS,
             format("%s and LogEnd ge datetime'%s'",
                 filter.contains("or") ? format("(%s)", filter) : filter,
                 GMT_DATE_FORMAT.format(leftBoundDate))
@@ -166,7 +167,7 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
         log.debug("#getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId): {}, {}", requestContext, correlationId);
-        String resourcePath = format(API_MSG_PROC_LOGS,
+        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
             format("CorrelationId eq '%s'", correlationId)
         );
         return getMessageProcessingLogs(requestContext, resourcePath);
@@ -176,7 +177,7 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
         log.debug("#getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames): {}, {}, {}", requestContext, correlationIds, technicalNames);
         String correlationIdsFilter = buildCorrelationIdsFilter(correlationIds);
         String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
-        String resourcePath = format(API_MSG_PROC_LOGS,
+        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
             format("(%s) and (%s)", correlationIdsFilter, technicalNamesFilter)
         );
         return getMessageProcessingLogs(requestContext, resourcePath);
@@ -283,16 +284,7 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
-            List<MessageProcessingLog> messageProcessingLogs = new ArrayList<>();
-
-            for (int ind = 0; ind < messageProcessingLogsJsonArray.length(); ind++) {
-                JSONObject messageProcessingLogElement = messageProcessingLogsJsonArray.getJSONObject(ind);
-
-                MessageProcessingLog messageProcessingLog = MessageProcessingLogParser.fillMessageProcessingLog(messageProcessingLogElement);
-                messageProcessingLogs.add(messageProcessingLog);
-            }
-
-            return messageProcessingLogs;
+            return createMessageProcessingLogsFromArray(messageProcessingLogsJsonArray);
 
         } catch (JSONException ex) {
             log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
@@ -698,6 +690,16 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
             log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
         }
+    }
+
+    private Pair<List<MessageProcessingLog>, Integer> extractMplsAndCountFromResponse(JSONObject jsonObjectD) {
+        String totalCountString = optString(jsonObjectD, "__count");
+        Integer totalMessagesCount = null;
+        if (NumberUtils.isCreatable(totalCountString)) {
+            totalMessagesCount = NumberUtils.toInt(totalCountString);
+        }
+        JSONArray messageProcessingLogsJsonArray = jsonObjectD.getJSONArray("results");
+        return new MutablePair<>(createMessageProcessingLogsFromArray(messageProcessingLogsJsonArray), totalMessagesCount);
     }
 
     @Override

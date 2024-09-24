@@ -93,24 +93,6 @@ public abstract class CpiBaseClient extends BaseClient {
     Request Method: UNLOCK
      */
 
-    protected static final String API_MSG_PROC_LOGS = "/api/v1/MessageProcessingLogs?$format=json&$orderby=LogEnd&$filter=%s";
-    protected static final String API_MSG_PROC_LOGS_ID = "/api/v1/MessageProcessingLogs('%s')?$format=json";
-    protected static final String API_MSG_PROC_LOGS_ORDERED = "/api/v1/MessageProcessingLogs?$inlinecount=allpages&$format=json&$top=%d&$orderby=LogEnd&$filter=%s";
-    protected static final String API_MSG_PROC_LOGS_PAGINATED_WITH_SELECTED_RESPONSE_FIELDS = "/api/v1/MessageProcessingLogs?$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s&$select=%s";
-    protected static final String API_MSG_PROC_LOGS_PAGINATED = "/api/v1/MessageProcessingLogs?$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s";
-    protected static final String API_MSG_PROC_LOGS_ATTACHMENTS = "/api/v1/MessageProcessingLogs('%s')/Attachments?$format=json";
-    protected static final String API_MSG_PROC_LOGS_MESSAGE_STORE_ENTRIES = "/api/v1/MessageProcessingLogs('%s')/MessageStoreEntries?$format=json";
-    protected static final String API_MSG_PROC_LOGS_ERROR_INFORMATION = "/api/v1/MessageProcessingLogs('%s')/ErrorInformation?$format=json";
-    protected static final String API_MSG_PROC_LOGS_ERROR_INFORMATION_VALUE = "/api/v1/MessageProcessingLogs('%s')/ErrorInformation/$value";
-    protected static final String API_MSG_PROC_LOG_ATTACHMENT = "/api/v1/MessageProcessingLogAttachments('%s')/$value";
-    protected static final String API_MSG_PROC_LOGS_RUNS = "/api/v1/MessageProcessingLogs('%s')/Runs?$format=json";
-    protected static final String API_MSG_PROC_LOG_RUN_STEPS = "/api/v1/MessageProcessingLogRuns('%s')/RunSteps?$format=json&$expand=RunStepProperties&$inlinecount=allpages&$top=%d&$skip=%d";
-    protected static final String API_MSG_PROC_LOG_RUN_STEP_PROPERTIES = "/api/v1/MessageProcessingLogRunSteps(RunId='%s',ChildCount=%d)/RunStepProperties?$format=json";
-    protected static final String API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES = "/api/v1/MessageProcessingLogRunSteps(RunId='%s',ChildCount=%d)/TraceMessages?$format=json";
-    protected static final String API_TRACE_MESSAGE_PAYLOAD = "/api/v1/TraceMessages(%sL)/$value";
-    protected static final String API_TRACE_MESSAGE_PROPERTIES = "/api/v1/TraceMessages(%sL)/Properties?$format=json";
-    protected static final String API_TRACE_MESSAGE_EXCHANGE_PROPERTIES = "/api/v1/TraceMessages(%sL)/ExchangeProperties?$format=json";
-    protected static final String API_MSG_STORE_ENTRIES_VALUE = "/api/v1/MessageStoreEntries('%s')/$value";
     protected static final String API_DATA_STORE_ENTRIES = "/api/v1/DataStoreEntries?messageid=%s&$format=json";
     protected static final String API_DATA_STORE_ENTRY_PAYLOAD = "/api/v1/DataStoreEntries(Id='%s',DataStoreName='%s',IntegrationFlow='%s',Type='%s')/$value";
     protected static final String API_BINARY_PARAMETERS_META_DATA = "/api/v1/BinaryParameters?$format=json&$inlinecount=allpages&$select=Pid,Id,LastModifiedBy,LastModifiedTime,CreatedBy,CreatedTime,ContentType%s";
