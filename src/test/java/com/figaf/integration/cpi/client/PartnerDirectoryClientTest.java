@@ -79,6 +79,16 @@ class PartnerDirectoryClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
+    void test_retrievePartners(AgentTestData agentTestData) {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+
+        List<Partner> partners = partnerDirectoryClient.retrievePartners(requestContext);
+
+        assertThat(partners).as("partners shouldn't be empty").isNotEmpty();
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(AgentTestDataProvider.class)
     void test_retrieveBinaryParameters(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
