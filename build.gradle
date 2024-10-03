@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.github.figaf'
-version = '2.34-edge-and-pdHierarchy-SNAPSHOT'
+version = '2.34-SNAPSHOT'
 
 ext {
     enableSnapshotsForDependencyResolutionAndPublishing = project.findProperty('enableSnapshots') ?: 'false'
