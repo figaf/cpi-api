@@ -101,6 +101,7 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_BINARY_PARAMETER = "/api/v1/BinaryParameters(Pid='%s',Id='%s')?$format=json";
     protected static final String API_STRING_PARAMETERS = "/api/v1/StringParameters?$format=json%s";
     protected static final String API_STRING_PARAMETER_CREATION = "/api/v1/StringParameters";
+    protected static final String API_PARTNERS = "/api/v1/Partners?$format=json";
     protected static final String API_STRING_PARAMETERS_MANAGE  = "/api/v1/StringParameters(Pid='%s',Id='%s')";
     protected static final String API_STRING_PARAMETER = "/api/v1/StringParameters(Pid='%s',Id='%s')?$format=json";
 

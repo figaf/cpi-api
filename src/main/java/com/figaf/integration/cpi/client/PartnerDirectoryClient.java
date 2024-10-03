@@ -31,6 +31,22 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         super(httpClientsFactory);
     }
 
+    public List<Partner> retrievePartners(RequestContext requestContext) {
+        log.debug("#retrievePartners(RequestContext requestContext, {}", requestContext);
+        JSONArray apiParameters;
+        try {
+            apiParameters = callRestWs(
+                requestContext,
+                API_PARTNERS,
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+            );
+        } catch (Exception e) {
+            String errorMsg = String.format("Couldn't fetch partners: %s", e.getMessage());
+            throw new ClientIntegrationException(errorMsg, e);
+        }
+        return PartnerDirectoryParser.buildPartners(apiParameters);
+    }
+
     public List<PartnerDirectoryParameter> retrieveBinaryParametersMetadata(
         RequestContext requestContext,
         PartnerDirectoryParameterFilterRequest partnerDirectoryParameterFilterRequest
