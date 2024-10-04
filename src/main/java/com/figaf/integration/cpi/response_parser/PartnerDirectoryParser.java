@@ -1,5 +1,6 @@
 package com.figaf.integration.cpi.response_parser;
 
+import com.figaf.integration.cpi.entity.partner_directory.Partner;
 import com.figaf.integration.cpi.entity.partner_directory.PartnerDirectoryParameter;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,25 @@ public class PartnerDirectoryParser {
 
     public static List<PartnerDirectoryParameter> buildStringParameters(JSONArray apiParameters) {
         return buildParameters(apiParameters, PartnerDirectoryParser::createStringParameter);
+    }
+
+    public static List<Partner> buildPartners(JSONArray apiParameters) {
+        List<Partner> partners = new ArrayList<>();
+        for (int i = 0; i < apiParameters.length(); i++) {
+            JSONObject apiParameter = apiParameters.getJSONObject(i);
+            if (!Optional.ofNullable(apiParameter).isPresent()) {
+                continue;
+            }
+            Optional<String> pid = getOptionalString("Pid", apiParameter);
+            if (!pid.isPresent()) {
+                log.debug("didnt found pid for parameter {}", apiParameter);
+                continue;
+            }
+            Partner partner = new Partner();
+            partner.setPid(pid.get());
+            partners.add(partner);
+        }
+        return partners;
     }
 
     public static PartnerDirectoryParameter createBinaryParameter(JSONObject apiParameter) {
