@@ -257,6 +257,32 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         return getMessageProcessingLogs(requestContext, resourcePathWithParams, queryParams);
     }
 
+    public List<MessageProcessingLog> getMessageProcessingLogsByMessageGuids(
+        RequestContext requestContext,
+        Set<String> messageGuids,
+        boolean expandCustomHeaders
+    ) {
+        log.debug(
+            "#getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids, boolean expandCustomHeaders): {}, {}, {}",
+            requestContext, messageGuids, expandCustomHeaders
+        );
+
+        List<String> params = new ArrayList<>();
+        for (String messageGuid : messageGuids) {
+            params.add(format("MessageGuid eq '%s'", messageGuid));
+        }
+
+        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+        String filter = format(QUERY_PARAMS_FILTER, format("(%s)", StringUtils.join(params, " or ")));
+        String queryParams = expandCustomHeaders ? filter + "&$expand=CustomHeaderProperties" : filter;
+
+        return getMessageProcessingLogs(
+            requestContext,
+            resourcePath,
+            queryParams
+        );
+    }
+
     private List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, int top, String filter) {
         try {
             String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
@@ -274,6 +300,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
         }
     }
+
 
     private List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String resourcePath, String queryParams) {
         try {
