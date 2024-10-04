@@ -18,14 +18,12 @@ import com.figaf.integration.cpi.response_parser.CpiIntegrationDocumentParser;
 import com.figaf.integration.cpi.version.CpiObjectVersionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpResponse;
 import org.springframework.http.*;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -202,47 +200,60 @@ public class CpiIntegrationDocumentClient extends BaseClient {
         ConnectionProperties connectionProperties
     ) {
         log.debug("start uploadFile");
-        HttpResponse uploadFileResponse = null;
 
         try {
             Locker.lockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
 
             HttpPost uploadFileRequest = new HttpPost(uploadFileUri);
 
-            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-            entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            entityBuilder.addBinaryBody("simpleUploader", fileUploadRequest.getFile(), ContentType.DEFAULT_BINARY, fileUploadRequest.getFileMetaData().getFileName());
-            entityBuilder.addTextBody("_charset_", "UTF-8");
-            ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            String fileMetaData = objectWriter.writeValueAsString(fileUploadRequest.getFileMetaData());
-            entityBuilder.addTextBody("simpleUploader-data", fileMetaData, ContentType.APPLICATION_JSON);
+            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.LEGACY)
+                .addBinaryBody(
+                    "simpleUploader",
+                    fileUploadRequest.getFile(),
+                    ContentType.DEFAULT_BINARY,
+                    fileUploadRequest.getFileMetaData().getFileName()
+                )
+                .addTextBody("_charset_", "UTF-8")
+                .addTextBody("simpleUploader-data",
+                    new ObjectMapper().writer().withDefaultPrettyPrinter()
+                        .writeValueAsString(fileUploadRequest.getFileMetaData()),
+                    ContentType.APPLICATION_JSON
+                );
 
-            org.apache.http.HttpEntity uploadFileRequestEntity = entityBuilder.build();
             uploadFileRequest.setHeader(X_CSRF_TOKEN, userApiCsrfToken);
-            uploadFileRequest.setEntity(uploadFileRequestEntity);
-            uploadFileResponse = restTemplateWrapper.getHttpClient().execute(uploadFileRequest);
-            String uploadFileResponseContent = IOUtils.toString(uploadFileResponse.getEntity().getContent(), StandardCharsets.UTF_8);
-            CreateDocumentResponse createDocumentResponse = new ObjectMapper().readValue(uploadFileResponseContent, CreateDocumentResponse.class);
-            if (uploadFileResponse.getStatusLine().getStatusCode() != 201) {
-                throw new ClientIntegrationException("Couldn't execute file uploading:\n" + IOUtils.toString(uploadFileResponse.getEntity().getContent(), StandardCharsets.UTF_8));
-            } else {
-                if (!DEFAULT_VERSION_AFTER_CREATION.equals(fileUploadRequest.getFileMetaData().getVersion())) {
-                    setDocumentVersion(
-                        fileUploadRequest.getFileMetaData(),
-                        packageExternalId,
-                        userApiCsrfToken,
-                        createDocumentResponse.getId(),
-                        restTemplateWrapper.getRestTemplate(),
-                        connectionProperties);
+            uploadFileRequest.setEntity(entityBuilder.build());
+            restTemplateWrapper.getHttpClient().execute(uploadFileRequest, uploadFileResponse -> {
+                String uploadFileResponseContent = IOUtils.toString(
+                    uploadFileResponse.getEntity().getContent(),
+                    StandardCharsets.UTF_8
+                );
+
+                if (uploadFileResponse.getCode() != 201) {
+                    throw new ClientIntegrationException("Couldn't execute file uploading:\n" + uploadFileResponseContent);
+                } else {
+                    if (!DEFAULT_VERSION_AFTER_CREATION.equals(fileUploadRequest.getFileMetaData().getVersion())) {
+                        CreateDocumentResponse createDocumentResponse = new ObjectMapper().readValue(
+                            uploadFileResponseContent,
+                            CreateDocumentResponse.class
+                        );
+                        setDocumentVersion(
+                            fileUploadRequest.getFileMetaData(),
+                            packageExternalId,
+                            userApiCsrfToken,
+                            createDocumentResponse.getId(),
+                            restTemplateWrapper.getRestTemplate(),
+                            connectionProperties);
+                    }
                 }
-            }
+                return null;
+            });
         } catch (ClientIntegrationException ex) {
             throw ex;
         } catch (Exception ex) {
             log.error("Error occurred while file uploading " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while file uploading: " + ex.getMessage(), ex);
         } finally {
-            HttpClientUtils.closeQuietly(uploadFileResponse);
             Locker.unlockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
         }
     }

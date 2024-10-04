@@ -16,11 +16,11 @@ public class AgentTestDataProvider extends AbstractAgentTestDataProvider {
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
         return Stream.of(
-//            Arguments.of(buildAgentTestDataForNeo()),
+//            Arguments.of(buildAgentTestDataForNeo())
 //            Arguments.of(buildAgentTestDataForCf1())
 //            Arguments.of(buildAgentTestDataForCf1UseCustomIdp())
             Arguments.of(buildAgentTestDataForCfIntegrationSuite())
-//                Arguments.of(buildAgentTestDataForCf3()),
+//                Arguments.of(buildAgentTestDataForCf3())
 //                Arguments.of(buildAgentTestDataForCf4())
         );
     }

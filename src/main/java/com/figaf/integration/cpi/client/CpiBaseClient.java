@@ -8,23 +8,24 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.common.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.message.BasicHeader;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.utils.Base64;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.springframework.util.Assert;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+
+import static java.lang.String.format;
 
 /**
  * @author Ilya Nesterov
@@ -105,6 +106,8 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_STRING_PARAMETERS_MANAGE  = "/api/v1/StringParameters(Pid='%s',Id='%s')";
     protected static final String API_STRING_PARAMETER = "/api/v1/StringParameters(Pid='%s',Id='%s')?$format=json";
 
+    protected static final String X_CSRF_TOKEN_HEADER_NAME = "X-CSRF-Token";
+
     public CpiBaseClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
     }
@@ -115,7 +118,6 @@ public abstract class CpiBaseClient extends BaseClient {
         Assert.notNull(connectionProperties, "connectionProperties must be not null!");
         Assert.notNull(httpClient, "httpClient must be not null!");
 
-        HttpResponse headResponse = null;
         try {
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
@@ -131,30 +133,28 @@ public abstract class CpiBaseClient extends BaseClient {
 
 
             HttpGet getRequest = new HttpGet(uri);
-            getRequest.setHeader("X-CSRF-Token", "Fetch");
+            getRequest.setHeader(X_CSRF_TOKEN_HEADER_NAME, "Fetch");
             getRequest.setHeader(createBasicAuthHeader(connectionProperties));
 
-            headResponse = httpClient.execute(getRequest);
+            return httpClient.execute(getRequest, headResponse -> {
+                if (headResponse == null) {
+                    throw new ClientIntegrationException("Couldn't fetch token: response is null.");
+                }
 
-            if (headResponse == null) {
-                throw new ClientIntegrationException("Couldn't fetch token: response is null.");
-            }
+                if (headResponse.getCode() != 200) {
+                    throw new ClientIntegrationException(format(
+                        "Couldn't fetch token. Code: %d, Message: %s",
+                        headResponse.getCode(),
+                        IOUtils.toString(headResponse.getEntity().getContent(), StandardCharsets.UTF_8))
+                    );
+                }
 
-            if (headResponse.getStatusLine().getStatusCode() != 200) {
-                throw new ClientIntegrationException(String.format(
-                    "Couldn't fetch token. Code: %d, Message: %s",
-                    headResponse.getStatusLine().getStatusCode(),
-                    IOUtils.toString(headResponse.getEntity().getContent(), StandardCharsets.UTF_8))
-                );
-            }
-
-            return headResponse.getFirstHeader("X-CSRF-Token").getValue();
+                return headResponse.getFirstHeader(X_CSRF_TOKEN_HEADER_NAME).getValue();
+            });
 
         } catch (Exception ex) {
             getLogger().error("Error occurred while fetching csrf token: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while fetching csrf token: " + ex.getMessage(), ex);
-        } finally {
-            HttpClientUtils.closeQuietly(headResponse);
         }
     }
 
@@ -184,12 +184,12 @@ public abstract class CpiBaseClient extends BaseClient {
         }
     }
 
-    public static Header createBasicAuthHeader(ConnectionProperties connectionProperties) throws UnsupportedEncodingException {
+    public static Header createBasicAuthHeader(ConnectionProperties connectionProperties) {
         return new BasicHeader(
             "Authorization",
-            String.format(
+            format(
                 "Basic %s",
-                Base64Utils.encodeToString(
+                Base64.encodeBase64String(
                     (connectionProperties.getUsername() + ":" + connectionProperties.getPassword()).getBytes(StandardCharsets.UTF_8)
                 )
             )
@@ -201,7 +201,7 @@ public abstract class CpiBaseClient extends BaseClient {
     }
 
     protected Header createCsrfTokenHeader(String csrfToken) {
-        return new BasicHeader("X-CSRF-Token", csrfToken);
+        return new BasicHeader(X_CSRF_TOKEN_HEADER_NAME, csrfToken);
     }
 
     protected static String optString(JSONObject json, String key) {

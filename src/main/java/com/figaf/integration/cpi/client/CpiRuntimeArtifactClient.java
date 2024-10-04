@@ -13,13 +13,12 @@ import com.figaf.integration.cpi.version.CpiObjectVersionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.json.JSONObject;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
@@ -184,8 +183,6 @@ public class CpiRuntimeArtifactClient extends BaseClient {
         String userApiCsrfToken,
         RestTemplateWrapper restTemplateWrapper
     ) {
-
-        HttpResponse uploadArtifactResponse = null;
         boolean locked = false;
         String packageExternalId = request.getPackageExternalId();
         try {
@@ -204,29 +201,27 @@ public class CpiRuntimeArtifactClient extends BaseClient {
             requestBody.put("additionalAttrs", new JSONObject(request.getAdditionalAttrs()));
             requestBody.put("fileName", FILE_NAME);
 
-            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-            entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            entityBuilder.addBinaryBody("payload", request.getBundledModel(), ContentType.DEFAULT_BINARY, FILE_NAME);
-            entityBuilder.addTextBody("_charset_", "UTF-8");
-            entityBuilder.addTextBody(textBodyAttrName, requestBody.toString(), ContentType.APPLICATION_JSON);
+            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.LEGACY)
+                .addBinaryBody("payload", request.getBundledModel(), ContentType.DEFAULT_BINARY, FILE_NAME)
+                .addTextBody("_charset_", "UTF-8", ContentType.TEXT_PLAIN)
+                .addTextBody(textBodyAttrName, requestBody.toString(), ContentType.APPLICATION_JSON);
 
-            org.apache.http.HttpEntity entity = entityBuilder.build();
             uploadArtifactRequest.setHeader(X_CSRF_TOKEN, userApiCsrfToken);
-            uploadArtifactRequest.setEntity(entity);
+            uploadArtifactRequest.setEntity(entityBuilder.build());
 
             HttpClient client = restTemplateWrapper.getHttpClient();
 
-            uploadArtifactResponse = client.execute(uploadArtifactRequest);
-
-            checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(uploadArtifactResponse);
-
+            client.execute(uploadArtifactRequest, uploadArtifactResponse -> {
+                checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(uploadArtifactResponse);
+                return null;
+            });
         } catch (ClientIntegrationException ex) {
             throw ex;
         } catch (Exception ex) {
             log.error("Error occurred while uploading artifact " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while uploading artifact: " + ex.getMessage(), ex);
         } finally {
-            HttpClientUtils.closeQuietly(uploadArtifactResponse);
             if (locked) {
                 Locker.unlockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
             }
@@ -323,7 +318,6 @@ public class CpiRuntimeArtifactClient extends BaseClient {
         String userApiCsrfToken,
         RestTemplateWrapper restTemplateWrapper
     ) {
-        HttpResponse uploadArtifactResponse = null;
         boolean locked = false;
         String packageExternalId = request.getPackageExternalId();
         String artifactExternalId = request.getId();
@@ -344,65 +338,61 @@ public class CpiRuntimeArtifactClient extends BaseClient {
             requestBody.put("additionalAttrs", new JSONObject(request.getAdditionalAttrs()));
             requestBody.put("fileName", FILE_NAME);
 
-            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-            entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            entityBuilder.addBinaryBody("simpleUploader", request.getBundledModel(), ContentType.DEFAULT_BINARY, FILE_NAME);
-            entityBuilder.addTextBody("_charset_", "UTF-8");
-            entityBuilder.addTextBody("simpleUploader-data", requestBody.toString(), ContentType.APPLICATION_JSON);
+            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.LEGACY)
+                .addBinaryBody("simpleUploader", request.getBundledModel(), ContentType.DEFAULT_BINARY, FILE_NAME)
+                .addTextBody("_charset_", "UTF-8")
+                .addTextBody("simpleUploader-data", requestBody.toString(), ContentType.APPLICATION_JSON);
 
-            org.apache.http.HttpEntity entity = entityBuilder.build();
             uploadArtifactRequest.setHeader(X_CSRF_TOKEN, userApiCsrfToken);
-            uploadArtifactRequest.setEntity(entity);
+            uploadArtifactRequest.setEntity(entityBuilder.build());
 
             HttpClient client = restTemplateWrapper.getHttpClient();
 
-            uploadArtifactResponse = client.execute(uploadArtifactRequest);
+            client.execute(uploadArtifactRequest, uploadArtifactResponse -> {
+                checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(uploadArtifactResponse);
 
-            checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(uploadArtifactResponse);
-
-            JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8));
-            if (!request.isUploadDraftVersion()) {
-                CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
-                    packageExternalId,
-                    artifactExternalId,
-                    !isBlank(request.getNewArtifactVersion()) ? request.getNewArtifactVersion() : jsonObject.getString("bundleVersion"),
-                    userApiCsrfToken,
-                    request.getComment(),
-                    restTemplateWrapper.getRestTemplate(),
-                    API_LOCK_AND_UNLOCK_ARTIFACT
-                );
-            }
-
+                JSONObject jsonObject = new JSONObject(IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8));
+                if (!request.isUploadDraftVersion()) {
+                    CpiObjectVersionHandler.setVersionToCpiObject(connectionProperties,
+                        packageExternalId,
+                        artifactExternalId,
+                        !isBlank(request.getNewArtifactVersion()) ? request.getNewArtifactVersion() : jsonObject.getString("bundleVersion"),
+                        userApiCsrfToken,
+                        request.getComment(),
+                        restTemplateWrapper.getRestTemplate(),
+                        API_LOCK_AND_UNLOCK_ARTIFACT
+                    );
+                }
+                return null;
+            });
         } catch (ClientIntegrationException ex) {
             throw ex;
         } catch (Exception ex) {
             log.error("Error occurred while uploading artifact " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while uploading artifact: " + ex.getMessage(), ex);
         } finally {
-            if (uploadArtifactResponse != null) {
-                HttpClientUtils.closeQuietly(uploadArtifactResponse);
-            }
             if (locked) {
                 Locker.unlockCpiObject(connectionProperties, packageExternalId, artifactExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate(), API_LOCK_AND_UNLOCK_ARTIFACT);
             }
         }
     }
 
-    private void checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(HttpResponse uploadArtifactResponse) throws IOException {
-        if (uploadArtifactResponse.getStatusLine().getStatusCode() != 201) {
+    private void checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(ClassicHttpResponse uploadArtifactResponse) throws IOException {
+        if (uploadArtifactResponse.getCode() != 201) {
             String responseBody = IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8);
             String errorMsg;
-            if (uploadArtifactResponse.getStatusLine().getStatusCode() == 403 && StringUtils.isBlank(responseBody)) {
+            if (uploadArtifactResponse.getCode() == 403 && StringUtils.isBlank(responseBody)) {
                 errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, " +
                         "but 201 was expected.%nResponse body is empty. The problem may be related to access policies configured for IFlow. " +
                         "Check if Figaf application user that executes request (S-user / P-user / role assignment in Custom IdP) has enough access permissions. " +
                         "If access policy roles had been added recently, wait for ~10 min and then try again. Recreate the session if it's cached: " +
                         "in Figaf Tool execute `Reset http client forcibly` from CPI agent page.",
-                    uploadArtifactResponse.getStatusLine().getStatusCode()
+                    uploadArtifactResponse.getCode()
                 );
             } else {
                 errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, but 201 was expected.%nResponse body: %s",
-                    uploadArtifactResponse.getStatusLine().getStatusCode(),
+                    uploadArtifactResponse.getCode(),
                     responseBody
                 );
             }
