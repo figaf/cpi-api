@@ -614,25 +614,8 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
                     optString(traceMessageExchangePropertyElement, "Value")
                 ));
             }
-
         }
         return traceMessage;
-    }
-
-    private Date shiftDateTo55MinutesBackFromNow() {
-        return DateUtils.addMinutes(new Date(), -55);
-    }
-
-    private String buildTechnicalNamesFilter(List<String> technicalNames) {
-        return technicalNames.stream()
-            .map(technicalName -> format("IntegrationFlowName eq '%s'", technicalName))
-            .collect(Collectors.joining(" or "));
-    }
-
-    private String buildCorrelationIdsFilter(List<String> correlationIds) {
-        return correlationIds.stream()
-            .map(correlationId -> format("CorrelationId eq '%s'", correlationId))
-            .collect(Collectors.joining(" or "));
     }
 
     private List<JSONObject> getRunStepJsonObjects(RequestContext requestContext, String runId) {

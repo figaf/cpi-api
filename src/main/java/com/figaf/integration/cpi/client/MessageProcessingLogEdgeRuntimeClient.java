@@ -225,10 +225,58 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         return getMessageProcessingLogs(requestContext, top, filter);
     }
 
+    public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
+        log.debug("#getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
+        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+        String queryParams = format(QUERY_PARAMS_CUSTOM_FOR_TRACES_WITH_IFLOW_NAME,
+            integrationFlowName,
+            GMT_DATE_FORMAT.format(startDate),
+            GMT_DATE_FORMAT.format(shiftDateTo55MinutesBackFromNow())
+        );
+        return getMessageProcessingLogs(requestContext, resourcePath, queryParams);
+    }
+
+    public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate) {
+        log.debug("#getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate): {}, {}, {}", requestContext, technicalNames, startDate);
+        String resourcePathWithParams = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+        String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
+        String additionalQueryParams = format(QUERY_PARAMS_CUSTOM_FOR_TRACES,
+            technicalNamesFilter,
+            GMT_DATE_FORMAT.format(startDate),
+            GMT_DATE_FORMAT.format(shiftDateTo55MinutesBackFromNow())
+        );
+        return getMessageProcessingLogs(requestContext, resourcePathWithParams, additionalQueryParams);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames) {
+        log.debug("#getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames): {}, {}, {}", requestContext, correlationIds, technicalNames);
+        String resourcePathWithParams = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+        String correlationIdsFilter = buildCorrelationIdsFilter(correlationIds);
+        String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
+        String queryParams = format(QUERY_PARAMS_FILTER, format("(%s) and (%s)", correlationIdsFilter, technicalNamesFilter));
+        return getMessageProcessingLogs(requestContext, resourcePathWithParams, queryParams);
+    }
+
     private List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, int top, String filter) {
         try {
             String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
             String queryParams = String.format(QUERY_PARAMS_ORDERED, top, filter);
+            URI uri = new URI(null, null, resourcePath, queryParams, null);
+            JSONArray messageProcessingLogsJsonArray = executeGet(
+                requestContext,
+                uri.toString(),
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
+                String.class
+            );
+            return createMessageProcessingLogsFromArray(messageProcessingLogsJsonArray);
+
+        } catch (Exception ex) {
+            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
+        }
+    }
+
+    private List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String resourcePath, String queryParams) {
+        try {
             URI uri = new URI(null, null, resourcePath, queryParams, null);
             JSONArray messageProcessingLogsJsonArray = executeGet(
                 requestContext,

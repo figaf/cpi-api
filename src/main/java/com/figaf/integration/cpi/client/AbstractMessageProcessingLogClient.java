@@ -6,8 +6,16 @@ import com.figaf.integration.cpi.entity.message_processing.CustomHeaderProperty;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLog;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogAttachment;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogRun;
+import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 /**
  * @author Kostas Charalambous
@@ -24,11 +32,17 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
 
     protected static final String QUERY_PARAMS = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s";
 
+    protected static final String QUERY_PARAMS_FILTER = "$format=json&$filter=%s";
+
     protected static final String QUERY_PARAMS_WITH_SELECT = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s&$select=%s";
 
     protected static final String QUERY_PARAMS_ORDERED = "$inlinecount=allpages&$format=json&$top=%d&$orderby=LogEnd&$filter=%s";
 
     protected static final String QUERY_PARAMS_CUSTOM_HEADER = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$expand=Log&$filter=%s";
+
+    protected static final String QUERY_PARAMS_CUSTOM_FOR_TRACES_WITH_IFLOW_NAME = "$format=json&LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
+
+    protected static final String QUERY_PARAMS_CUSTOM_FOR_TRACES = "$format=json&LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
 
     protected static final String API_MSG_PROC_LOGS_CUSTOM_HEADER = "/api/v1/MessageProcessingLogs('%s')/CustomHeaderProperties?$format=json";
 
@@ -68,6 +82,11 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
 
     protected static final String API_MSG_STORE_ENTRIES_VALUE = "/api/v1/MessageStoreEntries('%s')/$value";
 
+    protected final static FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
+        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+        TimeZone.getTimeZone("GMT")
+    );
+
     public AbstractMessageProcessingLogClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
     }
@@ -105,4 +124,20 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
     );
 
     public abstract List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, int top, String filter);
+
+    protected Date shiftDateTo55MinutesBackFromNow() {
+        return DateUtils.addMinutes(new Date(), -55);
+    }
+
+    protected String buildTechnicalNamesFilter(List<String> technicalNames) {
+        return technicalNames.stream()
+            .map(technicalName -> format("IntegrationFlowName eq '%s'", technicalName))
+            .collect(Collectors.joining(" or "));
+    }
+
+    protected String buildCorrelationIdsFilter(List<String> correlationIds) {
+        return correlationIds.stream()
+            .map(correlationId -> format("CorrelationId eq '%s'", correlationId))
+            .collect(Collectors.joining(" or "));
+    }
 }
