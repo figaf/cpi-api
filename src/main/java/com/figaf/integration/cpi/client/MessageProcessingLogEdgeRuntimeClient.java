@@ -3,6 +3,7 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
+import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
 import com.figaf.integration.cpi.entity.message_processing.*;
 import com.figaf.integration.cpi.response_parser.MessageProcessingLogParser;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.figaf.integration.cpi.response_parser.MessageProcessingLogParser.*;
@@ -281,6 +283,149 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             resourcePath,
             queryParams
         );
+    }
+
+    public MessageProcessingLogRunStep.TraceMessage getTraceMessage(
+        RequestContext requestContext,
+        MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria,
+        MessageProcessingLogRunStep runStep
+    ) {
+        log.debug("#getTraceMessage(RequestContext requestContext, MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria, MessageProcessingLogRunStep runStep): {}, {}, {}",
+            requestContext, runStepSearchCriteria, runStep
+        );
+        String runId = runStep.getRunId();
+        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES;
+        String fullPath = format(resourcePath, runId, runStep.getChildCount());
+        JSONArray runsJsonArray = executeGet(
+            requestContext,
+            fullPath,
+            response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
+            String.class
+        );
+
+        if (runsJsonArray.isEmpty()) {
+            return null;
+        }
+
+        /*If traceMessagesJsonArray has multiple messages, we need to find the most appropriate one.
+        Its SAP_TRACE_HEADER_<some digits>_MessageType property should be equal to "STEP". If it's not found, we just take the first one.
+        Maybe later we will need to download and handle all the messages.*/
+        JSONObject traceMessageElement = null;
+        JSONArray foundTraceMessagePropertiesJsonArray = null;
+        if (runsJsonArray.length() > 1) {
+            for (int i = 0; i < runsJsonArray.length() && traceMessageElement == null; i++) {
+                JSONObject currentTraceMessage = runsJsonArray.getJSONObject(i);
+                String resourcePathProperties = LOCATION + runtimeId + API_TRACE_MESSAGE_PROPERTIES;
+                String fullPathProperties = format(resourcePathProperties, optString(currentTraceMessage, "TraceId"));
+                JSONArray traceMessagePropertiesJsonArray = executeGet(
+                    requestContext,
+                    fullPathProperties,
+                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
+                    String.class
+                );
+
+                for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
+                    JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
+                    String name = optString(traceMessagePropertyElement, "Name");
+                    if (name.startsWith("SAP_TRACE_HEADER_") && name.endsWith("_MessageType")) {
+                        String value = optString(traceMessagePropertyElement, "Value");
+                        if (value.equals("STEP")) {
+                            traceMessageElement = currentTraceMessage;
+                            foundTraceMessagePropertiesJsonArray = traceMessagePropertiesJsonArray;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        if (traceMessageElement == null) {
+            traceMessageElement = runsJsonArray.getJSONObject(0);
+        }
+
+        MessageProcessingLogRunStep.TraceMessage traceMessage = new MessageProcessingLogRunStep.TraceMessage();
+        traceMessage.setTraceId(optString(traceMessageElement, "TraceId"));
+        traceMessage.setMessageId(optString(traceMessageElement, "MplId"));
+        traceMessage.setModelStepId(optString(traceMessageElement, "ModelStepId"));
+        String payloadSize = optString(traceMessageElement, "PayloadSize");
+        if (payloadSize != null) {
+            traceMessage.setPayloadSize(Long.parseLong(payloadSize));
+        }
+        traceMessage.setMimeType(optString(traceMessageElement, "MimeType"));
+        traceMessage.setProcessingDate(runStep.getStepStop());
+
+        if (runStepSearchCriteria.isInitTraceMessagePayload()) {
+            byte[] payloadForMessage = getPayloadForMessage(requestContext, traceMessage.getTraceId());
+            traceMessage.setPayload(payloadForMessage);
+        }
+
+        if (runStepSearchCriteria.isInitTraceMessageProperties()) {
+
+            JSONArray traceMessagePropertiesJsonArray;
+            /*We could already have traceMessagePropertiesJsonArray if there are multiple trace messages.
+             In this case we don't need to make the same request twice.*/
+            if (foundTraceMessagePropertiesJsonArray != null) {
+                traceMessagePropertiesJsonArray = foundTraceMessagePropertiesJsonArray;
+            } else {
+                String resourcePathProperties = LOCATION + runtimeId + API_TRACE_MESSAGE_PROPERTIES;
+                String fullPathProperties = format(resourcePathProperties, traceMessage.getTraceId());
+                traceMessagePropertiesJsonArray = executeGet(
+                    requestContext,
+                    fullPathProperties,
+                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
+                    String.class
+                );
+            }
+
+            for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
+                JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
+
+                traceMessage.getProperties().add(new MessageRunStepProperty(
+                    PropertyType.TRACE_MESSAGE_HEADER,
+                    optString(traceMessagePropertyElement, "Name"),
+                    optString(traceMessagePropertyElement, "Value")
+                ));
+            }
+            String resourcePathProperties = LOCATION + runtimeId + API_TRACE_MESSAGE_EXCHANGE_PROPERTIES;
+            String fullPathProperties = format(resourcePathProperties, traceMessage.getTraceId());
+            JSONArray traceMessageExchangePropertiesJsonArray = executeGet(
+                requestContext,
+                fullPathProperties,
+                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
+                String.class
+            );
+
+            for (int traceMessageExchangePropertyInd = 0; traceMessageExchangePropertyInd < traceMessageExchangePropertiesJsonArray.length(); traceMessageExchangePropertyInd++) {
+                JSONObject traceMessageExchangePropertyElement = traceMessageExchangePropertiesJsonArray.getJSONObject(traceMessageExchangePropertyInd);
+
+                traceMessage.getProperties().add(new MessageRunStepProperty(
+                    PropertyType.TRACE_MESSAGE_EXCHANGE,
+                    optString(traceMessageExchangePropertyElement, "Name"),
+                    optString(traceMessageExchangePropertyElement, "Value")
+                ));
+            }
+        }
+        return traceMessage;
+    }
+
+    public byte[] getPayloadForMessage(RequestContext requestContext, String traceId) {
+        log.debug("#getPayloadForMessage(RequestContext requestContext, String traceId): {}, {}", requestContext, traceId);
+        try {
+            String resourcePath = LOCATION + runtimeId + API_TRACE_MESSAGE_PAYLOAD;
+            String fullPathWithParams = format(resourcePath, traceId);
+            String payloadResponse = executeGet(
+                requestContext,
+                fullPathWithParams,
+                response -> response,
+                String.class
+            );
+            if (StringUtils.isNotBlank(payloadResponse)) {
+                return payloadResponse.getBytes(StandardCharsets.UTF_8);
+            } else {
+                return null;
+            }
+        } catch (Exception ex) {
+            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
+        }
     }
 
     private List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, int top, String filter) {
