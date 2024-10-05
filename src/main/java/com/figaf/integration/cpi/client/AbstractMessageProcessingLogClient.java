@@ -2,10 +2,8 @@ package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
-import com.figaf.integration.cpi.entity.message_processing.CustomHeaderProperty;
-import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLog;
-import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogAttachment;
-import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogRun;
+import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
+import com.figaf.integration.cpi.entity.message_processing.*;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.tuple.Pair;
@@ -133,6 +131,14 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
     public abstract List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames);
 
     public abstract List<MessageProcessingLog> getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids, boolean expandCustomHeaders);
+
+    public abstract byte[] getPayloadForMessage(RequestContext requestContext, String traceId);
+
+    public abstract MessageProcessingLogRunStep.TraceMessage getTraceMessage(
+        RequestContext requestContext,
+        MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria,
+        MessageProcessingLogRunStep runStep
+    );
 
     protected Date shiftDateTo55MinutesBackFromNow() {
         return DateUtils.addMinutes(new Date(), -55);
