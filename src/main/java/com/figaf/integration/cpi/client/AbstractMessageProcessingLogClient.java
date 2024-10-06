@@ -7,6 +7,7 @@ import com.figaf.integration.cpi.entity.message_processing.*;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.tuple.Pair;
+import org.json.JSONObject;
 
 import java.util.Date;
 import java.util.List;
@@ -20,6 +21,8 @@ import static java.lang.String.format;
  * @author Kostas Charalambous
  */
 public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
+
+    protected final static int MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION = 500;
 
     protected final static String LOCATION = "/location/";
 
@@ -39,9 +42,9 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
 
     protected static final String QUERY_PARAMS_CUSTOM_HEADER = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$expand=Log&$filter=%s";
 
-    protected static final String QUERY_PARAMS_CUSTOM_FOR_TRACES_WITH_IFLOW_NAME = "$format=json&LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
+    protected static final String QUERY_PARAMS_FOR_TRACES_WITH_IFLOW_NAME = "$format=json&$filter=LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
 
-    protected static final String QUERY_PARAMS_CUSTOM_FOR_TRACES = "$format=json&LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
+    protected static final String QUERY_PARAMS_FOR_TRACES = "$format=json&$filter=LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
 
     protected static final String API_MSG_PROC_LOGS_CUSTOM_HEADER = "/api/v1/MessageProcessingLogs('%s')/CustomHeaderProperties?$format=json";
 
@@ -134,6 +137,8 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
 
     public abstract byte[] getPayloadForMessage(RequestContext requestContext, String traceId);
 
+    public abstract List<MessageProcessingLogRunStep> getRunSteps(RequestContext requestContext, String runId);
+
     public abstract MessageProcessingLogRunStep.TraceMessage getTraceMessage(
         RequestContext requestContext,
         MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria,
@@ -154,5 +159,15 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
         return correlationIds.stream()
             .map(correlationId -> format("CorrelationId eq '%s'", correlationId))
             .collect(Collectors.joining(" or "));
+    }
+
+    protected Integer defineNumberOfIterations(JSONObject dObject) {
+        Integer numberOfIterations;
+        String totalCountStr = dObject.getString("__count");
+        int totalCount = Integer.parseInt(totalCountStr);
+        numberOfIterations = totalCount % MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION == 0
+            ? totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION
+            : totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION + 1;
+        return numberOfIterations;
     }
 }

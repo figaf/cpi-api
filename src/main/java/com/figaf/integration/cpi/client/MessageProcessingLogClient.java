@@ -32,7 +32,7 @@ import static java.lang.String.format;
 @Slf4j
 public class MessageProcessingLogClient extends AbstractMessageProcessingLogClient {
 
-    private final static int MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION = 500;
+
 
     private final static FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
         "yyyy-MM-dd'T'HH:mm:ss.SSS",
@@ -640,16 +640,6 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
             iterNumber++;
         } while (iterNumber < numberOfIterations);
         return jsonObjectRunSteps;
-    }
-
-    private Integer defineNumberOfIterations(JSONObject dObject) {
-        Integer numberOfIterations;
-        String totalCountStr = dObject.getString("__count");
-        int totalCount = Integer.parseInt(totalCountStr);
-        numberOfIterations = totalCount % MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION == 0
-            ? totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION
-            : totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION + 1;
-        return numberOfIterations;
     }
 
     public byte[] getPayloadForMessage(RequestContext requestContext, String traceId) {
