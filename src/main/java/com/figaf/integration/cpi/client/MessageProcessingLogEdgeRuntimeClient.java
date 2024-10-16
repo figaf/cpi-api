@@ -189,7 +189,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         String queryParams = String.format(QUERY_PARAMS_CUSTOM_HEADER, top, skip, filter);
         try {
             URI uri = new URI(null, null, resourcePath, queryParams, null);
-            int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, null);
+            int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, filter);
             return executeGet(
                 requestContext, uri.toString(),
                 (response) -> MessageProcessingLogParser.buildMessageProcessingLogsResult(response, totalCount)
