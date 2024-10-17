@@ -52,7 +52,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         String queryParamsTemplate = expandCustomHeaders ? QUERY_PARAMS + "&$expand=CustomHeaderProperties" : QUERY_PARAMS;
         String queryParams = String.format(queryParamsTemplate, top, skip, filter);
         try {
-            return getMessageProcessingLogsToTotalCount(requestContext, resourcePath, queryParams);
+            return getMessageProcessingLogsToTotalCount(requestContext, resourcePath, queryParams, filter);
 
         } catch (Exception ex) {
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
@@ -189,7 +189,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         String queryParams = String.format(QUERY_PARAMS_CUSTOM_HEADER, top, skip, filter);
         try {
             URI uri = new URI(null, null, resourcePath, queryParams, null);
-            int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, null);
+            int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, filter);
             return executeGet(
                 requestContext, uri.toString(),
                 (response) -> MessageProcessingLogParser.buildMessageProcessingLogsResult(response, totalCount)
@@ -213,7 +213,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
         String queryParams = String.format(QUERY_PARAMS_WITH_SELECT, top, skip, filter, responseFields);
         try {
-            return getMessageProcessingLogsToTotalCount(requestContext, resourcePath, queryParams);
+            return getMessageProcessingLogsToTotalCount(requestContext, resourcePath, queryParams, filter);
         } catch (Exception ex) {
             log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
@@ -246,7 +246,8 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
     private Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsToTotalCount(
         RequestContext requestContext,
         String resourcePath,
-        String queryParams
+        String queryParams,
+        String filter
     ) throws URISyntaxException {
         URI uri = new URI(null, null, resourcePath, queryParams, null);
         JSONObject jsonObjectD = executeGet(
@@ -255,7 +256,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             response -> new JSONObject(response).getJSONObject("d"),
             String.class
         );
-        int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, null);
+        int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, filter);
         return extractMplsAndCountFromResponse(jsonObjectD, totalCount);
     }
 
