@@ -7,6 +7,7 @@ import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLog;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogAttachment;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogRun;
 import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.List;
 
 /**
@@ -95,6 +96,10 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
     public abstract int getCountOfMessageProcessingLogsByFilter(RequestContext requestContext, String filter);
 
     public abstract Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByCustomHeader(RequestContext requestContext, int top, int skip, String filter);
+
+    public abstract byte[] getPersistedAttachment(RequestContext requestContext, String attachmentId);
+
+    public abstract byte[] getAttachment(RequestContext requestContext, String attachmentId);
 
     public abstract Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilterWithSelectedResponseFields(
         RequestContext requestContext,
