@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -23,7 +22,6 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.figaf.integration.cpi.response_parser.MessageProcessingLogParser.*;
 import static java.lang.String.format;
@@ -34,7 +32,7 @@ import static java.lang.String.format;
 @Slf4j
 public class MessageProcessingLogClient extends AbstractMessageProcessingLogClient {
 
-    private final static int MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION = 500;
+
 
     private final static FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
         "yyyy-MM-dd'T'HH:mm:ss.SSS",
@@ -614,25 +612,8 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
                     optString(traceMessageExchangePropertyElement, "Value")
                 ));
             }
-
         }
         return traceMessage;
-    }
-
-    private Date shiftDateTo55MinutesBackFromNow() {
-        return DateUtils.addMinutes(new Date(), -55);
-    }
-
-    private String buildTechnicalNamesFilter(List<String> technicalNames) {
-        return technicalNames.stream()
-            .map(technicalName -> format("IntegrationFlowName eq '%s'", technicalName))
-            .collect(Collectors.joining(" or "));
-    }
-
-    private String buildCorrelationIdsFilter(List<String> correlationIds) {
-        return correlationIds.stream()
-            .map(correlationId -> format("CorrelationId eq '%s'", correlationId))
-            .collect(Collectors.joining(" or "));
     }
 
     private List<JSONObject> getRunStepJsonObjects(RequestContext requestContext, String runId) {
@@ -659,16 +640,6 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
             iterNumber++;
         } while (iterNumber < numberOfIterations);
         return jsonObjectRunSteps;
-    }
-
-    private Integer defineNumberOfIterations(JSONObject dObject) {
-        Integer numberOfIterations;
-        String totalCountStr = dObject.getString("__count");
-        int totalCount = Integer.parseInt(totalCountStr);
-        numberOfIterations = totalCount % MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION == 0
-            ? totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION
-            : totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION + 1;
-        return numberOfIterations;
     }
 
     public byte[] getPayloadForMessage(RequestContext requestContext, String traceId) {
