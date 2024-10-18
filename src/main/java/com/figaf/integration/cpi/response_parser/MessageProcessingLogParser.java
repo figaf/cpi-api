@@ -1,5 +1,6 @@
 package com.figaf.integration.cpi.response_parser;
 
+import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.cpi.entity.AdditionalPayloadType;
 import com.figaf.integration.cpi.entity.message_processing.CustomHeaderProperty;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLog;
@@ -11,7 +12,6 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,26 +35,72 @@ public class MessageProcessingLogParser {
         return getMessageProcessingLogsToCount(totalMessagesCount, messageProcessingLogsJsonArray);
     }
 
-    private static Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsToCount(Integer totalMessagesCount, JSONArray messageProcessingLogsJsonArray) {
+    private static Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsToCount(
+        Integer totalMessagesCount,
+        JSONArray messageProcessingLogsJsonArray
+    ) {
         List<MessageProcessingLog> messageProcessingLogs = new ArrayList<>();
         for (int ind = 0; ind < messageProcessingLogsJsonArray.length(); ind++) {
             JSONObject messageProcessingLogElement = messageProcessingLogsJsonArray.getJSONObject(ind).getJSONObject("Log");
-
-            MessageProcessingLog messageProcessingLog = fillMessageProcessingLog(messageProcessingLogElement);
+            MessageProcessingLog messageProcessingLog;
+            messageProcessingLog = fillMessageProcessingLog(messageProcessingLogElement);
             messageProcessingLogs.add(messageProcessingLog);
         }
 
         return new MutablePair<>(messageProcessingLogs, totalMessagesCount);
     }
 
-    public static Pair<List<MessageProcessingLog>, Integer> buildMessageProcessingLogsResult(String body, int totalCount) {
+    private static Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsToCount(
+        Integer totalMessagesCount,
+        JSONArray messageProcessingLogsJsonArray,
+        ConnectionProperties connectionProperties,
+        String runtTimeLocationId
+    ) {
+        List<MessageProcessingLog> messageProcessingLogs = new ArrayList<>();
+        for (int ind = 0; ind < messageProcessingLogsJsonArray.length(); ind++) {
+            JSONObject messageProcessingLogElement = messageProcessingLogsJsonArray.getJSONObject(ind).getJSONObject("Log");
+            MessageProcessingLog messageProcessingLog;
+            messageProcessingLog = fillMessageProcessingLog(messageProcessingLogElement, connectionProperties, runtTimeLocationId);
+            messageProcessingLogs.add(messageProcessingLog);
+        }
+
+        return new MutablePair<>(messageProcessingLogs, totalMessagesCount);
+    }
+
+    public static Pair<List<MessageProcessingLog>, Integer> buildMessageProcessingLogsResult(
+        String body,
+        int totalCount,
+        ConnectionProperties connectionProperties,
+        String runtimeLocationId
+    ) {
         JSONObject jsonObjectD = new JSONObject(body).getJSONObject("d");
         JSONArray messageProcessingLogsJsonArray = jsonObjectD.getJSONArray("results");
-        return getMessageProcessingLogsToCount(totalCount, messageProcessingLogsJsonArray);
+        return getMessageProcessingLogsToCount(totalCount, messageProcessingLogsJsonArray, connectionProperties, runtimeLocationId);
     }
 
     public static MessageProcessingLog fillMessageProcessingLog(JSONObject messageProcessingLogElement) {
         MessageProcessingLog messageProcessingLog = new MessageProcessingLog();
+        setMessageProcessingLog(messageProcessingLog, messageProcessingLogElement);
+        messageProcessingLog.setAlternateWebLink(optString(messageProcessingLogElement, "AlternateWebLink"));
+        return messageProcessingLog;
+    }
+
+    public static MessageProcessingLog fillMessageProcessingLog(JSONObject messageProcessingLogElement, ConnectionProperties connectionProperties, String runtimeLocationId) {
+        MessageProcessingLog messageProcessingLog = new MessageProcessingLog();
+        setMessageProcessingLog(messageProcessingLog, messageProcessingLogElement);
+        messageProcessingLog.setAlternateWebLink(updateAlternateWebLinkHost(connectionProperties, runtimeLocationId, messageProcessingLog.getMessageGuid()));
+        return messageProcessingLog;
+    }
+
+    private static String updateAlternateWebLinkHost(ConnectionProperties connectionProperties, String runtimeLocationId, String messageGuid) {
+        return String.format("%s://%s/shell/monitoring/Messages/{\"edge\":{\"runtimeLocationId\":\"%s\",\"identifier\":\"%s\"}}",
+            connectionProperties.getProtocol(),
+            connectionProperties.getHost(),
+            runtimeLocationId,
+            messageGuid);
+    }
+
+    private static void setMessageProcessingLog(MessageProcessingLog messageProcessingLog, JSONObject messageProcessingLogElement) {
         messageProcessingLog.setMessageGuid(optString(messageProcessingLogElement, "MessageGuid"));
         messageProcessingLog.setCorrelationId(optString(messageProcessingLogElement, "CorrelationId"));
         messageProcessingLog.setIntegrationFlowName(optString(messageProcessingLogElement, "IntegrationFlowName"));
@@ -65,12 +111,11 @@ public class MessageProcessingLogParser {
         messageProcessingLog.setApplicationMessageType(optString(messageProcessingLogElement, "ApplicationMessageType"));
         messageProcessingLog.setSender(optString(messageProcessingLogElement, "Sender"));
         messageProcessingLog.setReceiver(optString(messageProcessingLogElement, "Receiver"));
-        messageProcessingLog.setAlternateWebLink(optString(messageProcessingLogElement, "AlternateWebLink"));
         messageProcessingLog.setLogStart(CpiApiUtils.parseDate(optString(messageProcessingLogElement, "LogStart")));
         messageProcessingLog.setLogEnd(CpiApiUtils.parseDate(optString(messageProcessingLogElement, "LogEnd")));
         messageProcessingLog.setCustomHeaderProperties(CpiApiUtils.parseCustomerHeaderProperties(messageProcessingLogElement));
-        return messageProcessingLog;
     }
+
 
     public static List<MessageProcessingLogAttachment> createMessageProcessingLogAttachmentsForAttachments(JSONArray attachmentsJsonArray) {
         List<MessageProcessingLogAttachment> attachments = new ArrayList<>();
