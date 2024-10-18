@@ -97,7 +97,8 @@ public class MessageProcessingLogParser {
             connectionProperties.getProtocol(),
             connectionProperties.getHost(),
             runtimeLocationId,
-            messageGuid);
+            messageGuid
+        );
     }
 
     private static void setMessageProcessingLog(MessageProcessingLog messageProcessingLog, JSONObject messageProcessingLogElement) {
