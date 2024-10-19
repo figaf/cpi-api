@@ -4,9 +4,13 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
 import com.figaf.integration.cpi.entity.message_processing.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.tuple.Pair;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Date;
@@ -173,5 +177,86 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
             ? totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION
             : totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION + 1;
         return numberOfIterations;
+    }
+
+    protected void setTraceMessageHolder(
+        TraceMessageHolder traceMessageHolder,
+        JSONArray traceMessagePropertiesJsonArray,
+        JSONObject currentTraceMessage
+    ) {
+        for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
+            JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
+            String name = optString(traceMessagePropertyElement, "Name");
+            if (name.startsWith("SAP_TRACE_HEADER_") && name.endsWith("_MessageType")) {
+                String value = optString(traceMessagePropertyElement, "Value");
+                if (value.equals("STEP")) {
+                    traceMessageHolder.setTraceMessageElement(currentTraceMessage);
+                    traceMessageHolder.setFoundTraceMessagePropertiesJsonArray(traceMessagePropertiesJsonArray);
+                }
+                break;
+            }
+        }
+    }
+
+    protected void setTraceMessageHeader(MessageProcessingLogRunStep.TraceMessage traceMessage, JSONArray traceMessagePropertiesJsonArray) {
+        for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
+            JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
+
+            traceMessage.getProperties().add(new MessageRunStepProperty(
+                PropertyType.TRACE_MESSAGE_HEADER,
+                optString(traceMessagePropertyElement, "Name"),
+                optString(traceMessagePropertyElement, "Value")
+            ));
+        }
+    }
+
+    protected void setTraceMessageExchange(MessageProcessingLogRunStep.TraceMessage traceMessage, JSONArray traceMessageExchangePropertiesJsonArray) {
+        for (int traceMessageExchangePropertyInd = 0; traceMessageExchangePropertyInd < traceMessageExchangePropertiesJsonArray.length(); traceMessageExchangePropertyInd++) {
+            JSONObject traceMessageExchangePropertyElement = traceMessageExchangePropertiesJsonArray.getJSONObject(traceMessageExchangePropertyInd);
+
+            traceMessage.getProperties().add(new MessageRunStepProperty(
+                PropertyType.TRACE_MESSAGE_EXCHANGE,
+                optString(traceMessageExchangePropertyElement, "Name"),
+                optString(traceMessageExchangePropertyElement, "Value")
+            ));
+        }
+    }
+
+    protected JSONObject getDefaultValueOfTraceMessageElement(JSONArray runsJsonArray) {
+        return runsJsonArray.getJSONObject(0);
+    }
+
+    protected MessageProcessingLogRunStep.TraceMessage createTraceMessage(
+        JSONObject traceMessageElement,
+        MessageProcessingLogRunStep runStep,
+        MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria,
+        RequestContext requestContext
+    ) {
+        MessageProcessingLogRunStep.TraceMessage traceMessage = new MessageProcessingLogRunStep.TraceMessage();
+        traceMessage.setTraceId(optString(traceMessageElement, "TraceId"));
+        traceMessage.setMessageId(optString(traceMessageElement, "MplId"));
+        traceMessage.setModelStepId(optString(traceMessageElement, "ModelStepId"));
+        String payloadSize = optString(traceMessageElement, "PayloadSize");
+        if (payloadSize != null) {
+            traceMessage.setPayloadSize(Long.parseLong(payloadSize));
+        }
+        traceMessage.setMimeType(optString(traceMessageElement, "MimeType"));
+        traceMessage.setProcessingDate(runStep.getStepStop());
+
+        if (runStepSearchCriteria.isInitTraceMessagePayload()) {
+            byte[] payloadForMessage = getPayloadForMessage(requestContext, traceMessage.getTraceId());
+            traceMessage.setPayload(payloadForMessage);
+        }
+        return traceMessage;
+    }
+
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    protected static class TraceMessageHolder {
+
+        private JSONObject traceMessageElement;
+        private JSONArray foundTraceMessagePropertiesJsonArray;
     }
 }
