@@ -312,10 +312,8 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         Its SAP_TRACE_HEADER_<some digits>_MessageType property should be equal to "STEP". If it's not found, we just take the first one.
         Maybe later we will need to download and handle all the messages.*/
         TraceMessageHolder traceMessageHolder = new TraceMessageHolder();
-        JSONObject traceMessageElement = traceMessageHolder.getTraceMessageElement();
-        JSONArray foundTraceMessagePropertiesJsonArray = traceMessageHolder.getFoundTraceMessagePropertiesJsonArray();
         if (runsJsonArray.length() > 1) {
-            for (int i = 0; i < runsJsonArray.length() && traceMessageElement == null; i++) {
+            for (int i = 0; i < runsJsonArray.length() && traceMessageHolder.getTraceMessageElement() == null; i++) {
                 JSONObject currentTraceMessage = runsJsonArray.getJSONObject(i);
                 String resourcePathProperties = LOCATION + runtimeId + API_TRACE_MESSAGE_PROPERTIES;
                 String fullPathProperties = format(resourcePathProperties, optString(currentTraceMessage, "TraceId"));
@@ -329,7 +327,8 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
                 setTraceMessageHolder(traceMessageHolder, traceMessagePropertiesJsonArray, currentTraceMessage);
             }
         }
-        traceMessageElement = Optional.ofNullable(traceMessageElement).orElse(getDefaultValueOfTraceMessageElement(runsJsonArray));
+        JSONObject traceMessageElement = Optional.ofNullable(traceMessageHolder.getTraceMessageElement())
+            .orElse(getDefaultValueOfTraceMessageElement(runsJsonArray));
         MessageProcessingLogRunStep.TraceMessage traceMessage = createTraceMessage(
             traceMessageElement,
             runStep,
@@ -341,8 +340,8 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             JSONArray traceMessagePropertiesJsonArray;
             /*We could already have traceMessagePropertiesJsonArray if there are multiple trace messages.
              In this case we don't need to make the same request twice.*/
-            if (foundTraceMessagePropertiesJsonArray != null) {
-                traceMessagePropertiesJsonArray = foundTraceMessagePropertiesJsonArray;
+            if (traceMessageHolder.getFoundTraceMessagePropertiesJsonArray() != null) {
+                traceMessagePropertiesJsonArray = traceMessageHolder.getFoundTraceMessagePropertiesJsonArray();
             } else {
                 String resourcePathProperties = LOCATION + runtimeId + API_TRACE_MESSAGE_PROPERTIES;
                 String fullPathProperties = format(resourcePathProperties, traceMessage.getTraceId());

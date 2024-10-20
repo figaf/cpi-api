@@ -478,10 +478,8 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
         Its SAP_TRACE_HEADER_<some digits>_MessageType property should be equal to "STEP". If it's not found, we just take the first one.
         Maybe later we will need to download and handle all the messages.*/
         TraceMessageHolder traceMessageHolder = new TraceMessageHolder();
-        JSONObject traceMessageElement = traceMessageHolder.getTraceMessageElement();
-        JSONArray foundTraceMessagePropertiesJsonArray = traceMessageHolder.getFoundTraceMessagePropertiesJsonArray();
         if (traceMessagesJsonArray.length() > 1) {
-            for (int i = 0; i < traceMessagesJsonArray.length() && traceMessageElement == null; i++) {
+            for (int i = 0; i < traceMessagesJsonArray.length() && traceMessageHolder.getTraceMessageElement() == null; i++) {
                 JSONObject currentTraceMessage = traceMessagesJsonArray.getJSONObject(i);
                 JSONArray traceMessagePropertiesJsonArray = callRestWs(
                     requestContext,
@@ -491,7 +489,8 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
                 setTraceMessageHolder(traceMessageHolder, traceMessagePropertiesJsonArray, currentTraceMessage);
             }
         }
-        traceMessageElement = Optional.ofNullable(traceMessageElement).orElse(getDefaultValueOfTraceMessageElement(traceMessagesJsonArray));
+        JSONObject traceMessageElement = Optional.ofNullable(traceMessageHolder.getTraceMessageElement())
+            .orElse(getDefaultValueOfTraceMessageElement(traceMessagesJsonArray));
         MessageProcessingLogRunStep.TraceMessage traceMessage = createTraceMessage(
             traceMessageElement,
             runStep,
@@ -503,8 +502,8 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
             JSONArray traceMessagePropertiesJsonArray;
             /*We could already have traceMessagePropertiesJsonArray if there are multiple trace messages.
              In this case we don't need to make the same request twice.*/
-            if (foundTraceMessagePropertiesJsonArray != null) {
-                traceMessagePropertiesJsonArray = foundTraceMessagePropertiesJsonArray;
+            if (traceMessageHolder.getFoundTraceMessagePropertiesJsonArray() != null) {
+                traceMessagePropertiesJsonArray = traceMessageHolder.getFoundTraceMessagePropertiesJsonArray();
             } else {
                 traceMessagePropertiesJsonArray = callRestWs(
                     requestContext,
