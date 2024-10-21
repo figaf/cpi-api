@@ -7,6 +7,7 @@ import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLog;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogAttachment;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogRun;
 import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.List;
 
 /**
@@ -22,13 +23,13 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
 
     protected static final String API_MSG_PROC_LOG_CUSTOM_HEADER = "/api/v1/MessageProcessingLogCustomHeaderProperties";
 
-    protected static final String QUERY_PARAMS = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s";
+    protected static final String PAGINATED_SORTED_FILTERED_QUERY_PARAMS_TEMPLATE = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s";
 
-    protected static final String QUERY_PARAMS_WITH_SELECT = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s&$select=%s";
+    protected static final String PAGINATED_SORTED_FILTERED_SELECT_QUERY_PARAMS_TEMPLATE = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s&$select=%s";
 
-    protected static final String QUERY_PARAMS_ORDERED = "$inlinecount=allpages&$format=json&$top=%d&$orderby=LogEnd&$filter=%s";
+    protected static final String SORTED_FILTERED_QUERY_PARAMS_TEMPLATE = "$inlinecount=allpages&$format=json&$top=%d&$orderby=LogEnd&$filter=%s";
 
-    protected static final String QUERY_PARAMS_CUSTOM_HEADER = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$expand=Log&$filter=%s";
+    protected static final String PAGINATED_EXPANDABLE_FILTERED_QUERY_PARAMS_TEMPLATE = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$expand=Log&$filter=%s";
 
     protected static final String API_MSG_PROC_LOGS_CUSTOM_HEADER = "/api/v1/MessageProcessingLogs('%s')/CustomHeaderProperties?$format=json";
 
@@ -95,6 +96,10 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
     public abstract int getCountOfMessageProcessingLogsByFilter(RequestContext requestContext, String filter);
 
     public abstract Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByCustomHeader(RequestContext requestContext, int top, int skip, String filter);
+
+    public abstract byte[] getPersistedAttachment(RequestContext requestContext, String attachmentId);
+
+    public abstract byte[] getAttachment(RequestContext requestContext, String attachmentId);
 
     public abstract Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilterWithSelectedResponseFields(
         RequestContext requestContext,
