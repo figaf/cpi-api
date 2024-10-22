@@ -1,22 +1,16 @@
 package com.figaf.integration.cpi.entity.runtime_artifacts;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-public  class ArtifactInformation {
+public class ArtifactInformation {
 
     @JacksonXmlProperty(localName = "taskId")
     private String taskId;
