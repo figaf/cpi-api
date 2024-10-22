@@ -316,6 +316,9 @@ public class PartnerDirectoryClient extends CpiBaseClient {
                 return Optional.ofNullable(apiParameter);
             } catch (HttpClientErrorException.TooManyRequests tooManyRequestsEx) {
                 handleTooManyRequests(tooManyRequestsEx, attempt);
+            } catch (HttpClientErrorException.NotFound ex) {
+                log.warn("Parameter with id {} and pid {} is not found", id, pid);
+                return Optional.empty();
             } catch (Exception e) {
                 String errorMsg = String.format("Couldn't fetch parameter with id %s and pid %s: %s", id, pid, e.getMessage());
                 log.error(errorMsg, e);
