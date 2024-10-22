@@ -5,6 +5,7 @@ import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.designtime_artifacts.*;
+import com.figaf.integration.cpi.entity.runtime_artifacts.DeployedArtifact;
 import com.figaf.integration.cpi.utils.IFlowUtils;
 import com.figaf.integration.cpi.utils.PackageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
 import static com.figaf.integration.cpi.utils.IFlowUtils.API_TEST_DUMMY_IFLOW_NAME;
@@ -130,6 +134,9 @@ class CpiIntegrationFlowClientTest {
 
         String status = cpiIntegrationFlowClient.checkDeploymentStatus(requestContext, taskId);
         assertThat(status).isNotBlank();
+
+        DeployedArtifact deployedArtifactInfo = cpiIntegrationFlowClient.getDeployedArtifactInfo(requestContext, iFlow.getTechnicalName());
+        assertThat(deployedArtifactInfo).isNotNull();
 
         iFlowUtils.deleteIFlow(requestContext, iFlow);
         iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);
