@@ -118,7 +118,6 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
 
     public String getErrorInformationValue(RequestContext requestContext, String messageGuid) {
         log.debug("#getErrorInformationValue(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-
         try {
             String resourcePath = format(createBaseResourcePath(API_MSG_PROC_LOGS_ERROR_INFORMATION_VALUE), messageGuid);
             return executeGet(
@@ -166,7 +165,6 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
         }
     }
-
 
     public int getCountOfMessageProcessingLogsByFilter(RequestContext requestContext, String filter) {
         log.debug("#getCountOfMessageProcessingLogsByFilter(RequestContext requestContext, String filter): {}, {}", requestContext, filter);
@@ -260,7 +258,6 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             throw new ClientIntegrationException(ex);
         }
     }
-
 
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
         log.debug("#getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
@@ -479,7 +476,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
     private List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, int top, String filter) {
         try {
             String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
-            String queryParams = String.format(QUERY_PARAMS_ORDERED, top, filter);
+            String queryParams = String.format(SORTED_FILTERED_QUERY_PARAMS_TEMPLATE, top, filter);
             URI uri = new URI(null, null, resourcePath, queryParams, null);
             JSONArray messageProcessingLogsJsonArray = executeGet(
                 requestContext,

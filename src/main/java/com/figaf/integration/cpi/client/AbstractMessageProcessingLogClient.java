@@ -10,10 +10,14 @@ import lombok.Setter;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.tuple.Pair;
+<<<<<<< HEAD
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Date;
+=======
+
+>>>>>>> 06ce16944099385643b3d5d369f8ae443a9cd9d3
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
@@ -121,6 +125,10 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
     public abstract int getCountOfMessageProcessingLogsByFilter(RequestContext requestContext, String filter);
 
     public abstract Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByCustomHeader(RequestContext requestContext, int top, int skip, String filter);
+
+    public abstract byte[] getPersistedAttachment(RequestContext requestContext, String attachmentId);
+
+    public abstract byte[] getAttachment(RequestContext requestContext, String attachmentId);
 
     public abstract Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilterWithSelectedResponseFields(
         RequestContext requestContext,
