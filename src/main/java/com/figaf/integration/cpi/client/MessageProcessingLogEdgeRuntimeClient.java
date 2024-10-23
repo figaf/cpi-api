@@ -1,5 +1,6 @@
 package com.figaf.integration.cpi.client;
 
+import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
@@ -33,11 +34,11 @@ import static java.lang.String.format;
 @Slf4j
 public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProcessingLogClient {
 
-    private final String runtimeId;
+    private final String runtimeLocationId;
 
-    public MessageProcessingLogEdgeRuntimeClient(HttpClientsFactory httpClientsFactory, String runtimeId) {
+    public MessageProcessingLogEdgeRuntimeClient(HttpClientsFactory httpClientsFactory, String runtimeLocationId) {
         super(httpClientsFactory);
-        this.runtimeId = runtimeId;
+        this.runtimeLocationId = runtimeLocationId;
     }
 
     public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilter(
@@ -51,12 +52,13 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             "getMessageProcessingLogsByFilter(RequestContext requestContext, int top, int skip, String filter, boolean expandCustomHeaders): {}, {}, {}, {}, {}",
             requestContext, top, skip, filter, expandCustomHeaders
         );
-        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
-        String queryParamsTemplate = expandCustomHeaders ? QUERY_PARAMS + "&$expand=CustomHeaderProperties" : QUERY_PARAMS;
+        String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
+        String queryParamsTemplate = expandCustomHeaders
+            ? PAGINATED_SORTED_FILTERED_QUERY_PARAMS_TEMPLATE + "&$expand=CustomHeaderProperties"
+            : PAGINATED_SORTED_FILTERED_QUERY_PARAMS_TEMPLATE;
         String queryParams = String.format(queryParamsTemplate, top, skip, filter);
         try {
             return getMessageProcessingLogsToTotalCount(requestContext, resourcePath, queryParams, filter);
-
         } catch (Exception ex) {
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
         }
@@ -64,9 +66,8 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
 
     public List<MessageProcessingLogAttachment> getAttachmentsMetadata(RequestContext requestContext, String messageGuid) {
         log.debug("#getAttachmentsMetadata(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-
         try {
-            String resourcePath = format(LOCATION + runtimeId + API_MSG_PROC_LOGS_ATTACHMENTS, messageGuid);
+            String resourcePath = format(createBaseResourcePath(API_MSG_PROC_LOGS_ATTACHMENTS), messageGuid);
             JSONArray attachmentsJsonArray = executeGet(
                 requestContext,
                 resourcePath,
@@ -82,9 +83,8 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
 
     public List<MessageProcessingLogAttachment> getMessageStoreEntriesPayloads(RequestContext requestContext, String messageGuid) {
         log.debug("#getMessageStoreEntriesPayloads(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-
         try {
-            String resourcePath = format(LOCATION + runtimeId + API_MSG_PROC_LOGS_MESSAGE_STORE_ENTRIES, messageGuid);
+            String resourcePath = format(createBaseResourcePath(API_MSG_PROC_LOGS_MESSAGE_STORE_ENTRIES), messageGuid);
             JSONArray attachmentsJsonArray = executeGet(
                 requestContext,
                 resourcePath,
@@ -98,8 +98,9 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
     }
 
     public MessageProcessingLog getMessageProcessingLogByGuid(RequestContext requestContext, String messageGuid) {
+        log.debug("#getMessageProcessingLogByGuid(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
         try {
-            String resourcePath = format(LOCATION + runtimeId + API_MSG_PROC_LOGS_ID, messageGuid);
+            String resourcePath = format(createBaseResourcePath(API_MSG_PROC_LOGS_ID), messageGuid);
             JSONObject messageProcessingLogsObject = executeGet(
                 requestContext,
                 resourcePath,
@@ -119,7 +120,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         log.debug("#getErrorInformationValue(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
 
         try {
-            String resourcePath = format(LOCATION + runtimeId + API_MSG_PROC_LOGS_ERROR_INFORMATION_VALUE, messageGuid);
+            String resourcePath = format(createBaseResourcePath(API_MSG_PROC_LOGS_ERROR_INFORMATION_VALUE), messageGuid);
             return executeGet(
                 requestContext,
                 resourcePath,
@@ -133,8 +134,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
 
     public List<CustomHeaderProperty> getCustomHeaderProperties(RequestContext requestContext, String messageGuid) {
         log.debug("#getCustomHeaderProperties(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-
-        String resourcePath = format(LOCATION + runtimeId + API_MSG_PROC_LOGS_CUSTOM_HEADER, messageGuid);
+        String resourcePath = format(createBaseResourcePath(API_MSG_PROC_LOGS_CUSTOM_HEADER), messageGuid);
         try {
             JSONObject messageProcessingLogsObject = executeGet(
                 requestContext,
@@ -153,8 +153,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
 
     public List<MessageProcessingLogRun> getRunsMetadata(RequestContext requestContext, String messageGuid) {
         log.debug("#getRunsMetadata(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-
-        String resourcePath = format(LOCATION + runtimeId + API_MSG_PROC_LOGS_RUNS, messageGuid);
+        String resourcePath = format(createBaseResourcePath(API_MSG_PROC_LOGS_RUNS), messageGuid);
         try {
             JSONArray runsJsonArray = executeGet(
                 requestContext,
@@ -173,8 +172,8 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         log.debug("#getCountOfMessageProcessingLogsByFilter(RequestContext requestContext, String filter): {}, {}", requestContext, filter);
         try {
             String resourcePath = StringUtils.isBlank(filter)
-                ? format(LOCATION + runtimeId + API_MSG_PROC_LOGS_COUNT) :
-                new URI(null, null, format(LOCATION + runtimeId + API_MSG_PROC_LOGS_COUNT), String.format(FILTER, filter), null).toString();
+                ? createBaseResourcePath(API_MSG_PROC_LOGS_COUNT) :
+                new URI(null, null, createBaseResourcePath(API_MSG_PROC_LOGS_COUNT), String.format(FILTER, filter), null).toString();
             return executeGet(
                 requestContext,
                 resourcePath,
@@ -188,14 +187,19 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
 
     public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByCustomHeader(RequestContext requestContext, int top, int skip, String filter) {
         log.debug("getMessageProcessingLogsByCustomHeader(RequestContext requestContext, int top, int skip, String filter): {}, {}, {}, {}", requestContext, top, skip, filter);
-        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOG_CUSTOM_HEADER;
-        String queryParams = String.format(QUERY_PARAMS_CUSTOM_HEADER, top, skip, filter);
+        String resourcePath = createBaseResourcePath(API_MSG_PROC_LOG_CUSTOM_HEADER);
+        String queryParams = String.format(PAGINATED_EXPANDABLE_FILTERED_QUERY_PARAMS_TEMPLATE, top, skip, filter);
         try {
             URI uri = new URI(null, null, resourcePath, queryParams, null);
             int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, filter);
             return executeGet(
                 requestContext, uri.toString(),
-                (response) -> MessageProcessingLogParser.buildMessageProcessingLogsResult(response, totalCount)
+                (response) -> MessageProcessingLogParser.buildMessageProcessingLogsResult(
+                    response,
+                    totalCount,
+                    requestContext.getConnectionProperties(),
+                    runtimeLocationId
+                )
             );
         } catch (Exception ex) {
             throw new ClientIntegrationException("Error occurred while getting response from mpls by custom header: " + ex.getMessage(), ex);
@@ -213,12 +217,11 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             "getMessageProcessingLogsByFilterWithSelectedResponseFields(RequestContext requestContext, int top, int skip, String filter, String responseFields): {}, {}, {}, {}, {}",
             requestContext, top, skip, filter, responseFields
         );
-        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
-        String queryParams = String.format(QUERY_PARAMS_WITH_SELECT, top, skip, filter, responseFields);
+        String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
+        String queryParams = String.format(PAGINATED_SORTED_FILTERED_SELECT_QUERY_PARAMS_TEMPLATE, top, skip, filter, responseFields);
         try {
             return getMessageProcessingLogsToTotalCount(requestContext, resourcePath, queryParams, filter);
         } catch (Exception ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
         }
     }
@@ -228,9 +231,40 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         return getMessageProcessingLogs(requestContext, top, filter);
     }
 
+    public byte[] getPersistedAttachment(RequestContext requestContext, String attachmentId) {
+        log.debug("#getPersistedAttachment(RequestContext requestContext, String attachmentId): {}, {}", requestContext, attachmentId);
+        return getAttachmentResponse(requestContext, attachmentId, API_MSG_STORE_ENTRIES_VALUE);
+    }
+
+    public byte[] getAttachment(RequestContext requestContext, String attachmentId) {
+        log.debug("#getAttachment(RequestContext requestContext, String attachmentId): {}, {}", requestContext, attachmentId);
+        return getAttachmentResponse(requestContext, attachmentId, API_MSG_PROC_LOG_ATTACHMENT);
+    }
+
+    private byte[] getAttachmentResponse(RequestContext requestContext, String attachmentId, String apiMsgStoreEntriesValue) {
+        try {
+            String attachmentResource = format(apiMsgStoreEntriesValue, attachmentId);
+            String resourcePath = createBaseResourcePath(attachmentResource);
+            String responseText = executeGet(
+                requestContext,
+                resourcePath,
+                response -> response
+            );
+
+            if (StringUtils.isNotBlank(responseText)) {
+                return responseText.getBytes(StandardCharsets.UTF_8);
+            } else {
+                return null;
+            }
+        } catch (Exception ex) {
+            throw new ClientIntegrationException(ex);
+        }
+    }
+
+
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
         log.debug("#getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
-        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+        String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
         String queryParams = format(QUERY_PARAMS_FOR_TRACES_WITH_IFLOW_NAME,
             integrationFlowName,
             GMT_DATE_FORMAT.format(startDate),
@@ -241,7 +275,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
 
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate) {
         log.debug("#getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate): {}, {}, {}", requestContext, technicalNames, startDate);
-        String resourcePathWithParams = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+        String resourcePathWithParams = createBaseResourcePath(API_MSG_PROC_LOGS);
         String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
         String additionalQueryParams = format(QUERY_PARAMS_FOR_TRACES,
             technicalNamesFilter,
@@ -253,7 +287,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames) {
         log.debug("#getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames): {}, {}, {}", requestContext, correlationIds, technicalNames);
-        String resourcePathWithParams = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+        String resourcePathWithParams = createBaseResourcePath(API_MSG_PROC_LOGS);
         String correlationIdsFilter = buildCorrelationIdsFilter(correlationIds);
         String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
         String queryParams = format(QUERY_PARAMS_FILTER, format("(%s) and (%s)", correlationIdsFilter, technicalNamesFilter));
@@ -275,7 +309,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             params.add(format("MessageGuid eq '%s'", messageGuid));
         }
 
-        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+        String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
         String filter = format(QUERY_PARAMS_FILTER, format("(%s)", StringUtils.join(params, " or ")));
         String queryParams = expandCustomHeaders ? filter + "&$expand=CustomHeaderProperties" : filter;
 
@@ -295,7 +329,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             requestContext, runStepSearchCriteria, runStep
         );
         String runId = runStep.getRunId();
-        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES;
+        String resourcePath = createBaseResourcePath(API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES);
         String fullPath = format(resourcePath, runId, runStep.getChildCount());
         JSONArray runsJsonArray = executeGet(
             requestContext,
@@ -315,7 +349,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         if (runsJsonArray.length() > 1) {
             for (int i = 0; i < runsJsonArray.length() && traceMessageHolder.getTraceMessageElement() == null; i++) {
                 JSONObject currentTraceMessage = runsJsonArray.getJSONObject(i);
-                String resourcePathProperties = LOCATION + runtimeId + API_TRACE_MESSAGE_PROPERTIES;
+                String resourcePathProperties = createBaseResourcePath(API_TRACE_MESSAGE_PROPERTIES);
                 String fullPathProperties = format(resourcePathProperties, optString(currentTraceMessage, "TraceId"));
                 JSONArray traceMessagePropertiesJsonArray = executeGet(
                     requestContext,
@@ -343,7 +377,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             if (traceMessageHolder.getFoundTraceMessagePropertiesJsonArray() != null) {
                 traceMessagePropertiesJsonArray = traceMessageHolder.getFoundTraceMessagePropertiesJsonArray();
             } else {
-                String resourcePathProperties = LOCATION + runtimeId + API_TRACE_MESSAGE_PROPERTIES;
+                String resourcePathProperties = createBaseResourcePath(API_TRACE_MESSAGE_PROPERTIES);
                 String fullPathProperties = format(resourcePathProperties, traceMessage.getTraceId());
                 traceMessagePropertiesJsonArray = executeGet(
                     requestContext,
@@ -354,7 +388,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             }
 
             setTraceMessageHeader(traceMessage, traceMessagePropertiesJsonArray);
-            String resourcePathProperties = LOCATION + runtimeId + API_TRACE_MESSAGE_EXCHANGE_PROPERTIES;
+            String resourcePathProperties = createBaseResourcePath(API_TRACE_MESSAGE_EXCHANGE_PROPERTIES);
             String fullPathProperties = format(resourcePathProperties, traceMessage.getTraceId());
             JSONArray traceMessageExchangePropertiesJsonArray = executeGet(
                 requestContext,
@@ -380,7 +414,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
     public byte[] getPayloadForMessage(RequestContext requestContext, String traceId) {
         log.debug("#getPayloadForMessage(RequestContext requestContext, String traceId): {}, {}", requestContext, traceId);
         try {
-            String resourcePath = LOCATION + runtimeId + API_TRACE_MESSAGE_PAYLOAD;
+            String resourcePath = createBaseResourcePath(API_TRACE_MESSAGE_PAYLOAD);
             String fullPathWithParams = format(resourcePath, traceId);
             String payloadResponse = executeGet(
                 requestContext,
@@ -405,7 +439,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         for (String correlationId : correlationIds) {
             params.add(format("CorrelationId eq '%s'", correlationId));
         }
-        String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+        String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
         String queryParams = format(QUERY_PARAMS_WITH_ORDER_AND_FILTER, StringUtils.join(params, " or "));
         return getMessageProcessingLogs(
             requestContext,
@@ -421,7 +455,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         List<JSONObject> jsonObjectRunSteps = new ArrayList<>();
         do {
             int skip = MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION * iterNumber;
-            String resourcePathProperties = LOCATION + runtimeId + API_MSG_PROC_LOG_RUN_STEPS;
+            String resourcePathProperties = createBaseResourcePath(API_MSG_PROC_LOG_RUN_STEPS);
             String fullPathProperties = format(resourcePathProperties, runId, MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION, skip);
             JSONObject dObject = executeGet(
                 requestContext,
@@ -444,7 +478,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
 
     private List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, int top, String filter) {
         try {
-            String resourcePath = LOCATION + runtimeId + API_MSG_PROC_LOGS;
+            String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
             String queryParams = String.format(QUERY_PARAMS_ORDERED, top, filter);
             URI uri = new URI(null, null, resourcePath, queryParams, null);
             JSONArray messageProcessingLogsJsonArray = executeGet(
@@ -481,7 +515,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         RequestContext requestContext,
         String resourcePath,
         String queryParams,
-        String filter
+        String filterForCount
     ) throws URISyntaxException {
         URI uri = new URI(null, null, resourcePath, queryParams, null);
         JSONObject jsonObjectD = executeGet(
@@ -490,18 +524,26 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             response -> new JSONObject(response).getJSONObject("d"),
             String.class
         );
-        int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, filter);
-        return extractMplsAndCountFromResponse(jsonObjectD, totalCount);
+        int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, filterForCount);
+        return extractMplsAndCountFromResponse(jsonObjectD, totalCount, requestContext.getConnectionProperties());
     }
 
-    private Pair<List<MessageProcessingLog>, Integer> extractMplsAndCountFromResponse(JSONObject jsonObjectD, int totalCount) {
+    private Pair<List<MessageProcessingLog>, Integer> extractMplsAndCountFromResponse(
+        JSONObject jsonObjectD,
+        int totalCount,
+        ConnectionProperties connectionProperties
+    ) {
         JSONArray messageProcessingLogsJsonArray = jsonObjectD.getJSONArray("results");
         List<MessageProcessingLog> messageProcessingLogs = new ArrayList<>();
         int sizeOfMessageProcessingLogs = messageProcessingLogsJsonArray.length();
         for (int ind = 0; ind < sizeOfMessageProcessingLogs; ind++) {
             JSONObject messageProcessingLogElement = messageProcessingLogsJsonArray.getJSONObject(ind);
 
-            MessageProcessingLog messageProcessingLog = MessageProcessingLogParser.fillMessageProcessingLog(messageProcessingLogElement);
+            MessageProcessingLog messageProcessingLog = MessageProcessingLogParser.fillMessageProcessingLog(
+                messageProcessingLogElement,
+                connectionProperties,
+                runtimeLocationId
+            );
             messageProcessingLogs.add(messageProcessingLog);
         }
 
@@ -511,5 +553,9 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
     @Override
     protected Logger getLogger() {
         return log;
+    }
+
+    private String createBaseResourcePath(String path) {
+        return String.format("%s%s%s", LOCATION, runtimeLocationId, path);
     }
 }
