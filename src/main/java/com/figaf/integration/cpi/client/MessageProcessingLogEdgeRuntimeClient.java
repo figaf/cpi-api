@@ -287,7 +287,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         String resourcePathWithParams = createBaseResourcePath(API_MSG_PROC_LOGS);
         String correlationIdsFilter = buildCorrelationIdsFilter(correlationIds);
         String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
-        String queryParams = format(QUERY_PARAMS_FILTER, format("(%s) and (%s)", correlationIdsFilter, technicalNamesFilter));
+        String queryParams = format(FILTERED_QUERY_PARAMS_TEMPLATE, format("(%s) and (%s)", correlationIdsFilter, technicalNamesFilter));
         return getMessageProcessingLogs(requestContext, resourcePathWithParams, queryParams);
     }
 
@@ -307,7 +307,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
         }
 
         String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
-        String filter = format(QUERY_PARAMS_FILTER, format("(%s)", StringUtils.join(params, " or ")));
+        String filter = format(FILTERED_QUERY_PARAMS_TEMPLATE, format("(%s)", StringUtils.join(params, " or ")));
         String queryParams = expandCustomHeaders ? filter + "&$expand=CustomHeaderProperties" : filter;
 
         return getMessageProcessingLogs(
@@ -437,7 +437,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
             params.add(format("CorrelationId eq '%s'", correlationId));
         }
         String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
-        String queryParams = format(QUERY_PARAMS_WITH_ORDER_AND_FILTER, StringUtils.join(params, " or "));
+        String queryParams = format(SORTED_FILTERED_QUERY_PARAMS_TEMPLATE, StringUtils.join(params, " or "));
         return getMessageProcessingLogs(
             requestContext,
             resourcePath,
@@ -476,7 +476,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProces
     private List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, int top, String filter) {
         try {
             String resourcePath = createBaseResourcePath(API_MSG_PROC_LOGS);
-            String queryParams = String.format(SORTED_FILTERED_QUERY_PARAMS_TEMPLATE, top, filter);
+            String queryParams = String.format(SORTED_FILTERED_ALL_PAGES_QUERY_PARAMS_TEMPLATE, top, filter);
             URI uri = new URI(null, null, resourcePath, queryParams, null);
             JSONArray messageProcessingLogsJsonArray = executeGet(
                 requestContext,

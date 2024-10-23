@@ -10,14 +10,10 @@ import lombok.Setter;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.tuple.Pair;
-<<<<<<< HEAD
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Date;
-=======
-
->>>>>>> 06ce16944099385643b3d5d369f8ae443a9cd9d3
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
@@ -37,7 +33,6 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
     protected static final String API_MSG_PROC_LOGS = "/api/v1/MessageProcessingLogs";
 
     protected static final String API_MSG_PROC_LOGS_WITH_PARAMS = "/api/v1/MessageProcessingLogs?$format=json&$orderby=LogEnd&$filter=%s";
-    protected static final String QUERY_PARAMS_ORDERED = "$inlinecount=allpages&$format=json&$top=%d&$orderby=LogEnd&$filter=%s";
 
     protected static final String API_MSG_PROC_LOG_CUSTOM_HEADER = "/api/v1/MessageProcessingLogCustomHeaderProperties";
 
@@ -45,17 +40,19 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
 
     protected static final String PAGINATED_SORTED_FILTERED_SELECT_QUERY_PARAMS_TEMPLATE = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$orderby=LogEnd desc&$filter=%s&$select=%s";
 
-    protected static final String SORTED_FILTERED_QUERY_PARAMS_TEMPLATE = "$inlinecount=allpages&$format=json&$top=%d&$orderby=LogEnd&$filter=%s";
+    protected static final String SORTED_FILTERED_ALL_PAGES_QUERY_PARAMS_TEMPLATE = "$inlinecount=allpages&$format=json&$top=%d&$orderby=LogEnd&$filter=%s";
 
     protected static final String PAGINATED_EXPANDABLE_FILTERED_QUERY_PARAMS_TEMPLATE = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$expand=Log&$filter=%s";
 
     protected static final String QUERY_PARAMS_FOR_TRACES_WITH_IFLOW_NAME = "$format=json&$filter=LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
-    protected static final String QUERY_PARAMS_WITH_ORDER_AND_FILTER = "$format=json&$orderby=LogEnd&$filter=%s";
+
+    protected static final String SORTED_FILTERED_QUERY_PARAMS_TEMPLATE = "$format=json&$orderby=LogEnd&$filter=%s";
 
     protected static final String QUERY_PARAMS_FOR_TRACES = "$format=json&$filter=LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
 
     protected static final String API_MSG_PROC_LOGS_CUSTOM_HEADER = "/api/v1/MessageProcessingLogs('%s')/CustomHeaderProperties?$format=json";
-    protected static final String QUERY_PARAMS_FILTER = "$format=json&$filter=%s";
+
+    protected static final String FILTERED_QUERY_PARAMS_TEMPLATE = "$format=json&$filter=%s";
 
     protected final static String FILTER = "$filter=%s";
 
