@@ -26,20 +26,16 @@ public class IntegrationContentEdgeRuntimeClient extends CpiBaseClient {
 
     private static final String INTEGRATION_COMPONENTS_LIST = "/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand?runtimeLocationId=%s";
 
-    private final String runtimeLocationId;
-
-    public IntegrationContentEdgeRuntimeClient(HttpClientsFactory httpClientsFactory, String runtimeLocationId) {
+    public IntegrationContentEdgeRuntimeClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
-        this.runtimeLocationId = runtimeLocationId;
     }
 
     public List<IntegrationContent> getAllIntegrationRuntimeArtifacts(RequestContext requestContext) {
         log.debug("#getIntegrationContents(RequestContext requestContext): {}", requestContext);
-
         return executeMethod(
             requestContext,
             OPERATIONS_PATH_FOR_TOKEN,
-            String.format(INTEGRATION_COMPONENTS_LIST, runtimeLocationId),
+            String.format(INTEGRATION_COMPONENTS_LIST, requestContext.getRuntimeLocationId()),
             (url, token, restTemplateWrapper) -> callIntegrationComponentsList(url, token, restTemplateWrapper.getRestTemplate())
         );
     }
