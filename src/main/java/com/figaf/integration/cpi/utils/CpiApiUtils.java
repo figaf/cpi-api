@@ -15,13 +15,17 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * @author Arsenii Istlentev
  */
 public class CpiApiUtils {
 
-    private static final transient FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    private static final transient FastDateFormat DATE_FORMAT = FastDateFormat.getInstance(
+        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+        TimeZone.getTimeZone("GMT")
+    );
 
     public static Date parseDate(String date) {
         try {
