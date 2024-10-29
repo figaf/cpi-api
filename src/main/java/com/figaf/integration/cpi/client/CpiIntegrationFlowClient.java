@@ -3,11 +3,13 @@ package com.figaf.integration.cpi.client;
 import com.figaf.integration.common.entity.CloudPlatformType;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
+import com.figaf.integration.cpi.client.mapper.ObjectMapperFactory;
 import com.figaf.integration.cpi.entity.DeleteAndUndeployIFlowResult;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactFromPublicApi;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateIFlowRequest;
+import com.figaf.integration.cpi.entity.runtime_artifacts.DeployedArtifact;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +33,7 @@ import static java.lang.String.format;
 @Slf4j
 public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
+    private static final String API_IFLOW_DEPLOYED_ARTIFACT_INFO = "/itspaces/api/1.0/deployedartifacts/%s?bundleType=IntegrationFlow";
     private static final String API_UPLOAD_IFLOW = "/itspaces/api/1.0/workspace/%s/iflows/";
     private static final String API_DEPLOY_IFLOW = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY";
     private static final String API_SET_TRACE_LOG_LEVEL_FOR_IFLOWS = "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentSetMplLogLevelCommand";
@@ -133,6 +136,15 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
             requestContext,
             format("/api/v1/IntegrationRuntimeArtifacts('%s')", iFlowTechnicalName),
             Objects::nonNull
+        );
+    }
+
+    public DeployedArtifact getDeployedArtifactInfo(RequestContext requestContext, String iFlowTechnicalName) {
+        log.debug("#getDeployedArtifactInfo: iFlowTechnicalName={}, requestContext={}", iFlowTechnicalName, requestContext);
+        return executeGet(
+            requestContext,
+            format(API_IFLOW_DEPLOYED_ARTIFACT_INFO, iFlowTechnicalName),
+            body -> ObjectMapperFactory.getJsonObjectMapper().readValue(body, DeployedArtifact.class)
         );
     }
 
