@@ -1,90 +1,90 @@
 package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.entity.RequestContext;
-import com.figaf.integration.common.exception.ClientIntegrationException;
-import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
 import com.figaf.integration.cpi.entity.message_processing.*;
-import com.figaf.integration.cpi.response_parser.MessageProcessingLogParser;
-import com.figaf.integration.cpi.utils.CpiApiUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
-import org.apache.commons.lang3.tuple.MutablePair;
+import com.figaf.integration.common.factory.HttpClientsFactory;
 import org.apache.commons.lang3.tuple.Pair;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.springframework.web.client.HttpClientErrorException;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.figaf.integration.cpi.response_parser.MessageProcessingLogParser.*;
-import static java.lang.String.format;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
- * @author Arsenii Istlentev
+ * @author Kostas Charalambous
  */
+
 @Slf4j
-public class MessageProcessingLogClient extends AbstractMessageProcessingLogClient {
+public class MessageProcessingLogClient {
 
-    private final static int MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION = 500;
+    private final MessageProcessingLogDefaultRuntimeClient defaultRuntimeClient;
 
-    private final static FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
-        "yyyy-MM-dd'T'HH:mm:ss.SSS",
-        TimeZone.getTimeZone("GMT")
-    );
+    private final MessageProcessingLogEdgeRuntimeClient edgeRuntimeClient;
 
     public MessageProcessingLogClient(HttpClientsFactory httpClientsFactory) {
-        super(httpClientsFactory);
+        this.defaultRuntimeClient = new MessageProcessingLogDefaultRuntimeClient(httpClientsFactory);
+        this.edgeRuntimeClient = new MessageProcessingLogEdgeRuntimeClient(httpClientsFactory);
     }
 
-    public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByCustomHeader(RequestContext requestContext, int top, int skip, String filter) {
-        log.debug("getMessageProcessingLogsByCustomHeader(RequestContext requestContext, int top, int skip, String filter): {}, {}, {}, {}", requestContext, top, skip, filter);
-        String path = format("/itspaces/odata/api/v1/MessageProcessingLogCustomHeaderProperties?$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$expand=Log&$filter=%s", top, skip, filter.replace(" ", "%20"));
-        return executeGet(requestContext, path, MessageProcessingLogParser::buildMessageProcessingLogsResult);
+    public MessageProcessingLogClient(
+        MessageProcessingLogDefaultRuntimeClient defaultRuntimeClient,
+        MessageProcessingLogEdgeRuntimeClient edgeRuntimeClient
+    ) {
+        this.defaultRuntimeClient = defaultRuntimeClient;
+        this.edgeRuntimeClient = edgeRuntimeClient;
+    }
+
+    public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByCustomHeader(
+        RequestContext requestContext,
+        int top,
+        int skip,
+        String filter
+    ) {
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByCustomHeader(
+            requestContext,
+            top,
+            skip,
+            filter
+        );
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate) {
-        log.debug("#getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
-        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
-            format("IntegrationFlowName eq '%s' and LogStart gt datetime'%s'",
+        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
+            log.debug(
+                "#getMessageProcessingLogs edge: requestContext={}, integrationFlowName={}, startDate={}",
+                requestContext,
                 integrationFlowName,
-                GMT_DATE_FORMAT.format(startDate)
-            )
-        );
-        return getMessageProcessingLogs(requestContext, resourcePath);
+                startDate
+            );
+            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
+        }
+        return defaultRuntimeClient.getMessageProcessingLogs(requestContext, integrationFlowName, startDate);
     }
 
-    public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
-        log.debug("#getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
-        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
-            format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
-                integrationFlowName,
-                GMT_DATE_FORMAT.format(startDate),
-                GMT_DATE_FORMAT.format(shiftDateTo55MinutesBackFromNow())
-            )
+    public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(
+        RequestContext requestContext,
+        String integrationFlowName,
+        Date startDate
+    ) {
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getFinishedMessageProcessingLogsWithTraceLevel(
+            requestContext,
+            integrationFlowName,
+            startDate
         );
-        return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
-    public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate) {
-        log.debug("#getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate): {}, {}, {}", requestContext, technicalNames, startDate);
-        String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
-        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
-            format("LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
-                technicalNamesFilter,
-                GMT_DATE_FORMAT.format(startDate),
-                GMT_DATE_FORMAT.format(shiftDateTo55MinutesBackFromNow())
-            )
+    public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(
+        RequestContext requestContext,
+        List<String> technicalNames,
+        Date startDate
+    ) {
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(
+            requestContext,
+            technicalNames,
+            startDate
         );
-        return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByMessageGuids(
@@ -92,44 +92,45 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
         Set<String> messageGuids,
         boolean expandCustomHeaders
     ) {
-        log.debug(
-            "#getMessageProcessingLogsByMessageGuids(RequestContext requestContext, Set<String> messageGuids, boolean expandCustomHeaders): {}, {}, {}",
-            requestContext, messageGuids, expandCustomHeaders
-        );
-
-        List<String> params = new ArrayList<>();
-        for (String messageGuid : messageGuids) {
-            params.add(format("MessageGuid eq '%s'", messageGuid));
-        }
-
-        String resourcePath = expandCustomHeaders ? API_MSG_PROC_LOGS_WITH_PARAMS + "&$expand=CustomHeaderProperties" : API_MSG_PROC_LOGS_WITH_PARAMS;
-
-        return getMessageProcessingLogs(
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByMessageGuids(
             requestContext,
-            format(resourcePath, StringUtils.join(params, " or "))
+            messageGuids,
+            expandCustomHeaders
         );
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIds(RequestContext requestContext, Set<String> correlationIds) {
-        log.debug("#getMessageProcessingLogsByCorrelationIds(RequestContext requestContext, Set<String> correlationIds): {}, {}", requestContext, correlationIds);
-
-        List<String> params = new ArrayList<>();
-        for (String correlationId : correlationIds) {
-            params.add(format("CorrelationId eq '%s'", correlationId));
-        }
-
-        return getMessageProcessingLogs(
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByCorrelationIds(
             requestContext,
-            format(API_MSG_PROC_LOGS_WITH_PARAMS, StringUtils.join(params, " or "))
+            correlationIds
         );
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate) {
-        return getMessageProcessingLogsByFilter(requestContext, 1000, 0, filter, leftBoundDate, false);
+        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
+            log.debug(
+                "#getMessageProcessingLogsByFilter edge: requestContext={}, filter={}, leftBoundDate={}",
+                requestContext,
+                filter,
+                leftBoundDate
+            );
+            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
+        }
+        return defaultRuntimeClient.getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate, boolean expandCustomHeaders) {
-        return getMessageProcessingLogsByFilter(requestContext, 1000, 0, filter, leftBoundDate, expandCustomHeaders);
+        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
+            log.debug(
+                "#getMessageProcessingLogsByFilter edge: requestContext={}, filter={}, leftBoundDate={}, expandCustomHeaders={}",
+                requestContext,
+                filter,
+                leftBoundDate,
+                expandCustomHeaders
+            );
+            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
+        }
+        return defaultRuntimeClient.getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate, expandCustomHeaders);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(
@@ -140,47 +141,46 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
         Date leftBoundDate,
         boolean expandCustomHeaders
     ) {
-        log.debug("#getMessageProcessingLogsByFilter: top={}, skip={}, filter={}, leftBoundDate={}, expandCustomHeaders={}, requestContext={}",
+        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
+            log.debug(
+                "#getMessageProcessingLogsByFilter edge: requestContext={}, top={}, skip={}, filter={}, leftBoundDate={}, expandCustomHeaders={}",
+                requestContext,
+                top,
+                skip,
+                filter,
+                leftBoundDate,
+                expandCustomHeaders
+            );
+            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
+        }
+        return defaultRuntimeClient.getMessageProcessingLogsByFilter(
+            requestContext,
             top,
             skip,
             filter,
             leftBoundDate,
-            expandCustomHeaders,
-            requestContext
+            expandCustomHeaders
         );
-        String resourcePath = String.format(API_MSG_PROC_LOGS_WITH_PARAMS,
-            format("%s and LogEnd ge datetime'%s'",
-                filter.contains("or") ? format("(%s)", filter) : filter,
-                GMT_DATE_FORMAT.format(leftBoundDate))
-        );
-        if (expandCustomHeaders) {
-            resourcePath += format("&$expand=CustomHeaderProperties&$top=%d&$skip=%d", top, skip);
-        }
-
-        return getMessageProcessingLogs(requestContext, resourcePath);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, int top, String filter) {
-        log.debug("#getMessageProcessingLogsByFilter(RequestContext requestContext, int top, String filter): {}, {}", requestContext, filter);
-        return getMessageProcessingLogs(requestContext, format(API_MSG_PROC_LOGS_ORDERED, top, filter));
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(requestContext, top, filter);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
-        log.debug("#getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId): {}, {}", requestContext, correlationId);
-        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
-            format("CorrelationId eq '%s'", correlationId)
-        );
-        return getMessageProcessingLogs(requestContext, resourcePath);
+        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
+            log.debug(
+                "#getMessageProcessingLogsByCorrelationId edge: requestContext={}, correlationId={}",
+                requestContext,
+                correlationId
+            );
+            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
+        }
+        return defaultRuntimeClient.getMessageProcessingLogsByCorrelationId(requestContext, correlationId);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames) {
-        log.debug("#getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames): {}, {}, {}", requestContext, correlationIds, technicalNames);
-        String correlationIdsFilter = buildCorrelationIdsFilter(correlationIds);
-        String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
-        String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
-            format("(%s) and (%s)", correlationIdsFilter, technicalNamesFilter)
-        );
-        return getMessageProcessingLogs(requestContext, resourcePath);
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByCorrelationIdsAndIFlowNames(requestContext, correlationIds, technicalNames);
     }
 
     public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilter(
@@ -190,24 +190,13 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
         String filter,
         boolean expandCustomHeaders
     ) {
-        log.debug(
-            "getMessageProcessingLogsByFilter(RequestContext requestContext, int top, int skip, String filter, boolean expandCustomHeaders): {}, {}, {}, {}, {}",
-            requestContext, top, skip, filter, expandCustomHeaders
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(
+            requestContext,
+            top,
+            skip,
+            filter,
+            expandCustomHeaders
         );
-        String resourcePath = expandCustomHeaders ? API_MSG_PROC_LOGS_PAGINATED + "&$expand=CustomHeaderProperties" : API_MSG_PROC_LOGS_PAGINATED;
-        try {
-            JSONObject jsonObjectD = callRestWs(
-                requestContext,
-                format(resourcePath, top, skip, filter),
-                response -> new JSONObject(response).getJSONObject("d")
-            );
-
-            return extractMplsAndCountFromResponse(jsonObjectD);
-
-        } catch (JSONException ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
-        }
     }
 
     public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilterWithSelectedResponseFields(
@@ -217,294 +206,107 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
         String filter,
         String responseFields
     ) {
-        log.debug(
-            "getMessageProcessingLogsByFilterWithSelectedResponseFields(RequestContext requestContext, int top, int skip, String filter, String responseFields): {}, {}, {}, {}, {}",
-            requestContext, top, skip, filter, responseFields
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilterWithSelectedResponseFields(
+            requestContext,
+            top,
+            skip,
+            filter,
+            responseFields
         );
-
-        try {
-            JSONObject jsonObjectD = callRestWs(
-                requestContext,
-                format(API_MSG_PROC_LOGS_PAGINATED_WITH_SELECTED_RESPONSE_FIELDS, top, skip, filter, responseFields),
-                response -> new JSONObject(response).getJSONObject("d")
-            );
-
-            return extractMplsAndCountFromResponse(jsonObjectD);
-
-        } catch (JSONException ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
-        }
     }
 
     public List<CustomHeaderProperty> getCustomHeaderProperties(RequestContext requestContext, String messageGuid) {
-        log.debug("#getCustomHeaderProperties(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-        String resourcePath = format("/api/v1/MessageProcessingLogs('%s')/CustomHeaderProperties?$format=json", messageGuid);
-
-        try {
-
-            JSONObject jsonObjectD = callRestWs(
-                requestContext,
-                resourcePath,
-                response -> new JSONObject(response).getJSONObject("d")
-            );
-
-            JSONArray jsonArray = jsonObjectD.getJSONArray("results");
-            return createCustomHeaderProperties(jsonArray);
-
-        } catch (JSONException ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
-        }
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getCustomHeaderProperties(
+            requestContext,
+            messageGuid
+        );
     }
 
     public int getCountOfMessageProcessingLogsByFilter(RequestContext requestContext, String filter) {
-        log.debug("#getCountOfMessageProcessingLogsByFilter(RequestContext requestContext, String filter): {}, {}", requestContext, filter);
-        String resourcePath = format("/api/v1/MessageProcessingLogs/$count?$filter=%s", filter);
-        try {
-            int count = callRestWs(
-                requestContext,
-                resourcePath,
-                response -> NumberUtils.isCreatable(response) ? NumberUtils.toInt(response) : 0
-            );
-            return count;
-        } catch (Exception ex) {
-            log.error("Error occurred while getting count of Message Processing Logs: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while getting count of Message Processing Logs: " + ex.getMessage(), ex);
-        }
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getCountOfMessageProcessingLogsByFilter(
+            requestContext,
+            filter
+        );
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String resourcePath) {
-
-        try {
-
-            JSONArray messageProcessingLogsJsonArray = callRestWs(
+        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
+            log.debug(
+                "#getMessageProcessingLogs edge: requestContext={}, resourcePath={}",
                 requestContext,
-                resourcePath,
-                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+                resourcePath
             );
-
-            return createMessageProcessingLogsFromArray(messageProcessingLogsJsonArray);
-
-        } catch (JSONException ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
+            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
         }
+        return defaultRuntimeClient.getMessageProcessingLogs(requestContext, resourcePath);
     }
 
     public MessageProcessingLog getMessageProcessingLogByGuid(RequestContext requestContext, String messageGuid) {
-        try {
-            JSONObject messageProcessingLogsObject = callRestWs(
-                requestContext,
-                format(API_MSG_PROC_LOGS_ID, messageGuid),
-                response -> new JSONObject(response).getJSONObject("d")
-            );
-            return MessageProcessingLogParser.fillMessageProcessingLog(messageProcessingLogsObject);
-        } catch (HttpClientErrorException.NotFound ex) {
-            log.error("Message processing log is not found by {}: {}", messageGuid, ExceptionUtils.getMessage(ex));
-            return null;
-        } catch (Exception ex) {
-            log.error("Error occurred while collecting message processing log: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while collecting message processing log : " + ex.getMessage(), ex);
-        }
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogByGuid(
+            requestContext,
+            messageGuid
+        );
     }
 
-
     public List<MessageProcessingLogAttachment> getAttachmentsMetadata(RequestContext requestContext, String messageGuid) {
-        log.debug("#getAttachmentsMetadata(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-
-        try {
-
-            JSONArray attachmentsJsonArray = callRestWs(
-                requestContext,
-                format(API_MSG_PROC_LOGS_ATTACHMENTS, messageGuid),
-                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-            );
-
-            return createMessageProcessingLogAttachmentsForAttachments(attachmentsJsonArray);
-        } catch (JSONException ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
-        }
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getAttachmentsMetadata(
+            requestContext,
+            messageGuid
+        );
     }
 
     public List<MessageProcessingLogAttachment> getMessageStoreEntriesPayloads(RequestContext requestContext, String messageGuid) {
-        log.debug("#getMessageStoreEntriesPayloads(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-
-        try {
-
-            JSONArray attachmentsJsonArray = callRestWs(
-                requestContext,
-                format(API_MSG_PROC_LOGS_MESSAGE_STORE_ENTRIES, messageGuid),
-                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-            );
-
-            return createMessageProcessingLogAttachmentsForPayloads(attachmentsJsonArray);
-        } catch (JSONException ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
-        }
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageStoreEntriesPayloads(
+            requestContext,
+            messageGuid
+        );
     }
 
     public MessageProcessingLogErrorInformation getErrorInformation(RequestContext requestContext, String messageId) {
-        log.debug("#getErrorInformation(RequestContext requestContext, String messageId): {}, {}", requestContext, messageId);
-
-        try {
-
-            JSONObject jsonObject = callRestWs(
+        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
+            log.debug(
+                "#getErrorInformation edge: requestContext={}, messageId={}",
                 requestContext,
-                format(API_MSG_PROC_LOGS_ERROR_INFORMATION, messageId),
-                response -> new JSONObject(response).getJSONObject("d")
+                messageId
             );
-
-            MessageProcessingLogErrorInformation mplErrorInformation = new MessageProcessingLogErrorInformation();
-
-            mplErrorInformation.setLastErrorModelStepId(optString(jsonObject, "LastErrorModelStepId"));
-
-            String errorMessage = getErrorInformationValue(requestContext, messageId);
-            mplErrorInformation.setErrorMessage(errorMessage);
-
-            return mplErrorInformation;
-
-        } catch (Exception ex) {
-            log.error("Error occurred while collecting error information: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while collecting error information:" + ex.getMessage(), ex);
+            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
         }
+        return defaultRuntimeClient.getErrorInformation(requestContext, messageId);
     }
 
     public String getErrorInformationValue(RequestContext requestContext, String messageGuid) {
-        log.debug("#getErrorInformationValue(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-        try {
-            String errorInformationValue = callRestWs(
-                requestContext,
-                format(API_MSG_PROC_LOGS_ERROR_INFORMATION_VALUE, messageGuid),
-                response -> response
-            );
-            return errorInformationValue;
-        } catch (Exception ex) {
-            log.error("Error occurred while collecting error information value: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while collecting error information value:" + ex.getMessage(), ex);
-        }
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getErrorInformationValue(
+            requestContext,
+            messageGuid
+        );
     }
 
     public byte[] getAttachment(RequestContext requestContext, String attachmentId) {
-        log.debug("#getAttachment(RequestContext requestContext, String attachmentId): {}, {}", requestContext, attachmentId);
-
-        try {
-
-            String responseText = callRestWs(
-                requestContext,
-                format(API_MSG_PROC_LOG_ATTACHMENT, attachmentId),
-                response -> response
-            );
-
-            if (StringUtils.isNotBlank(responseText)) {
-                return responseText.getBytes(StandardCharsets.UTF_8);
-            } else {
-                return null;
-            }
-        } catch (Exception ex) {
-            throw new ClientIntegrationException(ex);
-        }
-
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getAttachment(
+            requestContext,
+            attachmentId
+        );
     }
 
     public byte[] getPersistedAttachment(RequestContext requestContext, String attachmentId) {
-        log.debug("#getPersistedAttachment(RequestContext requestContext, String attachmentId): {}, {}", requestContext, attachmentId);
-        try {
-            String responseText = callRestWs(
-                requestContext,
-                format(API_MSG_STORE_ENTRIES_VALUE, attachmentId),
-                response -> response
-            );
-
-            if (StringUtils.isNotBlank(responseText)) {
-                return responseText.getBytes(StandardCharsets.UTF_8);
-            } else {
-                return null;
-            }
-        } catch (Exception ex) {
-            throw new ClientIntegrationException(ex);
-        }
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getPersistedAttachment(
+            requestContext,
+            attachmentId
+        );
     }
 
     public List<MessageProcessingLogRun> getRunsMetadata(RequestContext requestContext, String messageGuid) {
-        log.debug("#getRunsMetadata(RequestContext requestContext, String messageGuid): {}, {}", requestContext, messageGuid);
-
-        try {
-
-            JSONArray runsJsonArray = callRestWs(
-                requestContext,
-                format(API_MSG_PROC_LOGS_RUNS, messageGuid),
-                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-            );
-
-            return createMessageProcessingLogAttachmentsForRuns(runsJsonArray, messageGuid);
-        } catch (JSONException ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
-        }
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getRunsMetadata(
+            requestContext,
+            messageGuid
+        );
     }
 
     public List<MessageProcessingLogRunStep> getRunSteps(RequestContext requestContext, String runId) {
-        log.debug("#getRunSteps(RequestContext requestContext, String runId): {}, {}", requestContext, runId);
-        try {
-
-            List<JSONObject> jsonObjectRunSteps = getRunStepJsonObjects(requestContext, runId);
-
-            List<MessageProcessingLogRunStep> runSteps = new ArrayList<>();
-            for (int ind = jsonObjectRunSteps.size() - 1; ind >= 0; ind--) {
-                JSONObject runStepElement = jsonObjectRunSteps.get(ind);
-
-                MessageProcessingLogRunStep runStep = new MessageProcessingLogRunStep();
-                runStep.setRunId(optString(runStepElement, "RunId"));
-                runStep.setChildCount(runStepElement.getInt("ChildCount"));
-                runStep.setStepStart(CpiApiUtils.parseDate(optString(runStepElement, "StepStart")));
-                if (!runStepElement.isNull("StepStop")) {
-                    runStep.setStepStop(CpiApiUtils.parseDate(optString(runStepElement, "StepStop")));
-                }
-                runStep.setStepId(optString(runStepElement, "StepId"));
-                runStep.setModelStepId(optString(runStepElement, "ModelStepId"));
-                runStep.setBranchId(optString(runStepElement, "BranchId"));
-                runStep.setStatus(optString(runStepElement, "Status"));
-                runStep.setError(optString(runStepElement, "Error"));
-                runStep.setActivity(optString(runStepElement, "Activity"));
-
-                JSONArray runStepPropertiesJsonArray = runStepElement.getJSONObject("RunStepProperties").getJSONArray("results");
-                String traceId = null;
-                for (int runStepPropertyInd = 0; runStepPropertyInd < runStepPropertiesJsonArray.length(); runStepPropertyInd++) {
-                    JSONObject runStepPropertyElement = runStepPropertiesJsonArray.getJSONObject(runStepPropertyInd);
-
-                    String name = optString(runStepPropertyElement, "Name");
-                    String value = optString(runStepPropertyElement, "Value");
-                    //getRunStepProperties is not used anywhere
-                    runStep.getRunStepProperties().add(new MessageRunStepProperty(
-                        PropertyType.RUN_STEP_PROPERTY,
-                        name,
-                        value
-                    ));
-                    if ("TraceIds".equals(name) && StringUtils.isNotBlank(value)) {
-                        //This regex means that we want to find only the first value of the list
-                        // since we rely on only one first trace message everywhere in the logic.
-                        // In other words, we don't support multiple trace messages for a single run step
-                        traceId = value.replaceAll("\\[(\\d*).*]", "$1");
-                        if (StringUtils.isNotBlank(traceId)) {
-                            runStep.setTraceId(traceId);
-                        }
-                    }
-                }
-
-                //If traceId == null it means that this run step doesn't have payload. We don't need such messages at all.
-                if (traceId != null) {
-                    runSteps.add(runStep);
-                }
-            }
-
-            return runSteps;
-        } catch (Exception ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
-        }
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getRunSteps(
+            requestContext,
+            runId
+        );
     }
 
     public MessageProcessingLogRunStep.TraceMessage getTraceMessage(
@@ -512,199 +314,32 @@ public class MessageProcessingLogClient extends AbstractMessageProcessingLogClie
         MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria,
         MessageProcessingLogRunStep runStep
     ) {
-        log.debug("#getTraceMessage(RequestContext requestContext, MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria, MessageProcessingLogRunStep runStep): {}, {}, {}",
-            requestContext, runStepSearchCriteria, runStep
-        );
-        String runId = runStep.getRunId();
-
-        JSONArray traceMessagesJsonArray = callRestWs(
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getTraceMessage(
             requestContext,
-            format(API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES, runId, runStep.getChildCount()),
-            response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
+            runStepSearchCriteria,
+            runStep
         );
-
-        if (traceMessagesJsonArray.length() == 0) {
-            return null;
-        }
-
-        /*If traceMessagesJsonArray has multiple messages, we need to find the most appropriate one.
-        Its SAP_TRACE_HEADER_<some digits>_MessageType property should be equal to "STEP". If it's not found, we just take the first one.
-        Maybe later we will need to download and handle all the messages.*/
-        JSONObject traceMessageElement = null;
-        JSONArray foundTraceMessagePropertiesJsonArray = null;
-        if (traceMessagesJsonArray.length() > 1) {
-            for (int i = 0; i < traceMessagesJsonArray.length() && traceMessageElement == null; i++) {
-                JSONObject currentTraceMessage = traceMessagesJsonArray.getJSONObject(i);
-                JSONArray traceMessagePropertiesJsonArray = callRestWs(
-                    requestContext,
-                    format(API_TRACE_MESSAGE_PROPERTIES, optString(currentTraceMessage, "TraceId")),
-                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-                );
-                for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
-                    JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
-                    String name = optString(traceMessagePropertyElement, "Name");
-                    if (name.startsWith("SAP_TRACE_HEADER_") && name.endsWith("_MessageType")) {
-                        String value = optString(traceMessagePropertyElement, "Value");
-                        if (value.equals("STEP")) {
-                            traceMessageElement = currentTraceMessage;
-                            foundTraceMessagePropertiesJsonArray = traceMessagePropertiesJsonArray;
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        if (traceMessageElement == null) {
-            traceMessageElement = traceMessagesJsonArray.getJSONObject(0);
-        }
-
-        MessageProcessingLogRunStep.TraceMessage traceMessage = new MessageProcessingLogRunStep.TraceMessage();
-        traceMessage.setTraceId(optString(traceMessageElement, "TraceId"));
-        traceMessage.setMessageId(optString(traceMessageElement, "MplId"));
-        traceMessage.setModelStepId(optString(traceMessageElement, "ModelStepId"));
-        String payloadSize = optString(traceMessageElement, "PayloadSize");
-        if (payloadSize != null) {
-            traceMessage.setPayloadSize(Long.parseLong(payloadSize));
-        }
-        traceMessage.setMimeType(optString(traceMessageElement, "MimeType"));
-        traceMessage.setProcessingDate(runStep.getStepStop());
-
-        if (runStepSearchCriteria.isInitTraceMessagePayload()) {
-            byte[] payloadForMessage = getPayloadForMessage(requestContext, traceMessage.getTraceId());
-            traceMessage.setPayload(payloadForMessage);
-        }
-
-        if (runStepSearchCriteria.isInitTraceMessageProperties()) {
-
-            JSONArray traceMessagePropertiesJsonArray;
-            /*We could already have traceMessagePropertiesJsonArray if there are multiple trace messages.
-             In this case we don't need to make the same request twice.*/
-            if (foundTraceMessagePropertiesJsonArray != null) {
-                traceMessagePropertiesJsonArray = foundTraceMessagePropertiesJsonArray;
-            } else {
-                traceMessagePropertiesJsonArray = callRestWs(
-                    requestContext,
-                    format(API_TRACE_MESSAGE_PROPERTIES, traceMessage.getTraceId()),
-                    response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-                );
-            }
-
-            for (int traceMessagePropertyInd = 0; traceMessagePropertyInd < traceMessagePropertiesJsonArray.length(); traceMessagePropertyInd++) {
-                JSONObject traceMessagePropertyElement = traceMessagePropertiesJsonArray.getJSONObject(traceMessagePropertyInd);
-
-                traceMessage.getProperties().add(new MessageRunStepProperty(
-                    PropertyType.TRACE_MESSAGE_HEADER,
-                    optString(traceMessagePropertyElement, "Name"),
-                    optString(traceMessagePropertyElement, "Value")
-                ));
-            }
-
-            JSONArray traceMessageExchangePropertiesJsonArray = callRestWs(
-                requestContext,
-                format(API_TRACE_MESSAGE_EXCHANGE_PROPERTIES, traceMessage.getTraceId()),
-                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-            );
-
-            for (int traceMessageExchangePropertyInd = 0; traceMessageExchangePropertyInd < traceMessageExchangePropertiesJsonArray.length(); traceMessageExchangePropertyInd++) {
-                JSONObject traceMessageExchangePropertyElement = traceMessageExchangePropertiesJsonArray.getJSONObject(traceMessageExchangePropertyInd);
-
-                traceMessage.getProperties().add(new MessageRunStepProperty(
-                    PropertyType.TRACE_MESSAGE_EXCHANGE,
-                    optString(traceMessageExchangePropertyElement, "Name"),
-                    optString(traceMessageExchangePropertyElement, "Value")
-                ));
-            }
-
-        }
-        return traceMessage;
-    }
-
-    private Date shiftDateTo55MinutesBackFromNow() {
-        return DateUtils.addMinutes(new Date(), -55);
-    }
-
-    private String buildTechnicalNamesFilter(List<String> technicalNames) {
-        return technicalNames.stream()
-            .map(technicalName -> format("IntegrationFlowName eq '%s'", technicalName))
-            .collect(Collectors.joining(" or "));
-    }
-
-    private String buildCorrelationIdsFilter(List<String> correlationIds) {
-        return correlationIds.stream()
-            .map(correlationId -> format("CorrelationId eq '%s'", correlationId))
-            .collect(Collectors.joining(" or "));
-    }
-
-    private List<JSONObject> getRunStepJsonObjects(RequestContext requestContext, String runId) {
-        int iterNumber = 0;
-        Integer numberOfIterations = null;
-
-        List<JSONObject> jsonObjectRunSteps = new ArrayList<>();
-        do {
-            int skip = MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION * iterNumber;
-            JSONObject dObject = callRestWs(
-                requestContext,
-                format(API_MSG_PROC_LOG_RUN_STEPS, runId, MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION, skip),
-                response -> new JSONObject(response).getJSONObject("d")
-            );
-
-            if (numberOfIterations == null) {
-                numberOfIterations = defineNumberOfIterations(dObject);
-            }
-
-            JSONArray runStepsJsonArray = dObject.getJSONArray("results");
-            for (int i = 0; i < runStepsJsonArray.length(); i++) {
-                jsonObjectRunSteps.add(runStepsJsonArray.getJSONObject(i));
-            }
-            iterNumber++;
-        } while (iterNumber < numberOfIterations);
-        return jsonObjectRunSteps;
-    }
-
-    private Integer defineNumberOfIterations(JSONObject dObject) {
-        Integer numberOfIterations;
-        String totalCountStr = dObject.getString("__count");
-        int totalCount = Integer.parseInt(totalCountStr);
-        numberOfIterations = totalCount % MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION == 0
-            ? totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION
-            : totalCount / MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION + 1;
-        return numberOfIterations;
     }
 
     public byte[] getPayloadForMessage(RequestContext requestContext, String traceId) {
-        log.debug("#getPayloadForMessage(RequestContext requestContext, String traceId): {}, {}", requestContext, traceId);
-        try {
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getPayloadForMessage(
+            requestContext,
+            traceId
+        );
+    }
 
-            String payloadResponse = callRestWs(
-                requestContext,
-                format(API_TRACE_MESSAGE_PAYLOAD, traceId),
-                response -> response
-            );
-
-            if (StringUtils.isNotBlank(payloadResponse)) {
-                return payloadResponse.getBytes(StandardCharsets.UTF_8);
-            } else {
-                return null;
-            }
-        } catch (Exception ex) {
-            log.error("Error occurred while parsing response: " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
+    private AbstractMessageProcessingLogClient withRuntime(String runtimeLocationId) {
+        if (StringUtils.isNotBlank(runtimeLocationId)) {
+            return edgeRuntimeClient;
+        } else {
+            return defaultRuntimeClient;
         }
     }
 
-    private Pair<List<MessageProcessingLog>, Integer> extractMplsAndCountFromResponse(JSONObject jsonObjectD) {
-        String totalCountString = optString(jsonObjectD, "__count");
-        Integer totalMessagesCount = null;
-        if (NumberUtils.isCreatable(totalCountString)) {
-            totalMessagesCount = NumberUtils.toInt(totalCountString);
-        }
-        JSONArray messageProcessingLogsJsonArray = jsonObjectD.getJSONArray("results");
-        return new MutablePair<>(createMessageProcessingLogsFromArray(messageProcessingLogsJsonArray), totalMessagesCount);
+    private void failDueToUnsupportedOperationInEdgeIntegrationCell(String runtimeLocationId) {
+        throw new UnsupportedOperationException(String.format(
+            "Operation is not supported for edge integration cell with runtimeLocationId %s",
+            runtimeLocationId
+        ));
     }
-
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
-
 }

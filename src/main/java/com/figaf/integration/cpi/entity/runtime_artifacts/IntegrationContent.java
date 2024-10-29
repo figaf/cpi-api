@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Nesterov Ilya
@@ -25,6 +26,7 @@ public class IntegrationContent implements Serializable {
     private String deployedBy;
     private Date deployedOn;
     private String status;
+    private String runtimeLocationId;
 
     //for cloud foundry only
     private String externalId;
@@ -34,13 +36,16 @@ public class IntegrationContent implements Serializable {
         return this;
     }
 
-    public static IntegrationContent searchByTechnicalName(List<IntegrationContent> artifacts, String technicalName) {
-        for (IntegrationContent artifact : artifacts) {
-            if (StringUtils.equals(artifact.getId(), technicalName)) {
-                return artifact;
-            }
-        }
-
-        return null;
+    public static IntegrationContent searchByTechnicalName(
+        List<IntegrationContent> artifacts,
+        String technicalName,
+        String runtimeLocationId
+    ) {
+        return artifacts
+            .stream()
+            .filter(artifact -> artifact.getId().equals(technicalName) &&
+                Objects.equals(artifact.getRuntimeLocationId(), runtimeLocationId))
+            .findFirst()
+            .orElse(null);
     }
 }
