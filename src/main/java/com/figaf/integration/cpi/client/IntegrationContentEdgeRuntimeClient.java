@@ -29,12 +29,13 @@ public class IntegrationContentEdgeRuntimeClient extends CpiBaseClient {
 
     private static final String INTEGRATION_COMPONENTS_LIST = "/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand?runtimeLocationId=%s";
 
-    private final Map<String, String> typeToReplacement;
+    private static final Map<String, String> NODE_TYPE_MAPPING = new HashMap<>();
+    static {
+        NODE_TYPE_MAPPING.put("IFLMAP", "INTEGRATION_FLOW");
+    }
 
     public IntegrationContentEdgeRuntimeClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
-        typeToReplacement = new HashMap<>();
-        typeToReplacement.put("IFLMAP", "INTEGRATION_FLOW");
     }
 
     public List<IntegrationContent> getAllIntegrationRuntimeArtifacts(RequestContext requestContext) {
@@ -90,7 +91,10 @@ public class IntegrationContentEdgeRuntimeClient extends CpiBaseClient {
         integrationContent.setId(artifactInformation.getSymbolicName());
         integrationContent.setVersion(artifactInformation.getVersion());
         integrationContent.setName(artifactInformation.getName());
-        String typeToReplace = typeToReplacement.get(artifactInformation.getNodeType());
+        String typeToReplace = NODE_TYPE_MAPPING.getOrDefault(
+            artifactInformation.getNodeType(),
+            artifactInformation.getNodeType()
+        );
         if (StringUtils.isBlank(typeToReplace)) {
             typeToReplace = artifactInformation.getNodeType();
         }
