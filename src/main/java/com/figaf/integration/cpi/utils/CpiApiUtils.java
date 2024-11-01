@@ -2,6 +2,7 @@ package com.figaf.integration.cpi.utils;
 
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.cpi.entity.message_processing.CustomHeaderProperty;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -76,5 +77,19 @@ public class CpiApiUtils {
         } catch (Exception ex) {
             throw new ClientIntegrationException(String.format("Can't load XML from string %s: ", xml), ex);
         }
+    }
+
+    public static String normalizeUuid(String uuid) {
+        if (StringUtils.length(uuid) == 32) {
+            return uuid.replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5");
+        }
+        return uuid;
+    }
+
+    public static String denormalizeUuid(String uuid) {
+        if (StringUtils.length(uuid) == 36) {
+            return uuid.replace("-", "");
+        }
+        return uuid;
     }
 }

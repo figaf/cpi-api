@@ -31,7 +31,7 @@ import static java.lang.String.format;
  * @author Kostas Charalambous
  */
 @Slf4j
-public class MessageProcessingLogEdgeRuntimeClient extends AbstractMessageProcessingLogClient {
+public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogAbstractClient {
 
 
     public MessageProcessingLogEdgeRuntimeClient(HttpClientsFactory httpClientsFactory) {

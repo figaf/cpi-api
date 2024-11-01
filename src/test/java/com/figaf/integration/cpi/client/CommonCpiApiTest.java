@@ -32,11 +32,13 @@ class CommonCpiApiTest {
     private static final String API_DELETE_TEST_PACKAGE_NAME = "FigafApiDeleteTestPackage";
 
     private static IntegrationContentClient integrationContentClient;
+    private static CpiIntegrationFlowExternalConfigurationsClient cpiIntegrationFlowExternalConfigurationsClient;
     private static IntegrationPackageClient integrationPackageClient;
 
     @BeforeAll
     static void setUp() {
         integrationContentClient = new IntegrationContentClient(new HttpClientsFactory());
+        cpiIntegrationFlowExternalConfigurationsClient = new CpiIntegrationFlowExternalConfigurationsClient(new HttpClientsFactory());
         integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
     }
 
@@ -62,7 +64,7 @@ class CommonCpiApiTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_testPublicApiRead2(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        List<CpiExternalConfiguration> cpiExternalConfigurations = integrationContentClient.getCpiExternalConfigurations(requestContext, "Figaf_iflow_1");
+        List<CpiExternalConfiguration> cpiExternalConfigurations = cpiIntegrationFlowExternalConfigurationsClient.getCpiExternalConfigurations(requestContext, "Figaf_iflow_1");
         log.debug("{} cpiExternalConfigurations were found", cpiExternalConfigurations.size());
         assertThat(cpiExternalConfigurations).isNotEmpty();
     }
@@ -90,7 +92,7 @@ class CommonCpiApiTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_testPublicApiWrite(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        int numberOfUploadedConfigurations = integrationContentClient.uploadCpiExternalConfiguration(
+        int numberOfUploadedConfigurations = cpiIntegrationFlowExternalConfigurationsClient.uploadCpiExternalConfiguration(
             requestContext,
             "Figaf_iflow_1",
             Collections.singletonList(

@@ -31,6 +31,11 @@ public class IntegrationContent implements Serializable {
     //for cloud foundry only
     private String externalId;
 
+    // initialized only when fetched by Web API
+    private String tenantId;
+
+    private IntegrationContentErrorInformation errorInformation;
+
     @JsonIgnore
     public IntegrationContent getSelf() {
         return this;

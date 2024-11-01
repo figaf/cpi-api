@@ -11,6 +11,7 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateIFlowRequest;
 import com.figaf.integration.cpi.entity.runtime_artifacts.DeployedArtifact;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -22,6 +23,7 @@ import org.w3c.dom.NodeList;
 
 import java.util.*;
 
+import static com.figaf.integration.cpi.client.CpiBaseClient.resolveApiPrefix;
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.IFLOW;
 import static com.figaf.integration.cpi.utils.CpiApiUtils.loadXMLFromString;
 import static java.lang.String.format;
@@ -33,13 +35,16 @@ import static java.lang.String.format;
 @Slf4j
 public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
-    private static final String API_IFLOW_DEPLOYED_ARTIFACT_INFO = "/itspaces/api/1.0/deployedartifacts/%s?bundleType=IntegrationFlow";
+    private static final String API_IFLOW_DEPLOYED_ARTIFACT_INFO = "%s/api/1.0/deployedartifacts/%s?bundleType=IntegrationFlow%s";
     private static final String API_UPLOAD_IFLOW = "/itspaces/api/1.0/workspace/%s/iflows/";
     private static final String API_DEPLOY_IFLOW = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY";
     private static final String API_SET_TRACE_LOG_LEVEL_FOR_IFLOWS = "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentSetMplLogLevelCommand";
 
+    private final IntegrationContentClient integrationContentClient;
+
     public CpiIntegrationFlowClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
+        this.integrationContentClient = new IntegrationContentClient(httpClientsFactory);
     }
 
     public List<CpiArtifact> getIFlowsByPackage(
@@ -130,20 +135,20 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         );
     }
 
-    public boolean undeployIFlow(RequestContext requestContext, String iFlowTechnicalName) {
-        log.debug("#undeployIFlow(RequestContext requestContext, String iFlowTechnicalName): {}, {}", requestContext, iFlowTechnicalName);
-        return executeDeletePublicApi(
-            requestContext,
-            format("/api/v1/IntegrationRuntimeArtifacts('%s')", iFlowTechnicalName),
-            Objects::nonNull
-        );
-    }
-
+    // that API has parameter bundleType but it works only for IntegrationFlow type, so for now it's not in parent class
     public DeployedArtifact getDeployedArtifactInfo(RequestContext requestContext, String iFlowTechnicalName) {
         log.debug("#getDeployedArtifactInfo: iFlowTechnicalName={}, requestContext={}", iFlowTechnicalName, requestContext);
+        String runtimeLocationIdParameter = StringUtils.isNotBlank(requestContext.getRuntimeLocationId())
+            ? format("&runtimeLocationId=%s", requestContext.getRuntimeLocationId())
+            : "";
+
         return executeGet(
             requestContext,
-            format(API_IFLOW_DEPLOYED_ARTIFACT_INFO, iFlowTechnicalName),
+            format(API_IFLOW_DEPLOYED_ARTIFACT_INFO,
+                resolveApiPrefix(requestContext.getConnectionProperties().getHost()),
+                iFlowTechnicalName,
+                runtimeLocationIdParameter
+            ),
             body -> ObjectMapperFactory.getJsonObjectMapper().readValue(body, DeployedArtifact.class)
         );
     }
@@ -218,8 +223,8 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
         //It doesn't work for NEO due to a SAP bug
         if (CloudPlatformType.CLOUD_FOUNDRY.equals(requestContext.getCloudPlatformType())) {
-            boolean undeployedSuccessfully = undeployIFlow(requestContext, iFlowTechnicalName);
-            deleteAndUndeployIFlowResult.setUndeployed(undeployedSuccessfully);
+            integrationContentClient.undeployIntegrationRuntimeArtifact(requestContext, iFlowTechnicalName);
+            deleteAndUndeployIFlowResult.setUndeployed(true);
         }
 
         return deleteAndUndeployIFlowResult;
