@@ -328,7 +328,7 @@ public class MessageProcessingLogClient {
         );
     }
 
-    private AbstractMessageProcessingLogClient withRuntime(String runtimeLocationId) {
+    private MessageProcessingLogAbstractClient withRuntime(String runtimeLocationId) {
         if (StringUtils.isNotBlank(runtimeLocationId)) {
             return edgeRuntimeClient;
         } else {

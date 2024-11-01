@@ -30,8 +30,7 @@ import static java.lang.String.format;
  * @author Arsenii Istlentev
  */
 @Slf4j
-public class MessageProcessingLogDefaultRuntimeClient extends AbstractMessageProcessingLogClient {
-
+public class MessageProcessingLogDefaultRuntimeClient extends MessageProcessingLogAbstractClient {
 
     private final static FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
         "yyyy-MM-dd'T'HH:mm:ss.SSS",

@@ -14,6 +14,7 @@ public class DeleteAndUndeployIFlowResult {
 
     private final String iflowName;
     private boolean deleted;
+    // TODO flag is set before undeployment is done, it doesn't mean that IFlow is really undeployed
     private boolean undeployed;
 
     public DeleteAndUndeployIFlowResult(String iflowName) {

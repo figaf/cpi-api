@@ -24,7 +24,7 @@ import static java.lang.String.format;
 /**
  * @author Kostas Charalambous
  */
-public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
+abstract class MessageProcessingLogAbstractClient extends CpiBaseClient {
 
     protected final static int MAX_NUMBER_OF_RUN_STEPS_IN_ONE_ITERATION = 500;
 
@@ -90,12 +90,12 @@ public abstract class AbstractMessageProcessingLogClient extends CpiBaseClient {
 
     protected static final String API_MSG_STORE_ENTRIES_VALUE = "/api/v1/MessageStoreEntries('%s')/$value";
 
-    protected final static FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
+    protected static final FastDateFormat GMT_DATE_FORMAT = FastDateFormat.getInstance(
         "yyyy-MM-dd'T'HH:mm:ss.SSS",
         TimeZone.getTimeZone("GMT")
     );
 
-    public AbstractMessageProcessingLogClient(HttpClientsFactory httpClientsFactory) {
+    protected MessageProcessingLogAbstractClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
     }
 
