@@ -9,8 +9,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.springframework.http.HttpMethod;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -46,6 +48,9 @@ public class CpiIntegrationFlowExternalConfigurationsClient extends CpiBaseClien
                 }
             );
 
+        } catch (HttpClientErrorException.NotFound ex) {
+            log.debug("Couldn't find external configurations for IFlow {}", iFlowName);
+            return Collections.emptyList();
         } catch (Exception ex) {
             log.error("Error occurred while fetching integration design artifacts configurations " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while fetching integration design artifacts configurations: " + ex.getMessage(), ex);
