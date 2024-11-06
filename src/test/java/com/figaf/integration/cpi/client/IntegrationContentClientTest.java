@@ -37,7 +37,7 @@ class IntegrationContentClientTest {
     @Test
     void test_getAllIntegrationRuntimeArtifacts_usingWebApi_forEdgeRuntime_withCloudIntegrationUrl() {
         RequestContext requestContext = RequestContextUtils.createRequestContextForWebApiWithCloudIntegrationUrl();
-        requestContext.setRuntimeLocationId("azureedge2");
+        requestContext.setRuntimeLocationId("azureedge3");
 
         List<IntegrationContent> integrationRuntimeArtifacts = integrationContentClient.getAllIntegrationRuntimeArtifacts(requestContext);
 
@@ -47,7 +47,7 @@ class IntegrationContentClientTest {
     @Test
     void test_getAllIntegrationRuntimeArtifacts_usingWebApi_forEdgeRuntime_withIntegrationSuiteUrl() {
         RequestContext requestContext = RequestContextUtils.createRequestContextForWebApiWithIntegrationSuiteUrl();
-        requestContext.setRuntimeLocationId("azureedge2");
+        requestContext.setRuntimeLocationId("azureedge3");
 
         List<IntegrationContent> integrationRuntimeArtifacts = integrationContentClient.getAllIntegrationRuntimeArtifacts(requestContext);
 
