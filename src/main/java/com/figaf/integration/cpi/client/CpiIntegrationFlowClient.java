@@ -10,6 +10,7 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactFromPubl
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateIFlowRequest;
 import com.figaf.integration.cpi.entity.runtime_artifacts.DeployedArtifact;
+import com.figaf.integration.cpi.entity.runtime_artifacts.RuntimeArtifactIdentifier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
@@ -223,7 +224,11 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
         //It doesn't work for NEO due to a SAP bug
         if (CloudPlatformType.CLOUD_FOUNDRY.equals(requestContext.getCloudPlatformType())) {
-            integrationContentClient.undeployIntegrationRuntimeArtifact(requestContext, iFlowTechnicalName);
+            RuntimeArtifactIdentifier runtimeArtifactIdentifier = RuntimeArtifactIdentifier
+                .builder()
+                .technicalName(iFlowTechnicalName)
+                .build();
+            integrationContentClient.undeployIntegrationRuntimeArtifact(requestContext, runtimeArtifactIdentifier);
             deleteAndUndeployIFlowResult.setUndeployed(true);
         }
 
