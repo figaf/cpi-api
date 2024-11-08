@@ -157,6 +157,17 @@ abstract class MessageProcessingLogAbstractClient extends CpiBaseClient {
 
     public abstract List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIds(RequestContext requestContext, Set<String> correlationIds);
 
+    public abstract List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate);
+
+    public abstract List<MessageProcessingLog> getMessageProcessingLogsByFilter(
+        RequestContext requestContext,
+        int top,
+        int skip,
+        String filter,
+        Date leftBoundDate,
+        boolean expandCustomHeaders
+    );
+
     protected Date shiftDateTo55MinutesBackFromNow() {
         return DateUtils.addMinutes(new Date(), -55);
     }

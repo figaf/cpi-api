@@ -107,30 +107,7 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogsByFilter edge: requestContext={}, filter={}, leftBoundDate={}",
-                requestContext,
-                filter,
-                leftBoundDate
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate);
-    }
-
-    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate, boolean expandCustomHeaders) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogsByFilter edge: requestContext={}, filter={}, leftBoundDate={}, expandCustomHeaders={}",
-                requestContext,
-                filter,
-                leftBoundDate,
-                expandCustomHeaders
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate, expandCustomHeaders);
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(
@@ -141,19 +118,7 @@ public class MessageProcessingLogClient {
         Date leftBoundDate,
         boolean expandCustomHeaders
     ) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogsByFilter edge: requestContext={}, top={}, skip={}, filter={}, leftBoundDate={}, expandCustomHeaders={}",
-                requestContext,
-                top,
-                skip,
-                filter,
-                leftBoundDate,
-                expandCustomHeaders
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogsByFilter(
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(
             requestContext,
             top,
             skip,

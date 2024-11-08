@@ -442,6 +442,42 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         );
     }
 
+    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate) {
+        return getMessageProcessingLogsByFilter(requestContext, 1000, 0, filter, leftBoundDate, false);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate, boolean expandCustomHeaders) {
+        return getMessageProcessingLogsByFilter(requestContext, 1000, 0, filter, leftBoundDate, expandCustomHeaders);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(
+        RequestContext requestContext,
+        int top,
+        int skip,
+        String filter,
+        Date leftBoundDate,
+        boolean expandCustomHeaders
+    ) {
+        log.debug("#getMessageProcessingLogsByFilter: top={}, skip={}, filter={}, leftBoundDate={}, expandCustomHeaders={}, requestContext={}",
+            top,
+            skip,
+            filter,
+            leftBoundDate,
+            expandCustomHeaders,
+            requestContext
+        );
+        String baseResourcePath = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS);
+        String queryParams = format(SORT_FILTER_TEMPLATE, format(
+            "%s and LogEnd ge datetime'%s'",
+            filter.contains("or") ?
+                format("(%s)", filter) : filter, GMT_DATE_FORMAT.format(leftBoundDate)));
+        if (expandCustomHeaders) {
+            queryParams += format("&$expand=CustomHeaderProperties&$top=%d&$skip=%d", top, skip);
+        }
+
+        return getMessageProcessingLogs(requestContext, baseResourcePath, queryParams);
+    }
+
     private List<JSONObject> getRunStepJsonObjects(RequestContext requestContext, String runId) {
         int iterNumber = 0;
         Integer numberOfIterations = null;
