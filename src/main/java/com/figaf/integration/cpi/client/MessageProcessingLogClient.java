@@ -51,16 +51,7 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogs edge: requestContext={}, integrationFlowName={}, startDate={}",
-                requestContext,
-                integrationFlowName,
-                startDate
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogs(requestContext, integrationFlowName, startDate);
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogs(requestContext, integrationFlowName, startDate);
     }
 
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(
@@ -133,15 +124,7 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogsByCorrelationId edge: requestContext={}, correlationId={}",
-                requestContext,
-                correlationId
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogsByCorrelationId(requestContext, correlationId);
+        return  this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByCorrelationId(requestContext, correlationId);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames) {

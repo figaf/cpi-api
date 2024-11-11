@@ -450,6 +450,29 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         return getMessageProcessingLogsByFilter(requestContext, 1000, 0, filter, leftBoundDate, expandCustomHeaders);
     }
 
+    public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate) {
+        log.debug("#getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
+        String baseResourcePath = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS);
+        String queryParams = format(SORT_FILTER_TEMPLATE,
+            format("IntegrationFlowName eq '%s' and LogStart gt datetime'%s'",
+                integrationFlowName,
+                GMT_DATE_FORMAT.format(startDate)
+            ));
+        return getMessageProcessingLogs(requestContext, baseResourcePath, queryParams);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
+        log.debug("#getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId): {}, {}", requestContext, correlationId);
+
+        String resourcePath = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS);
+        String queryParams = format(SORT_FILTER_TEMPLATE, format("CorrelationId eq '%s'", correlationId));
+        return getMessageProcessingLogs(
+            requestContext,
+            resourcePath,
+            queryParams
+        );
+    }
+
     public MessageProcessingLogErrorInformation getErrorInformation(RequestContext requestContext, String messageId) {
         log.debug("#getErrorInformation(RequestContext requestContext, String messageId): {}, {}", requestContext, messageId);
         try {
