@@ -168,6 +168,8 @@ abstract class MessageProcessingLogAbstractClient extends CpiBaseClient {
         boolean expandCustomHeaders
     );
 
+    public abstract MessageProcessingLogErrorInformation getErrorInformation(RequestContext requestContext, String messageId);
+
     protected Date shiftDateTo55MinutesBackFromNow() {
         return DateUtils.addMinutes(new Date(), -55);
     }

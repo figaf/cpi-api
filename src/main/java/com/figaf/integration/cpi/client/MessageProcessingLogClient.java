@@ -228,15 +228,7 @@ public class MessageProcessingLogClient {
     }
 
     public MessageProcessingLogErrorInformation getErrorInformation(RequestContext requestContext, String messageId) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getErrorInformation edge: requestContext={}, messageId={}",
-                requestContext,
-                messageId
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getErrorInformation(requestContext, messageId);
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getErrorInformation(requestContext, messageId);
     }
 
     public String getErrorInformationValue(RequestContext requestContext, String messageGuid) {

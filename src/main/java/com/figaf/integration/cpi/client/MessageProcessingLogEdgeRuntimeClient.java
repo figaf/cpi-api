@@ -450,6 +450,27 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         return getMessageProcessingLogsByFilter(requestContext, 1000, 0, filter, leftBoundDate, expandCustomHeaders);
     }
 
+    public MessageProcessingLogErrorInformation getErrorInformation(RequestContext requestContext, String messageId) {
+        log.debug("#getErrorInformation(RequestContext requestContext, String messageId): {}, {}", requestContext, messageId);
+        try {
+            String resourcePath = format(createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_ERROR_INFORMATION), messageId);
+            JSONObject jsonObject = executeGet(
+                requestContext,
+                resourcePath,
+                response -> new JSONObject(response).getJSONObject("d"),
+                String.class
+            );
+            MessageProcessingLogErrorInformation mplErrorInformation = new MessageProcessingLogErrorInformation();
+            mplErrorInformation.setLastErrorModelStepId(optString(jsonObject, "LastErrorModelStepId"));
+            String errorMessage = getErrorInformationValue(requestContext, messageId);
+            mplErrorInformation.setErrorMessage(errorMessage);
+            return mplErrorInformation;
+
+        } catch (Exception ex) {
+            throw new ClientIntegrationException("Error occurred while collecting error information:" + ex.getMessage(), ex);
+        }
+    }
+
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(
         RequestContext requestContext,
         int top,
