@@ -442,6 +442,86 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         );
     }
 
+    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate) {
+        return getMessageProcessingLogsByFilter(requestContext, 1000, 0, filter, leftBoundDate, false);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate, boolean expandCustomHeaders) {
+        return getMessageProcessingLogsByFilter(requestContext, 1000, 0, filter, leftBoundDate, expandCustomHeaders);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate) {
+        log.debug("#getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
+        String baseResourcePath = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS);
+        String queryParams = format(SORT_FILTER_TEMPLATE,
+            format("IntegrationFlowName eq '%s' and LogStart gt datetime'%s'",
+                integrationFlowName,
+                GMT_DATE_FORMAT.format(startDate)
+            ));
+        return getMessageProcessingLogs(requestContext, baseResourcePath, queryParams);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
+        log.debug("#getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId): {}, {}", requestContext, correlationId);
+
+        String resourcePath = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS);
+        String queryParams = format(SORT_FILTER_TEMPLATE, format("CorrelationId eq '%s'", correlationId));
+        return getMessageProcessingLogs(
+            requestContext,
+            resourcePath,
+            queryParams
+        );
+    }
+
+    public MessageProcessingLogErrorInformation getErrorInformation(RequestContext requestContext, String messageId) {
+        log.debug("#getErrorInformation(RequestContext requestContext, String messageId): {}, {}", requestContext, messageId);
+        try {
+            String resourcePath = format(createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_ERROR_INFORMATION), messageId);
+            JSONObject jsonObject = executeGet(
+                requestContext,
+                resourcePath,
+                response -> new JSONObject(response).getJSONObject("d"),
+                String.class
+            );
+            MessageProcessingLogErrorInformation mplErrorInformation = new MessageProcessingLogErrorInformation();
+            mplErrorInformation.setLastErrorModelStepId(optString(jsonObject, "LastErrorModelStepId"));
+            String errorMessage = getErrorInformationValue(requestContext, messageId);
+            mplErrorInformation.setErrorMessage(errorMessage);
+            return mplErrorInformation;
+
+        } catch (Exception ex) {
+            throw new ClientIntegrationException("Error occurred while collecting error information:" + ex.getMessage(), ex);
+        }
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(
+        RequestContext requestContext,
+        int top,
+        int skip,
+        String filter,
+        Date leftBoundDate,
+        boolean expandCustomHeaders
+    ) {
+        log.debug("#getMessageProcessingLogsByFilter: top={}, skip={}, filter={}, leftBoundDate={}, expandCustomHeaders={}, requestContext={}",
+            top,
+            skip,
+            filter,
+            leftBoundDate,
+            expandCustomHeaders,
+            requestContext
+        );
+        String baseResourcePath = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS);
+        String queryParams = format(SORT_FILTER_TEMPLATE, format(
+            "%s and LogEnd ge datetime'%s'",
+            filter.contains("or") ?
+                format("(%s)", filter) : filter, GMT_DATE_FORMAT.format(leftBoundDate)));
+        if (expandCustomHeaders) {
+            queryParams += format("&$expand=CustomHeaderProperties&$top=%d&$skip=%d", top, skip);
+        }
+
+        return getMessageProcessingLogs(requestContext, baseResourcePath, queryParams);
+    }
+
     private List<JSONObject> getRunStepJsonObjects(RequestContext requestContext, String runId) {
         int iterNumber = 0;
         Integer numberOfIterations = null;

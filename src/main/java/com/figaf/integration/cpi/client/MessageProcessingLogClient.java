@@ -51,16 +51,7 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogs edge: requestContext={}, integrationFlowName={}, startDate={}",
-                requestContext,
-                integrationFlowName,
-                startDate
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogs(requestContext, integrationFlowName, startDate);
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogs(requestContext, integrationFlowName, startDate);
     }
 
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(
@@ -107,30 +98,7 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogsByFilter edge: requestContext={}, filter={}, leftBoundDate={}",
-                requestContext,
-                filter,
-                leftBoundDate
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate);
-    }
-
-    public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate, boolean expandCustomHeaders) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogsByFilter edge: requestContext={}, filter={}, leftBoundDate={}, expandCustomHeaders={}",
-                requestContext,
-                filter,
-                leftBoundDate,
-                expandCustomHeaders
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate, expandCustomHeaders);
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(
@@ -141,19 +109,7 @@ public class MessageProcessingLogClient {
         Date leftBoundDate,
         boolean expandCustomHeaders
     ) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogsByFilter edge: requestContext={}, top={}, skip={}, filter={}, leftBoundDate={}, expandCustomHeaders={}",
-                requestContext,
-                top,
-                skip,
-                filter,
-                leftBoundDate,
-                expandCustomHeaders
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogsByFilter(
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(
             requestContext,
             top,
             skip,
@@ -168,15 +124,7 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getMessageProcessingLogsByCorrelationId edge: requestContext={}, correlationId={}",
-                requestContext,
-                correlationId
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getMessageProcessingLogsByCorrelationId(requestContext, correlationId);
+        return  this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByCorrelationId(requestContext, correlationId);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames) {
@@ -263,15 +211,7 @@ public class MessageProcessingLogClient {
     }
 
     public MessageProcessingLogErrorInformation getErrorInformation(RequestContext requestContext, String messageId) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
-            log.debug(
-                "#getErrorInformation edge: requestContext={}, messageId={}",
-                requestContext,
-                messageId
-            );
-            failDueToUnsupportedOperationInEdgeIntegrationCell(requestContext.getRuntimeLocationId());
-        }
-        return defaultRuntimeClient.getErrorInformation(requestContext, messageId);
+        return this.withRuntime(requestContext.getRuntimeLocationId()).getErrorInformation(requestContext, messageId);
     }
 
     public String getErrorInformationValue(RequestContext requestContext, String messageGuid) {
