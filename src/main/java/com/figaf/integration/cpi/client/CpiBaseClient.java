@@ -12,7 +12,6 @@ import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.utils.Base64;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,7 +20,6 @@ import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
@@ -212,6 +210,10 @@ public abstract class CpiBaseClient extends BaseClient {
 
     protected static String optString(JSONObject json, String key) {
         return Utils.optString(json, key);
+    }
+
+    protected static String getDefaultRuntimeLocationIdIfBlank(String runtimeLocationId) {
+        return StringUtils.isNotBlank(runtimeLocationId) ? runtimeLocationId : "cloudintegration";
     }
 
     protected abstract Logger getLogger();

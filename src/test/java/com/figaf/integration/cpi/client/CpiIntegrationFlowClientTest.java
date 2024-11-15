@@ -4,26 +4,26 @@ import com.figaf.integration.common.data_provider.AgentTestData;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
-import com.figaf.integration.cpi.entity.designtime_artifacts.*;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactFromPublicApi;
+import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
+import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateIFlowRequest;
 import com.figaf.integration.cpi.entity.runtime_artifacts.DeployedArtifact;
+import com.figaf.integration.cpi.entity.runtime_artifacts.IFlowRuntimeData;
+import com.figaf.integration.cpi.entity.runtime_artifacts.IntegrationContent;
 import com.figaf.integration.cpi.utils.IFlowUtils;
 import com.figaf.integration.cpi.utils.PackageUtils;
-import com.figaf.integration.cpi.utils.RequestContextUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
+import static com.figaf.integration.cpi.utils.Constants.EDGE_RUNTIME_LOCATION_ID;
 import static com.figaf.integration.cpi.utils.Constants.PARAMETERIZED_TEST_NAME;
-import static com.figaf.integration.cpi.utils.IFlowUtils.API_TEST_DUMMY_IFLOW_NAME;
-import static com.figaf.integration.cpi.utils.IFlowUtils.API_TEST_IFLOW_NAME;
+import static com.figaf.integration.cpi.utils.IFlowUtils.*;
 import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,13 +35,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CpiIntegrationFlowClientTest {
 
     private static CpiIntegrationFlowClient cpiIntegrationFlowClient;
+    private static IntegrationContentWebApiClient integrationContentWebApiClient;
     private static PackageUtils packageUtils;
     private static IFlowUtils iFlowUtils;
 
     @BeforeAll
     static void setUp() {
-        IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(new HttpClientsFactory());
-        cpiIntegrationFlowClient = new CpiIntegrationFlowClient(new HttpClientsFactory());
+        HttpClientsFactory httpClientsFactory = new HttpClientsFactory();
+        IntegrationPackageClient integrationPackageClient = new IntegrationPackageClient(httpClientsFactory);
+        cpiIntegrationFlowClient = new CpiIntegrationFlowClient(httpClientsFactory);
+        integrationContentWebApiClient = new IntegrationContentWebApiClient(httpClientsFactory);
         packageUtils = new PackageUtils(integrationPackageClient);
         iFlowUtils = new IFlowUtils(packageUtils, cpiIntegrationFlowClient);
     }
@@ -169,7 +172,21 @@ class CpiIntegrationFlowClientTest {
     @ArgumentsSource(AgentTestDataProvider.class)
     void test_setTraceLogLevelForIFlows(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        cpiIntegrationFlowClient.setTraceLogLevelForIFlows(requestContext, singletonList(API_TEST_IFLOW_NAME));
+        cpiIntegrationFlowClient.setTraceLogLevelForIFlows(requestContext, singletonList(new IFlowRuntimeData(API_TEST_IFLOW_NAME, null)));
+        DeployedArtifact deployedArtifactInfo = cpiIntegrationFlowClient.getDeployedArtifactInfo(requestContext, API_TEST_IFLOW_NAME);
+        IntegrationContent integrationRuntimeArtifact = integrationContentWebApiClient.getIntegrationRuntimeArtifact(requestContext, deployedArtifactInfo.getId());
+        assertThat(integrationRuntimeArtifact.getLogConfiguration().isTraceEnabled()).isTrue();
+    }
+
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
+    @ArgumentsSource(AgentTestDataProvider.class)
+    void test_setTraceLogLevelForIFlowsDeployedInEdge(AgentTestData agentTestData) {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        requestContext.setRuntimeLocationId(EDGE_RUNTIME_LOCATION_ID);
+        cpiIntegrationFlowClient.setTraceLogLevelForIFlows(requestContext, singletonList(new IFlowRuntimeData(API_TEST_EDGE_IFLOW_NAME, EDGE_RUNTIME_LOCATION_ID)));
+        DeployedArtifact deployedArtifactInfo = cpiIntegrationFlowClient.getDeployedArtifactInfo(requestContext, API_TEST_EDGE_IFLOW_NAME);
+        IntegrationContent integrationRuntimeArtifact = integrationContentWebApiClient.getIntegrationRuntimeArtifact(requestContext, deployedArtifactInfo.getId());
+        assertThat(integrationRuntimeArtifact.getLogConfiguration().isTraceEnabled()).isTrue();
     }
 
     @ParameterizedTest

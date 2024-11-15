@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static com.figaf.integration.cpi.utils.Constants.CLOUD_INTEGRATION_RUNTIME_LOCATION_ID;
+import static com.figaf.integration.cpi.utils.Constants.EDGE_RUNTIME_LOCATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -37,7 +39,7 @@ class IntegrationContentClientTest {
     @Test
     void test_getAllIntegrationRuntimeArtifacts_usingWebApi_forEdgeRuntime_withCloudIntegrationUrl() {
         RequestContext requestContext = RequestContextUtils.createRequestContextForWebApiWithCloudIntegrationUrl();
-        requestContext.setRuntimeLocationId("azureedge3");
+        requestContext.setRuntimeLocationId(EDGE_RUNTIME_LOCATION_ID);
 
         List<IntegrationContent> integrationRuntimeArtifacts = integrationContentClient.getAllIntegrationRuntimeArtifacts(requestContext);
 
@@ -47,7 +49,7 @@ class IntegrationContentClientTest {
     @Test
     void test_getAllIntegrationRuntimeArtifacts_usingWebApi_forEdgeRuntime_withIntegrationSuiteUrl() {
         RequestContext requestContext = RequestContextUtils.createRequestContextForWebApiWithIntegrationSuiteUrl();
-        requestContext.setRuntimeLocationId("azureedge3");
+        requestContext.setRuntimeLocationId(EDGE_RUNTIME_LOCATION_ID);
 
         List<IntegrationContent> integrationRuntimeArtifacts = integrationContentClient.getAllIntegrationRuntimeArtifacts(requestContext);
 
@@ -57,7 +59,7 @@ class IntegrationContentClientTest {
     @Test
     void test_getAllIntegrationRuntimeArtifacts_usingWebApi_forDefaultRuntime_withCloudIntegrationUrl() {
         RequestContext requestContext = RequestContextUtils.createRequestContextForWebApiWithCloudIntegrationUrl();
-        requestContext.setRuntimeLocationId("cloudintegration");
+        requestContext.setRuntimeLocationId(CLOUD_INTEGRATION_RUNTIME_LOCATION_ID);
 
         List<IntegrationContent> integrationRuntimeArtifacts = integrationContentClient.getAllIntegrationRuntimeArtifacts(requestContext);
 
@@ -67,7 +69,7 @@ class IntegrationContentClientTest {
     @Test
     void test_getAllIntegrationRuntimeArtifacts_usingWebApi_forDefaultRuntime_withIntegrationSuiteUrl() {
         RequestContext requestContext = RequestContextUtils.createRequestContextForWebApiWithIntegrationSuiteUrl();
-        requestContext.setRuntimeLocationId("cloudintegration");
+        requestContext.setRuntimeLocationId(CLOUD_INTEGRATION_RUNTIME_LOCATION_ID);
 
         List<IntegrationContent> integrationRuntimeArtifacts = integrationContentClient.getAllIntegrationRuntimeArtifacts(requestContext);
 

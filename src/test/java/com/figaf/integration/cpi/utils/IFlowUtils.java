@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class IFlowUtils {
 
     public static final String API_TEST_IFLOW_NAME = "FigafApiTestIFlow";
+    public static final String API_TEST_EDGE_IFLOW_NAME = "FigafApiTestIFlow_for_edge";
     public static final String API_TEST_DUMMY_IFLOW_NAME = "FigafApiTestDummyIFlow";
 
     private final PackageUtils packageUtils;

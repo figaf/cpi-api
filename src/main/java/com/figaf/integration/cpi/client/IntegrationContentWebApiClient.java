@@ -35,7 +35,7 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
     private static final String OPERATIONS_PATH_FOR_TOKEN = "%s/Operations";
 
     private static final String INTEGRATION_COMPONENTS_LIST_API = "%s/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand?runtimeLocationId=%s";
-    private static final String INTEGRATION_COMPONENT_DETAIL_MOCK_API = "%s/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentDetailCommand?artifactId=%s&runtimeLocationId=%s";
+    private static final String INTEGRATION_COMPONENT_DETAIL_API = "%s/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentDetailCommand?artifactId=%s&runtimeLocationId=%s";
     private static final String DELETE_CONTENT_API = "%s/Operations/com.sap.it.nm.commands.deploy.DeleteContentCommand";
 
     private static final Map<String, String> NODE_TYPE_MAPPING = new HashMap<>();
@@ -67,10 +67,11 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
     public IntegrationContent getIntegrationRuntimeArtifact(RequestContext requestContext, String runtimeArtifactId) {
         log.debug("#getIntegrationRuntimeArtifact: requestContext={}, runtimeArtifactId={}", requestContext, runtimeArtifactId);
         String apiPrefix = resolveApiPrefix(requestContext.getConnectionProperties().getHost());
+        String runtimeLocationIdParameter = getDefaultRuntimeLocationIdIfBlank(requestContext.getRuntimeLocationId());
         return executeMethod(
             requestContext,
             format(OPERATIONS_PATH_FOR_TOKEN, apiPrefix),
-            format(INTEGRATION_COMPONENT_DETAIL_MOCK_API, apiPrefix, normalizeUuid(runtimeArtifactId), requestContext.getRuntimeLocationId()),
+            format(INTEGRATION_COMPONENT_DETAIL_API, apiPrefix, normalizeUuid(runtimeArtifactId), runtimeLocationIdParameter),
             (url, token, restTemplateWrapper) -> callIntegrationComponentDetail(
                 url,
                 requestContext.getRuntimeLocationId(),
@@ -286,6 +287,7 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
             integrationComponentDetailResponse.getArtifactInformation(),
             runtimeLocationId
         );
+        integrationContent.setLogConfiguration(integrationComponentDetailResponse.getLogConfiguration());
 
         // Error information is available either in artifact information (if single node)
         // or in component informations (if multiple nodes).

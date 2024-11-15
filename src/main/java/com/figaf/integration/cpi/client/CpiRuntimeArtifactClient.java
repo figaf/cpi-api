@@ -1,15 +1,14 @@
 package com.figaf.integration.cpi.client;
 
-import com.figaf.integration.common.client.BaseClient;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.RestTemplateWrapper;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
-import com.figaf.integration.cpi.client.mapper.ObjectMapperFactory;
-import com.figaf.integration.cpi.entity.designtime_artifacts.*;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType;
+import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateCpiArtifactRequest;
 import com.figaf.integration.cpi.entity.lock.Locker;
-import com.figaf.integration.cpi.entity.runtime_artifacts.DeployedArtifact;
 import com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser;
 import com.figaf.integration.cpi.version.CpiObjectVersionHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +21,14 @@ import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.json.JSONObject;
-import org.springframework.http.*;
+import org.slf4j.Logger;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +47,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Klochkov Sergey
  */
 @Slf4j
-public class CpiRuntimeArtifactClient extends BaseClient {
+public class CpiRuntimeArtifactClient extends CpiBaseClient {
 
     private static final String API_PACKAGES = "/itspaces/odata/1.0/workspace.svc/ContentPackages";
     private static final String API_ARTIFACTS = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Artifacts?$format=json";
@@ -59,6 +61,11 @@ public class CpiRuntimeArtifactClient extends BaseClient {
 
     public CpiRuntimeArtifactClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
+    }
+
+    @Override
+    protected Logger getLogger() {
+        return log;
     }
 
     public String checkDeploymentStatus(RequestContext requestContext, String taskId) {

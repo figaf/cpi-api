@@ -27,6 +27,8 @@ public class IntegrationComponentDetailResponse {
     @JacksonXmlProperty(localName = "componentInformations")
     private List<ComponentInformation> componentInformations;
 
+    private LogConfiguration logConfiguration;
+
     public List<ComponentInformation> getComponentInformations() {
         if (componentInformations == null) {
             componentInformations = new ArrayList<>();
