@@ -10,6 +10,7 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactFromPubl
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateIFlowRequest;
 import com.figaf.integration.cpi.entity.runtime_artifacts.DeployedArtifact;
+import com.figaf.integration.cpi.entity.runtime_artifacts.IFlowRuntimeData;
 import com.figaf.integration.cpi.entity.runtime_artifacts.RuntimeArtifactIdentifier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +25,6 @@ import org.w3c.dom.NodeList;
 
 import java.util.*;
 
-import static com.figaf.integration.cpi.client.CpiBaseClient.resolveApiPrefix;
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.IFLOW;
 import static com.figaf.integration.cpi.utils.CpiApiUtils.loadXMLFromString;
 import static java.lang.String.format;
@@ -154,15 +154,14 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         );
     }
 
-    public void setTraceLogLevelForIFlows(RequestContext commonClientWrapperEntity, Collection<String> iFlows) {
-        log.debug("#setTraceLogLevelForIFlows(RequestContext commonClientWrapperEntity, Collection<String> iFlows): {}, {}",
-            commonClientWrapperEntity, iFlows);
+    public void setTraceLogLevelForIFlows(RequestContext requestContext, Collection<IFlowRuntimeData> iFlowRuntimeDataCollection) {
+        log.debug("#setTraceLogLevelForIFlows(RequestContext requestContext, Collection<IFlowRuntimeData> iFlowRuntimeDataCollection): {}, {}", requestContext, iFlowRuntimeDataCollection);
 
         executeMethod(
-            commonClientWrapperEntity,
+            requestContext,
             API_SET_TRACE_LOG_LEVEL_FOR_IFLOWS,
             (url, token, restTemplateWrapper) -> {
-                setTraceLogLevelForIFlows(iFlows, url, token, restTemplateWrapper.getRestTemplate());
+                setTraceLogLevelForIFlows(iFlowRuntimeDataCollection, url, token, restTemplateWrapper.getRestTemplate());
                 return null;
             }
         );
@@ -236,7 +235,7 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     }
 
     private void setTraceLogLevelForIFlows(
-        Collection<String> iflowTechnicalNames,
+        Collection<IFlowRuntimeData> iflowRuntimeDataCollection,
         String url,
         String token,
         RestTemplate restTemplate
@@ -246,12 +245,13 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         setTraceLogLevelRequestHttpHeaders.set("X-CSRF-Token", token);
         setTraceLogLevelRequestHttpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
-        iflowTechnicalNames.forEach(iflowTechnicalName -> {
+        iflowRuntimeDataCollection.forEach(iflowRuntimeData -> {
             try {
                 Map<String, String> request = new HashMap<>();
-                request.put("artifactSymbolicName", iflowTechnicalName);
+                request.put("artifactSymbolicName", iflowRuntimeData.technicalName());
                 request.put("mplLogLevel", "TRACE");
                 request.put("nodeType", "IFLMAP");
+                request.put("runtimeLocationId", getDefaultRuntimeLocationIdIfBlank(iflowRuntimeData.runtimeLocationId()));
 
                 HttpEntity<Map<String, String>> setTraceLogLevelRequestHttpEntity = new HttpEntity<>(request, setTraceLogLevelRequestHttpHeaders);
 
@@ -265,7 +265,7 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
                 log.error(
                     String.format(
                         "Error occurred while setting TRACE level for iflow %s: %s",
-                        iflowTechnicalName,
+                        iflowRuntimeData,
                         ex.getMessage()
                     ),
                     ex
