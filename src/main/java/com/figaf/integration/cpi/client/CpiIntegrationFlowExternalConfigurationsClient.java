@@ -5,6 +5,7 @@ import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.runtime_artifacts.CpiExternalConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -16,11 +17,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.String.format;
+
 /**
  * @author Ilya Nesterov
  */
 @Slf4j
 public class CpiIntegrationFlowExternalConfigurationsClient extends CpiBaseClient {
+
+    //isIFlowLeadArtifact is always empty, %s relates to &runtimeLocationId part
+    private static final String API_IFLOW_DEPLOYED_IFLOW_DETAILS = "%s/api/1.0/iflows/%s?isIFlowLeadArtifact=%s";
 
     public CpiIntegrationFlowExternalConfigurationsClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -101,6 +107,42 @@ public class CpiIntegrationFlowExternalConfigurationsClient extends CpiBaseClien
 
         return numberOfSuccessfullyProcessedConfigurations.get();
 
+    }
+
+    public List<CpiExternalConfiguration> getDeployedArtifactExternalizedProperties(RequestContext requestContext, String runtimeArtifactId) {
+        log.debug("#getDeployedArtifactExternalizedProperties: requestContext = {}, runtimeArtifactId = {}", requestContext, runtimeArtifactId);
+
+        String runtimeLocationIdParameter = StringUtils.isNotBlank(requestContext.getRuntimeLocationId())
+            ? format("&runtimeLocationId=%s", requestContext.getRuntimeLocationId())
+            : "";
+
+        return executeGet(
+            requestContext,
+            format(API_IFLOW_DEPLOYED_IFLOW_DETAILS,
+                resolveApiPrefix(requestContext.getConnectionProperties().getHost()),
+                runtimeArtifactId,
+                runtimeLocationIdParameter
+            ),
+            body -> {
+                List<CpiExternalConfiguration> cpiExternalConfigurations = new ArrayList<>();
+                JSONObject jsonObject = new JSONObject(body);
+                JSONArray listOfExternalizedPropertiesModel = jsonObject.optJSONArray("listOfExternalizedPropertiesModel", new JSONArray());
+                for (int i = 0; i < listOfExternalizedPropertiesModel.length(); i++) {
+                    JSONObject externalizedPropertiesModelObject = listOfExternalizedPropertiesModel.getJSONObject(i);
+                    JSONObject propertyObj = externalizedPropertiesModelObject.optJSONObject("propertyObj");
+                    if (propertyObj == null) {
+                        continue;
+                    }
+                    CpiExternalConfiguration cpiExternalConfiguration = new CpiExternalConfiguration(
+                        propertyObj.optString("key", null),
+                        propertyObj.optString("value", null),
+                        propertyObj.optString("dataType", null)
+                    );
+                    cpiExternalConfigurations.add(cpiExternalConfiguration);
+                }
+                return cpiExternalConfigurations;
+            }
+        );
     }
 
     @Override

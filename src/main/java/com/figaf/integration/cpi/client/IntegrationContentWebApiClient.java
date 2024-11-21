@@ -275,7 +275,8 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
         integrationContent.setDeployedBy(artifactInformation.getDeployedBy());
         integrationContent.setDeployedOn(CpiApiUtils.parseDate(artifactInformation.getDeployedOn()));
         integrationContent.setStatus(artifactInformation.getSemanticState());
-        integrationContent.setRuntimeLocationId(runtimeLocationId);
+        //TODO temporary solution
+        integrationContent.setRuntimeLocationId(StringUtils.isBlank(runtimeLocationId) || DEFAULT_RUNTIME_LOCATION_ID.equals(runtimeLocationId) ? null : runtimeLocationId);
         return integrationContent;
     }
 

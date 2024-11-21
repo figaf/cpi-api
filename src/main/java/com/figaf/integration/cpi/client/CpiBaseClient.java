@@ -105,6 +105,7 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_STRING_PARAMETER = "/api/v1/StringParameters(Pid='%s',Id='%s')?$format=json";
 
     protected static final String X_CSRF_TOKEN_HEADER_NAME = "X-CSRF-Token";
+    protected static final String DEFAULT_RUNTIME_LOCATION_ID = "cloudintegration";
 
     public CpiBaseClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -213,7 +214,7 @@ public abstract class CpiBaseClient extends BaseClient {
     }
 
     protected static String getDefaultRuntimeLocationIdIfBlank(String runtimeLocationId) {
-        return StringUtils.isNotBlank(runtimeLocationId) ? runtimeLocationId : "cloudintegration";
+        return StringUtils.isNotBlank(runtimeLocationId) ? runtimeLocationId : DEFAULT_RUNTIME_LOCATION_ID;
     }
 
     protected abstract Logger getLogger();
