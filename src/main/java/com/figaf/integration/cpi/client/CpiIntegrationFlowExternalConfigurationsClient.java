@@ -5,7 +5,6 @@ import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.runtime_artifacts.CpiExternalConfiguration;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -25,8 +24,8 @@ import static java.lang.String.format;
 @Slf4j
 public class CpiIntegrationFlowExternalConfigurationsClient extends CpiBaseClient {
 
-    //isIFlowLeadArtifact is always empty, %s relates to &runtimeLocationId part
-    private static final String API_IFLOW_DEPLOYED_IFLOW_DETAILS = "%s/api/1.0/iflows/%s?isIFlowLeadArtifact=%s";
+    //isIFlowLeadArtifact is always empty
+    private static final String API_IFLOW_DEPLOYED_IFLOW_DETAILS = "%s/api/1.0/iflows/%s?isIFlowLeadArtifact=";
 
     public CpiIntegrationFlowExternalConfigurationsClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -112,17 +111,15 @@ public class CpiIntegrationFlowExternalConfigurationsClient extends CpiBaseClien
     public List<CpiExternalConfiguration> getDeployedArtifactExternalizedProperties(RequestContext requestContext, String runtimeArtifactId) {
         log.debug("#getDeployedArtifactExternalizedProperties: requestContext = {}, runtimeArtifactId = {}", requestContext, runtimeArtifactId);
 
-        String runtimeLocationIdParameter = StringUtils.isNotBlank(requestContext.getRuntimeLocationId())
-            ? format("&runtimeLocationId=%s", requestContext.getRuntimeLocationId())
-            : "";
+        String url = format(API_IFLOW_DEPLOYED_IFLOW_DETAILS,
+            resolveApiPrefix(requestContext.getConnectionProperties().getHost()),
+            runtimeArtifactId
+        );
+        url = addRuntimeLocationIdToUrlIfNotBlank(url, requestContext.getRuntimeLocationId());
 
         return executeGet(
             requestContext,
-            format(API_IFLOW_DEPLOYED_IFLOW_DETAILS,
-                resolveApiPrefix(requestContext.getConnectionProperties().getHost()),
-                runtimeArtifactId,
-                runtimeLocationIdParameter
-            ),
+            url,
             body -> {
                 List<CpiExternalConfiguration> cpiExternalConfigurations = new ArrayList<>();
                 JSONObject jsonObject = new JSONObject(body);
