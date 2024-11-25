@@ -1,16 +1,17 @@
 package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.entity.RequestContext;
+import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
 import com.figaf.integration.cpi.entity.message_processing.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import com.figaf.integration.common.factory.HttpClientsFactory;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
+import static com.figaf.integration.cpi.utils.CpiApiUtils.isDefaultRuntime;
 
 /**
  * @author Kostas Charalambous
@@ -42,7 +43,7 @@ public class MessageProcessingLogClient {
         int skip,
         String filter
     ) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByCustomHeader(
+        return this.withRuntime(requestContext).getMessageProcessingLogsByCustomHeader(
             requestContext,
             top,
             skip,
@@ -51,7 +52,7 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String integrationFlowName, Date startDate) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogs(requestContext, integrationFlowName, startDate);
+        return this.withRuntime(requestContext).getMessageProcessingLogs(requestContext, integrationFlowName, startDate);
     }
 
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(
@@ -59,7 +60,7 @@ public class MessageProcessingLogClient {
         String integrationFlowName,
         Date startDate
     ) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getFinishedMessageProcessingLogsWithTraceLevel(
+        return this.withRuntime(requestContext).getFinishedMessageProcessingLogsWithTraceLevel(
             requestContext,
             integrationFlowName,
             startDate
@@ -71,7 +72,7 @@ public class MessageProcessingLogClient {
         List<String> technicalNames,
         Date startDate
     ) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(
+        return this.withRuntime(requestContext).getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(
             requestContext,
             technicalNames,
             startDate
@@ -83,7 +84,7 @@ public class MessageProcessingLogClient {
         Set<String> messageGuids,
         boolean expandCustomHeaders
     ) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByMessageGuids(
+        return this.withRuntime(requestContext).getMessageProcessingLogsByMessageGuids(
             requestContext,
             messageGuids,
             expandCustomHeaders
@@ -91,14 +92,14 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIds(RequestContext requestContext, Set<String> correlationIds) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByCorrelationIds(
+        return this.withRuntime(requestContext).getMessageProcessingLogsByCorrelationIds(
             requestContext,
             correlationIds
         );
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, String filter, Date leftBoundDate) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate);
+        return this.withRuntime(requestContext).getMessageProcessingLogsByFilter(requestContext, filter, leftBoundDate);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(
@@ -109,7 +110,7 @@ public class MessageProcessingLogClient {
         Date leftBoundDate,
         boolean expandCustomHeaders
     ) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(
+        return this.withRuntime(requestContext).getMessageProcessingLogsByFilter(
             requestContext,
             top,
             skip,
@@ -120,15 +121,15 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByFilter(RequestContext requestContext, int top, String filter) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(requestContext, top, filter);
+        return this.withRuntime(requestContext).getMessageProcessingLogsByFilter(requestContext, top, filter);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
-        return  this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByCorrelationId(requestContext, correlationId);
+        return  this.withRuntime(requestContext).getMessageProcessingLogsByCorrelationId(requestContext, correlationId);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByCorrelationIdsAndIFlowNames(requestContext, correlationIds, technicalNames);
+        return this.withRuntime(requestContext).getMessageProcessingLogsByCorrelationIdsAndIFlowNames(requestContext, correlationIds, technicalNames);
     }
 
     public Pair<List<MessageProcessingLog>, Integer> getMessageProcessingLogsByFilter(
@@ -138,7 +139,7 @@ public class MessageProcessingLogClient {
         String filter,
         boolean expandCustomHeaders
     ) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilter(
+        return this.withRuntime(requestContext).getMessageProcessingLogsByFilter(
             requestContext,
             top,
             skip,
@@ -154,7 +155,7 @@ public class MessageProcessingLogClient {
         String filter,
         String responseFields
     ) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogsByFilterWithSelectedResponseFields(
+        return this.withRuntime(requestContext).getMessageProcessingLogsByFilterWithSelectedResponseFields(
             requestContext,
             top,
             skip,
@@ -164,21 +165,21 @@ public class MessageProcessingLogClient {
     }
 
     public List<CustomHeaderProperty> getCustomHeaderProperties(RequestContext requestContext, String messageGuid) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getCustomHeaderProperties(
+        return this.withRuntime(requestContext).getCustomHeaderProperties(
             requestContext,
             messageGuid
         );
     }
 
     public int getCountOfMessageProcessingLogsByFilter(RequestContext requestContext, String filter) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getCountOfMessageProcessingLogsByFilter(
+        return this.withRuntime(requestContext).getCountOfMessageProcessingLogsByFilter(
             requestContext,
             filter
         );
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String resourcePath) {
-        if (StringUtils.isNotBlank(requestContext.getRuntimeLocationId())) {
+        if (!isDefaultRuntime(requestContext)) {
             log.debug(
                 "#getMessageProcessingLogs edge: requestContext={}, resourcePath={}",
                 requestContext,
@@ -190,60 +191,60 @@ public class MessageProcessingLogClient {
     }
 
     public MessageProcessingLog getMessageProcessingLogByGuid(RequestContext requestContext, String messageGuid) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageProcessingLogByGuid(
+        return this.withRuntime(requestContext).getMessageProcessingLogByGuid(
             requestContext,
             messageGuid
         );
     }
 
     public List<MessageProcessingLogAttachment> getAttachmentsMetadata(RequestContext requestContext, String messageGuid) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getAttachmentsMetadata(
+        return this.withRuntime(requestContext).getAttachmentsMetadata(
             requestContext,
             messageGuid
         );
     }
 
     public List<MessageProcessingLogAttachment> getMessageStoreEntriesPayloads(RequestContext requestContext, String messageGuid) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getMessageStoreEntriesPayloads(
+        return this.withRuntime(requestContext).getMessageStoreEntriesPayloads(
             requestContext,
             messageGuid
         );
     }
 
     public MessageProcessingLogErrorInformation getErrorInformation(RequestContext requestContext, String messageId) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getErrorInformation(requestContext, messageId);
+        return this.withRuntime(requestContext).getErrorInformation(requestContext, messageId);
     }
 
     public String getErrorInformationValue(RequestContext requestContext, String messageGuid) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getErrorInformationValue(
+        return this.withRuntime(requestContext).getErrorInformationValue(
             requestContext,
             messageGuid
         );
     }
 
     public byte[] getAttachment(RequestContext requestContext, String attachmentId) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getAttachment(
+        return this.withRuntime(requestContext).getAttachment(
             requestContext,
             attachmentId
         );
     }
 
     public byte[] getPersistedAttachment(RequestContext requestContext, String attachmentId) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getPersistedAttachment(
+        return this.withRuntime(requestContext).getPersistedAttachment(
             requestContext,
             attachmentId
         );
     }
 
     public List<MessageProcessingLogRun> getRunsMetadata(RequestContext requestContext, String messageGuid) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getRunsMetadata(
+        return this.withRuntime(requestContext).getRunsMetadata(
             requestContext,
             messageGuid
         );
     }
 
     public List<MessageProcessingLogRunStep> getRunSteps(RequestContext requestContext, String runId) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getRunSteps(
+        return this.withRuntime(requestContext).getRunSteps(
             requestContext,
             runId
         );
@@ -254,7 +255,7 @@ public class MessageProcessingLogClient {
         MessageProcessingLogRunStepSearchCriteria runStepSearchCriteria,
         MessageProcessingLogRunStep runStep
     ) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getTraceMessage(
+        return this.withRuntime(requestContext).getTraceMessage(
             requestContext,
             runStepSearchCriteria,
             runStep
@@ -262,18 +263,17 @@ public class MessageProcessingLogClient {
     }
 
     public byte[] getPayloadForMessage(RequestContext requestContext, String traceId) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getPayloadForMessage(
+        return this.withRuntime(requestContext).getPayloadForMessage(
             requestContext,
             traceId
         );
     }
 
-    private MessageProcessingLogAbstractClient withRuntime(String runtimeLocationId) {
-        if (StringUtils.isNotBlank(runtimeLocationId)) {
-            return edgeRuntimeClient;
-        } else {
+    private MessageProcessingLogAbstractClient withRuntime(RequestContext requestContext) {
+        if (isDefaultRuntime(requestContext)) {
             return defaultRuntimeClient;
         }
+        return edgeRuntimeClient;
     }
 
     private void failDueToUnsupportedOperationInEdgeIntegrationCell(String runtimeLocationId) {

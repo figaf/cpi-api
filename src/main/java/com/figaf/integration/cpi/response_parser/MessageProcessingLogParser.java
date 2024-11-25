@@ -7,10 +7,7 @@ import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLog;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogAttachment;
 import com.figaf.integration.cpi.entity.message_processing.MessageProcessingLogRun;
 import com.figaf.integration.cpi.utils.CpiApiUtils;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -190,10 +187,12 @@ public class MessageProcessingLogParser {
 
 
     private static String updateAlternateWebLinkHost(ConnectionProperties connectionProperties, String runtimeLocationId, String messageGuid) {
-        JSONObject edgeObject = new JSONObject();
-        edgeObject.put("runtimeLocationId", runtimeLocationId);
         JSONObject mainObject = new JSONObject();
-        mainObject.put("edge", edgeObject);
+        if (StringUtils.isNotBlank(runtimeLocationId)) {
+            JSONObject edgeObject = new JSONObject();
+            edgeObject.put("runtimeLocationId", runtimeLocationId);
+            mainObject.put("edge", edgeObject);
+        }
         mainObject.put("identifier", messageGuid);
         String jsonString = mainObject.toString();
         String encodedJson = URLEncoder.encode(jsonString, StandardCharsets.UTF_8);

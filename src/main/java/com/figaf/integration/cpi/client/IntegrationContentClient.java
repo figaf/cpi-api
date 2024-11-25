@@ -6,9 +6,10 @@ import com.figaf.integration.cpi.entity.runtime_artifacts.IntegrationContent;
 import com.figaf.integration.cpi.entity.runtime_artifacts.IntegrationContentErrorInformation;
 import com.figaf.integration.cpi.entity.runtime_artifacts.RuntimeArtifactIdentifier;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+
+import static com.figaf.integration.cpi.utils.CpiApiUtils.isDefaultRuntime;
 
 /**
  * @author Ilya Nesterov
@@ -34,12 +35,12 @@ public class IntegrationContentClient {
     }
 
     public List<IntegrationContent> getAllIntegrationRuntimeArtifacts(RequestContext requestContext) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getAllIntegrationRuntimeArtifacts(requestContext);
+        return this.withRuntime(requestContext).getAllIntegrationRuntimeArtifacts(requestContext);
     }
 
     /**
      * Retrieves an {@link IntegrationContent} based on the provided {@link RequestContext} and {@link RuntimeArtifactIdentifier}.
-     * This method resolves the appropriate identifier using {@link RuntimeArtifactIdentifier#getIdentificationParameter(String)}.
+     * This method resolves the appropriate identifier using {@link RuntimeArtifactIdentifier#getIdentificationParameter(RequestContext)}.
      * If no valid identifier can be resolved, it throws a {@link RuntimeException}.
      *
      * @param requestContext            the context of the request containing runtime location information
@@ -51,9 +52,8 @@ public class IntegrationContentClient {
         RequestContext requestContext,
         RuntimeArtifactIdentifier runtimeArtifactIdentifier
     ) {
-        String identificationParameter = runtimeArtifactIdentifier.getIdentificationParameter(requestContext.getRuntimeLocationId())
-            .orElseThrow(() -> new RuntimeException(String.format("couldn't find appropriate identifier for %s", runtimeArtifactIdentifier)));
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getIntegrationRuntimeArtifact(
+        String identificationParameter = runtimeArtifactIdentifier.getIdentificationParameter(requestContext);
+        return this.withRuntime(requestContext).getIntegrationRuntimeArtifact(
             requestContext,
             identificationParameter
         );
@@ -73,9 +73,8 @@ public class IntegrationContentClient {
         RequestContext requestContext,
         RuntimeArtifactIdentifier runtimeArtifactIdentifier
     ) {
-        String identificationParameter = runtimeArtifactIdentifier.getIdentificationParameter(requestContext.getRuntimeLocationId())
-            .orElseThrow(() -> new RuntimeException(String.format("couldn't find appropriate identifier for %s", runtimeArtifactIdentifier)));
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getIntegrationRuntimeArtifactWithErrorInformation(
+        String identificationParameter = runtimeArtifactIdentifier.getIdentificationParameter(requestContext);
+        return this.withRuntime(requestContext).getIntegrationRuntimeArtifactWithErrorInformation(
             requestContext,
             identificationParameter
         );
@@ -85,20 +84,18 @@ public class IntegrationContentClient {
         RequestContext requestContext,
         IntegrationContent integrationContent
     ) {
-        return this.withRuntime(requestContext.getRuntimeLocationId()).getIntegrationRuntimeArtifactErrorInformation(requestContext, integrationContent);
+        return this.withRuntime(requestContext).getIntegrationRuntimeArtifactErrorInformation(requestContext, integrationContent);
     }
 
     public void undeployIntegrationRuntimeArtifact(RequestContext requestContext, RuntimeArtifactIdentifier runtimeArtifactIdentifier) {
-        String identificationParameter = runtimeArtifactIdentifier.getIdentificationParameter(requestContext.getRuntimeLocationId())
-            .orElseThrow(() -> new RuntimeException(String.format("couldn't find appropriate identifier for %s", runtimeArtifactIdentifier)));
-        this.withRuntime(requestContext.getRuntimeLocationId()).undeployIntegrationRuntimeArtifact(requestContext, identificationParameter);
+        String identificationParameter = runtimeArtifactIdentifier.getIdentificationParameter(requestContext);
+        this.withRuntime(requestContext).undeployIntegrationRuntimeArtifact(requestContext, identificationParameter);
     }
 
-    private IntegrationContentAbstractClient withRuntime(String runtimeLocationId) {
-        if (StringUtils.isNotBlank(runtimeLocationId)) {
-            return edgeRuntimeClient;
-        } else {
+    private IntegrationContentAbstractClient withRuntime(RequestContext requestContext) {
+        if (isDefaultRuntime(requestContext)) {
             return defaultRuntimeClient;
         }
+        return edgeRuntimeClient;
     }
 }

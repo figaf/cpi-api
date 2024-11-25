@@ -96,16 +96,15 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_DATA_STORE_ENTRY_PAYLOAD = "/api/v1/DataStoreEntries(Id='%s',DataStoreName='%s',IntegrationFlow='%s',Type='%s')/$value";
     protected static final String API_BINARY_PARAMETERS_META_DATA = "/api/v1/BinaryParameters?$format=json&$inlinecount=allpages&$select=Pid,Id,LastModifiedBy,LastModifiedTime,CreatedBy,CreatedTime,ContentType%s";
     protected static final String API_BINARY_PARAMETERS_CREATION = "/api/v1/BinaryParameters";
-    protected static final String API_BINARY_PARAMETERS_MANAGE  = "/api/v1/BinaryParameters(Pid='%s',Id='%s')";
+    protected static final String API_BINARY_PARAMETERS_MANAGE = "/api/v1/BinaryParameters(Pid='%s',Id='%s')";
     protected static final String API_BINARY_PARAMETER = "/api/v1/BinaryParameters(Pid='%s',Id='%s')?$format=json";
     protected static final String API_STRING_PARAMETERS = "/api/v1/StringParameters?$format=json%s";
     protected static final String API_STRING_PARAMETER_CREATION = "/api/v1/StringParameters";
     protected static final String API_PARTNERS = "/api/v1/Partners?$format=json";
-    protected static final String API_STRING_PARAMETERS_MANAGE  = "/api/v1/StringParameters(Pid='%s',Id='%s')";
+    protected static final String API_STRING_PARAMETERS_MANAGE = "/api/v1/StringParameters(Pid='%s',Id='%s')";
     protected static final String API_STRING_PARAMETER = "/api/v1/StringParameters(Pid='%s',Id='%s')?$format=json";
 
     protected static final String X_CSRF_TOKEN_HEADER_NAME = "X-CSRF-Token";
-    protected static final String DEFAULT_RUNTIME_LOCATION_ID = "cloudintegration";
 
     public CpiBaseClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -209,12 +208,25 @@ public abstract class CpiBaseClient extends BaseClient {
         return new BasicHeader(X_CSRF_TOKEN_HEADER_NAME, csrfToken);
     }
 
-    protected static String optString(JSONObject json, String key) {
-        return Utils.optString(json, key);
+    protected String addRuntimeLocationIdToUrlIfNotBlank(String url, String runtimeLocationId) {
+        if (StringUtils.isBlank(runtimeLocationId)) {
+            return url;
+        }
+
+        if (!url.contains("?")) {
+            url += "?";
+        }
+
+        if (url.lastIndexOf("?") != url.length() - 1) {
+            url += "&";
+        }
+
+        url += "runtimeLocationId=" + runtimeLocationId;
+        return url;
     }
 
-    protected static String getDefaultRuntimeLocationIdIfBlank(String runtimeLocationId) {
-        return StringUtils.isNotBlank(runtimeLocationId) ? runtimeLocationId : DEFAULT_RUNTIME_LOCATION_ID;
+    protected static String optString(JSONObject json, String key) {
+        return Utils.optString(json, key);
     }
 
     protected abstract Logger getLogger();

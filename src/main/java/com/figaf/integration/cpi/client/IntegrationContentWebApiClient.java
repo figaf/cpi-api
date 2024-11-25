@@ -34,11 +34,12 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
 
     private static final String OPERATIONS_PATH_FOR_TOKEN = "%s/Operations";
 
-    private static final String INTEGRATION_COMPONENTS_LIST_API = "%s/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand?runtimeLocationId=%s";
-    private static final String INTEGRATION_COMPONENT_DETAIL_API = "%s/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentDetailCommand?artifactId=%s&runtimeLocationId=%s";
+    private static final String INTEGRATION_COMPONENTS_LIST_API = "%s/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand";
+    private static final String INTEGRATION_COMPONENT_DETAIL_API = "%s/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentDetailCommand?artifactId=%s";
     private static final String DELETE_CONTENT_API = "%s/Operations/com.sap.it.nm.commands.deploy.DeleteContentCommand";
 
     private static final Map<String, String> NODE_TYPE_MAPPING = new HashMap<>();
+
     static {
         NODE_TYPE_MAPPING.put("IFLMAP", "INTEGRATION_FLOW");
     }
@@ -53,10 +54,11 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
         return executeMethod(
             requestContext,
             format(OPERATIONS_PATH_FOR_TOKEN, apiPrefix),
-            format(INTEGRATION_COMPONENTS_LIST_API, apiPrefix, requestContext.getRuntimeLocationId()),
+            addRuntimeLocationIdToUrlIfNotBlank(format(INTEGRATION_COMPONENTS_LIST_API, apiPrefix), requestContext.getRuntimeLocationId()),
             (url, token, restTemplateWrapper) -> callIntegrationComponentsList(
                 url,
                 requestContext.getRuntimeLocationId(),
+                requestContext.getDefaultRuntimeLocationId(),
                 token,
                 restTemplateWrapper.getRestTemplate()
             )
@@ -67,14 +69,14 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
     public IntegrationContent getIntegrationRuntimeArtifact(RequestContext requestContext, String runtimeArtifactId) {
         log.debug("#getIntegrationRuntimeArtifact: requestContext={}, runtimeArtifactId={}", requestContext, runtimeArtifactId);
         String apiPrefix = resolveApiPrefix(requestContext.getConnectionProperties().getHost());
-        String runtimeLocationIdParameter = getDefaultRuntimeLocationIdIfBlank(requestContext.getRuntimeLocationId());
         return executeMethod(
             requestContext,
             format(OPERATIONS_PATH_FOR_TOKEN, apiPrefix),
-            format(INTEGRATION_COMPONENT_DETAIL_API, apiPrefix, normalizeUuid(runtimeArtifactId), runtimeLocationIdParameter),
+            addRuntimeLocationIdToUrlIfNotBlank(format(INTEGRATION_COMPONENT_DETAIL_API, apiPrefix, normalizeUuid(runtimeArtifactId)), requestContext.getRuntimeLocationId()),
             (url, token, restTemplateWrapper) -> callIntegrationComponentDetail(
                 url,
                 requestContext.getRuntimeLocationId(),
+                requestContext.getDefaultRuntimeLocationId(),
                 token,
                 restTemplateWrapper.getRestTemplate()
             )
@@ -145,6 +147,7 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
     private List<IntegrationContent> callIntegrationComponentsList(
         String url,
         String runtimeLocationId,
+        String defaultRuntimeLocationId,
         String csrfToken,
         RestTemplate restTemplate
     ) {
@@ -162,7 +165,7 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
                 return integrationComponentsListResponse.getArtifactInformations()
                     .stream()
                     .filter(Objects::nonNull)
-                    .map(artifactInformation -> fillIntegrationContent(artifactInformation, runtimeLocationId))
+                    .map(artifactInformation -> fillIntegrationContent(artifactInformation, runtimeLocationId, defaultRuntimeLocationId))
                     .collect(Collectors.toList());
             }
 
@@ -181,6 +184,7 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
     private IntegrationContent callIntegrationComponentDetail(
         String url,
         String runtimeLocationId,
+        String defaultRuntimeLocationId,
         String csrfToken,
         RestTemplate restTemplate
     ) {
@@ -196,7 +200,7 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
                 IntegrationComponentDetailResponse integrationComponentDetailResponse = ObjectMapperFactory
                     .getXmlObjectMapper()
                     .readValue(responseEntity.getBody(), IntegrationComponentDetailResponse.class);
-                return fillIntegrationContentWithErrorInformation(integrationComponentDetailResponse, runtimeLocationId);
+                return fillIntegrationContentWithErrorInformation(integrationComponentDetailResponse, runtimeLocationId, defaultRuntimeLocationId);
             }
 
             throw new ClientIntegrationException(format("Code: %d, Message: %s",
@@ -226,7 +230,9 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
             MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
             requestBody.add("artifactIds", runtimeArtifact.getExternalId());
             requestBody.add("tenantId", runtimeArtifact.getTenantId());
-            requestBody.add("runtimeLocationId", runtimeArtifact.getRuntimeLocationId());
+            if (!StringUtils.isBlank(runtimeArtifact.getRuntimeLocationId())) {
+                requestBody.add("runtimeLocationId", runtimeArtifact.getRuntimeLocationId());
+            }
 
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, httpHeaders);
 
@@ -256,7 +262,8 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
 
     private IntegrationContent fillIntegrationContent(
         ArtifactInformation artifactInformation,
-        String runtimeLocationId
+        String runtimeLocationId,
+        String defaultRuntimeLocationId
     ) throws JSONException {
         IntegrationContent integrationContent = new IntegrationContent();
         integrationContent.setId(artifactInformation.getSymbolicName());
@@ -275,18 +282,20 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
         integrationContent.setDeployedBy(artifactInformation.getDeployedBy());
         integrationContent.setDeployedOn(CpiApiUtils.parseDate(artifactInformation.getDeployedOn()));
         integrationContent.setStatus(artifactInformation.getSemanticState());
-        //TODO temporary solution
-        integrationContent.setRuntimeLocationId(StringUtils.isBlank(runtimeLocationId) || DEFAULT_RUNTIME_LOCATION_ID.equals(runtimeLocationId) ? null : runtimeLocationId);
+        //integrationContent.runtimeLocationId equals to null indicates that it's a default runtime. It is saved as null in the tracked object.
+        integrationContent.setRuntimeLocationId(!CpiApiUtils.isDefaultRuntime(runtimeLocationId, defaultRuntimeLocationId) ? runtimeLocationId : null);
         return integrationContent;
     }
 
     private IntegrationContent fillIntegrationContentWithErrorInformation(
         IntegrationComponentDetailResponse integrationComponentDetailResponse,
-        String runtimeLocationId
+        String runtimeLocationId,
+        String defaultRuntimeLocationId
     ) throws JSONException {
         IntegrationContent integrationContent = fillIntegrationContent(
             integrationComponentDetailResponse.getArtifactInformation(),
-            runtimeLocationId
+            runtimeLocationId,
+            defaultRuntimeLocationId
         );
         integrationContent.setLogConfiguration(integrationComponentDetailResponse.getLogConfiguration());
 
