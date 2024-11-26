@@ -1,5 +1,6 @@
 package com.figaf.integration.cpi.utils;
 
+import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.cpi.entity.message_processing.CustomHeaderProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -13,10 +14,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * @author Arsenii Istlentev
@@ -92,4 +90,13 @@ public class CpiApiUtils {
         }
         return uuid;
     }
+
+    public static boolean isDefaultRuntime(RequestContext requestContext) {
+        return isDefaultRuntime(requestContext.getRuntimeLocationId(), requestContext.getDefaultRuntimeLocationId());
+    }
+
+    public static boolean isDefaultRuntime(String runtimeLocationId, String defaultRuntimeLocationId) {
+        return StringUtils.isBlank(runtimeLocationId) || Objects.equals(runtimeLocationId, defaultRuntimeLocationId);
+    }
+
 }

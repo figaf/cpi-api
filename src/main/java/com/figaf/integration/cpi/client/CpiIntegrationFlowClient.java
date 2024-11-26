@@ -36,7 +36,7 @@ import static java.lang.String.format;
 @Slf4j
 public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
-    private static final String API_IFLOW_DEPLOYED_ARTIFACT_INFO = "%s/api/1.0/deployedartifacts/%s?bundleType=IntegrationFlow%s";
+    private static final String API_IFLOW_DEPLOYED_ARTIFACT_INFO = "%s/api/1.0/deployedartifacts/%s?bundleType=IntegrationFlow";
     private static final String API_UPLOAD_IFLOW = "/itspaces/api/1.0/workspace/%s/iflows/";
     private static final String API_DEPLOY_IFLOW = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY";
     private static final String API_SET_TRACE_LOG_LEVEL_FOR_IFLOWS = "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentSetMplLogLevelCommand";
@@ -139,17 +139,15 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     // that API has parameter bundleType but it works only for IntegrationFlow type, so for now it's not in parent class
     public DeployedArtifact getDeployedArtifactInfo(RequestContext requestContext, String iFlowTechnicalName) {
         log.debug("#getDeployedArtifactInfo: iFlowTechnicalName={}, requestContext={}", iFlowTechnicalName, requestContext);
-        String runtimeLocationIdParameter = StringUtils.isNotBlank(requestContext.getRuntimeLocationId())
-            ? format("&runtimeLocationId=%s", requestContext.getRuntimeLocationId())
-            : "";
+        String url = format(API_IFLOW_DEPLOYED_ARTIFACT_INFO,
+            resolveApiPrefix(requestContext.getConnectionProperties().getHost()),
+            iFlowTechnicalName
+        );
+        url = addRuntimeLocationIdToUrlIfNotBlank(url, requestContext.getRuntimeLocationId());
 
         return executeGet(
             requestContext,
-            format(API_IFLOW_DEPLOYED_ARTIFACT_INFO,
-                resolveApiPrefix(requestContext.getConnectionProperties().getHost()),
-                iFlowTechnicalName,
-                runtimeLocationIdParameter
-            ),
+            url,
             body -> ObjectMapperFactory.getJsonObjectMapper().readValue(body, DeployedArtifact.class)
         );
     }
@@ -161,7 +159,7 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
             requestContext,
             API_SET_TRACE_LOG_LEVEL_FOR_IFLOWS,
             (url, token, restTemplateWrapper) -> {
-                setTraceLogLevelForIFlows(iFlowRuntimeDataCollection, url, token, restTemplateWrapper.getRestTemplate());
+                setTraceLogLevelForIFlows(iFlowRuntimeDataCollection, url, token, restTemplateWrapper.getRestTemplate(), requestContext.getDefaultRuntimeLocationId());
                 return null;
             }
         );
@@ -238,7 +236,8 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
         Collection<IFlowRuntimeData> iflowRuntimeDataCollection,
         String url,
         String token,
-        RestTemplate restTemplate
+        RestTemplate restTemplate,
+        String defaultRuntimeLocationId
     ) {
 
         HttpHeaders setTraceLogLevelRequestHttpHeaders = new HttpHeaders();
@@ -247,11 +246,14 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
         iflowRuntimeDataCollection.forEach(iflowRuntimeData -> {
             try {
+                String runtimeLocationId = StringUtils.defaultIfBlank(iflowRuntimeData.runtimeLocationId(), defaultRuntimeLocationId);
                 Map<String, String> request = new HashMap<>();
                 request.put("artifactSymbolicName", iflowRuntimeData.technicalName());
                 request.put("mplLogLevel", "TRACE");
                 request.put("nodeType", "IFLMAP");
-                request.put("runtimeLocationId", getDefaultRuntimeLocationIdIfBlank(iflowRuntimeData.runtimeLocationId()));
+                if (StringUtils.isNotBlank(runtimeLocationId)) {
+                    request.put("runtimeLocationId", runtimeLocationId);
+                }
 
                 HttpEntity<Map<String, String>> setTraceLogLevelRequestHttpEntity = new HttpEntity<>(request, setTraceLogLevelRequestHttpHeaders);
 
