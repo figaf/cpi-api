@@ -7,6 +7,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -18,4 +19,11 @@ public class IntegrationComponentsListResponse {
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "artifactInformations")
     private List<ArtifactInformation> artifactInformations;
+
+    public List<ArtifactInformation> getArtifactInformations() {
+        if (artifactInformations == null) {
+            artifactInformations = new ArrayList<>();
+        }
+        return artifactInformations;
+    }
 }
