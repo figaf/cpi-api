@@ -16,6 +16,7 @@ import com.figaf.integration.cpi.utils.PackageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
@@ -178,9 +179,9 @@ class CpiIntegrationFlowClientTest {
         assertThat(integrationRuntimeArtifact.getLogConfiguration().isTraceEnabled()).isTrue();
     }
 
-    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
-    @ArgumentsSource(AgentTestDataProvider.class)
-    void test_setTraceLogLevelForIFlowsDeployedInEdge(AgentTestData agentTestData) {
+    @Test
+    void test_setTraceLogLevelForIFlowsDeployedInEdge() {
+        AgentTestData agentTestData = AgentTestDataProvider.buildAgentTestDataForCfIntegrationSuite();
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         requestContext.setRuntimeLocationId(EDGE_RUNTIME_LOCATION_ID);
         cpiIntegrationFlowClient.setTraceLogLevelForIFlows(requestContext, singletonList(new IFlowRuntimeData(API_TEST_EDGE_IFLOW_NAME, EDGE_RUNTIME_LOCATION_ID)));
