@@ -1,14 +1,17 @@
 package com.figaf.integration.cpi.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.entity.RestTemplateWrapper;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
+import com.figaf.integration.cpi.client.mapper.ObjectMapperFactory;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateCpiArtifactRequest;
 import com.figaf.integration.cpi.entity.lock.Locker;
+import com.figaf.integration.cpi.entity.runtime_artifacts.VersionHistoryRecord;
 import com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser;
 import com.figaf.integration.cpi.version.CpiObjectVersionHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +23,10 @@ import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -55,6 +56,7 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
     private static final String API_DELETE_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts/%s";
     private static final String API_DOWNLOAD_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s";
     private static final String API_UPDATE_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts";
+    private static final String API_VERSION_HISTORY_ARTIFACT = "/api/1.0/workspace/%s/artifacts/%s?versionhistory=true&webdav=REPORT";
     private static final String API_LOCK_AND_UNLOCK_ARTIFACT = "itspaces/api/1.0/workspace/{0}/artifacts/{1}";
     private static final String FILE_NAME = "model.zip";
     private static final String X_CSRF_TOKEN = "X-CSRF-Token";
@@ -160,6 +162,20 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
         );
     }
 
+    public List<VersionHistoryRecord> executeVersionsHistory(RequestContext requestContext, String packageExternalId, String externalId) {
+        String path;
+        if (isIntegrationSuiteHost(requestContext.getConnectionProperties().getHost())) {
+            path = String.format(API_VERSION_HISTORY_ARTIFACT, packageExternalId, externalId);
+        } else {
+            path = "/itspaces" + String.format(API_VERSION_HISTORY_ARTIFACT, packageExternalId, externalId);
+        }
+        return executeMethod(
+            requestContext,
+            path,
+            (url, token, restTemplateWrapper) -> executeVersionsHistory(url, token, restTemplateWrapper.getRestTemplate())
+        );
+    }
+
     public void deleteArtifact(
         String packageExternalId,
         String artifactExternalId,
@@ -205,19 +221,22 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
             requestBody.put("name", request.getName());
             requestBody.put("packageId", request.getPackageTechnicalName());
             //description property is mandatory for artifact creation but null value is not allowed for Value Mappings
-            requestBody.put("description", StringUtils.defaultString(request.getDescription(), ""));
+            requestBody.put("description", StringUtils.defaultString(request.getDescription()));
             requestBody.put("type", request.getType());
             requestBody.put("additionalAttrs", new JSONObject(request.getAdditionalAttrs()));
-            requestBody.put("fileName", FILE_NAME);
-
-            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
-                .setMode(HttpMultipartMode.LEGACY)
-                .addBinaryBody("payload", request.getBundledModel(), ContentType.DEFAULT_BINARY, FILE_NAME)
-                .addTextBody("_charset_", "UTF-8", ContentType.TEXT_PLAIN)
-                .addTextBody(textBodyAttrName, requestBody.toString(), ContentType.APPLICATION_JSON);
-
             uploadArtifactRequest.setHeader(X_CSRF_TOKEN, userApiCsrfToken);
-            uploadArtifactRequest.setEntity(entityBuilder.build());
+            if (request.getBundledModel() != null && request.getBundledModel().length > 0) {
+                requestBody.put("fileName", FILE_NAME);
+                MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
+                    .setMode(HttpMultipartMode.LEGACY)
+                    .addBinaryBody("payload", request.getBundledModel(), ContentType.DEFAULT_BINARY, FILE_NAME)
+                    .addTextBody("_charset_", "UTF-8", ContentType.TEXT_PLAIN)
+                    .addTextBody(textBodyAttrName, requestBody.toString(), ContentType.APPLICATION_JSON);
+                uploadArtifactRequest.setEntity(entityBuilder.build());
+            } else {
+                StringEntity jsonEntity = new StringEntity(requestBody.toString(), ContentType.APPLICATION_JSON);
+                uploadArtifactRequest.setEntity(jsonEntity);
+            }
 
             HttpClient client = restTemplateWrapper.getHttpClient();
 
@@ -235,8 +254,8 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
                 Locker.unlockPackage(connectionProperties, packageExternalId, userApiCsrfToken, restTemplateWrapper.getRestTemplate());
             }
         }
-
     }
+
 
     protected String deployArtifact(
         ConnectionProperties connectionProperties,
@@ -409,5 +428,30 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
         }
     }
 
+    private List<VersionHistoryRecord> executeVersionsHistory(String url, String csrfToken, RestTemplate restTemplate) {
+        try {
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add("X-CSRF-Token", csrfToken);
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
+            HttpEntity<Void> requestEntity = new HttpEntity<>(httpHeaders);
+
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, String.class);
+
+            if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+                TypeReference<List<VersionHistoryRecord>> versionHistoryRecordsRef = new TypeReference<>() {
+                };
+                return ObjectMapperFactory.getJsonObjectMapper().readValue(responseEntity.getBody(), versionHistoryRecordsRef);
+            } else {
+                throw new ClientIntegrationException(format(
+                    "Couldn't execute versions history. Code: %d, Message: %s",
+                    responseEntity.getStatusCode().value(),
+                    requestEntity.getBody())
+                );
+            }
+
+        } catch (Exception ex) {
+            throw new ClientIntegrationException("Error occurred while executing versions history: " + ex.getMessage(), ex);
+        }
+    }
 }
