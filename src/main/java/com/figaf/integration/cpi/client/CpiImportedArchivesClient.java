@@ -7,13 +7,16 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.CreateImportedArchi
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.IMPORTED_ARCHIVES;
 
 @Slf4j
 public class CpiImportedArchivesClient extends CpiRuntimeArtifactClient {
 
-    private static final String API_UPLOAD_IMPORTED_ARCHIVES = "/itspaces/api/1.0/workspace/%s/importedarchives/?isImport=true";
+    private static final String API_CREATE_IMPORTED_ARCHIVES = "/itspaces/api/1.0/workspace/%s/functionlibraries/";
+
+    private static final String API_UPLOAD_IMPORTED_ARCHIVES = API_CREATE_IMPORTED_ARCHIVES + "?isImport=true";
 
     //scriptcollections is not a mistake here. SAP CPI really uses such endpoint for Imported archives
     private static final String API_DEPLOY_IMPORTED_ARCHIVES = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/scriptcollections/%s?action=DEPLOY";
@@ -44,9 +47,12 @@ public class CpiImportedArchivesClient extends CpiRuntimeArtifactClient {
 
     public void createImportedArchives(RequestContext requestContext, CreateImportedArchivesRequest request) {
         log.debug("#createImportedArchives(RequestContext requestContext, CreateImportedArchivesRequest request): {}, {}", requestContext, request);
+        String finalizedImportedArchivesUrl = Objects.nonNull(request.getBundledModel())
+            ? API_UPLOAD_IMPORTED_ARCHIVES :
+            API_CREATE_IMPORTED_ARCHIVES;
         executeMethod(
             requestContext,
-            String.format(API_UPLOAD_IMPORTED_ARCHIVES, request.getPackageExternalId()),
+            String.format(finalizedImportedArchivesUrl, request.getPackageExternalId()),
             (url, token, restTemplateWrapper) -> {
                 createArtifact(
                     requestContext.getConnectionProperties(),
