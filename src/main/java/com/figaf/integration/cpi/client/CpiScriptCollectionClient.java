@@ -8,6 +8,7 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateScriptCollect
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.SCRIPT_COLLECTION;
 
@@ -17,7 +18,8 @@ import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactT
 @Slf4j
 public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
 
-    private static final String API_UPLOAD_SCRIPT_COLLECTION = "/itspaces/api/1.0/workspace/%s/scriptcollections/?isImport=true";
+    private static final String API_CREATE_SCRIPT_COLLECTION = "/itspaces/api/1.0/workspace/%s/scriptcollections/";
+    private static final String API_UPLOAD_SCRIPT_COLLECTION = API_CREATE_SCRIPT_COLLECTION + "?isImport=true";
     private static final String API_DEPLOY_SCRIPT_COLLECTION = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/scriptcollections/%s?action=DEPLOY";
 
     public CpiScriptCollectionClient(HttpClientsFactory httpClientsFactory) {
@@ -55,9 +57,12 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
 
     public void createScriptCollection(RequestContext requestContext, CreateScriptCollectionRequest request) {
         log.debug("#createScriptCollection(RequestContext requestContext, CreateScriptCollectionRequest request): {}, {}", requestContext, request);
+        String finalizedCreationScriptCollectionUrl = Objects.nonNull(request.getBundledModel())
+            ? API_UPLOAD_SCRIPT_COLLECTION :
+            API_CREATE_SCRIPT_COLLECTION;
         executeMethod(
             requestContext,
-            String.format(API_UPLOAD_SCRIPT_COLLECTION, request.getPackageExternalId()),
+            String.format(finalizedCreationScriptCollectionUrl, request.getPackageExternalId()),
             (url, token, restTemplateWrapper) -> {
                 createArtifact(
                     requestContext.getConnectionProperties(),

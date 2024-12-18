@@ -7,13 +7,16 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.CreateFunctionLibra
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.*;
 
 @Slf4j
 public class CpiFunctionLibrariesClient extends CpiRuntimeArtifactClient {
 
-    private static final String API_UPLOAD_FUNCTION_LIBRARIES = "/itspaces/api/1.0/workspace/%s/functionlibraries/?isImport=true";
+    private static final String API_CREATE_FUNCTION_LIBRARIES = "/itspaces/api/1.0/workspace/%s/functionlibraries/";
+
+    private static final String API_UPLOAD_FUNCTION_LIBRARIES = API_CREATE_FUNCTION_LIBRARIES + "?isImport=true";
 
     //scriptcollections is not a mistake here. SAP CPI really uses such endpoint for Function libraries
     private static final String API_DEPLOY_FUNCTION_LIBRARIES = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/scriptcollections/%s?action=DEPLOY";
@@ -44,9 +47,12 @@ public class CpiFunctionLibrariesClient extends CpiRuntimeArtifactClient {
 
     public void createFunctionLibraries(RequestContext requestContext, CreateFunctionLibrariesRequest request) {
         log.debug("#createFunctionLibraries(RequestContext requestContext, CreateFunctionLibrariesRequest request): {}, {}", requestContext, request);
+        String finalizedFunctionLibrariesUrl = Objects.nonNull(request.getBundledModel())
+            ? API_UPLOAD_FUNCTION_LIBRARIES :
+            API_CREATE_FUNCTION_LIBRARIES;
         executeMethod(
             requestContext,
-            String.format(API_UPLOAD_FUNCTION_LIBRARIES, request.getPackageExternalId()),
+            String.format(finalizedFunctionLibrariesUrl, request.getPackageExternalId()),
             (url, token, restTemplateWrapper) -> {
                 createArtifact(
                     requestContext.getConnectionProperties(),
