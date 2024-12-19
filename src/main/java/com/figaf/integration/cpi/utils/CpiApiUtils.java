@@ -14,6 +14,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
 
 /**
@@ -21,10 +25,16 @@ import java.util.*;
  */
 public class CpiApiUtils {
 
-    private static final transient FastDateFormat DATE_FORMAT = FastDateFormat.getInstance(
-        "yyyy-MM-dd'T'HH:mm:ss.SSS",
-        TimeZone.getTimeZone("GMT")
-    );
+    private static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder()
+        .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
+        .optionalStart()
+        .appendPattern(".SSS")
+        .optionalEnd()
+        .optionalStart()
+        .appendLiteral('Z')
+        .optionalEnd()
+        .toFormatter()
+        .withZone(ZoneId.of("GMT"));
 
     public static Date parseDate(String date) {
         try {
@@ -38,7 +48,8 @@ public class CpiApiUtils {
                     )
                 );
             } else {
-                return DATE_FORMAT.parse(date);
+                ZonedDateTime zdt = ZonedDateTime.parse(date, DATE_FORMATTER);
+                return Date.from(zdt.toInstant());
             }
         } catch (Exception ex) {
             throw new RuntimeException("Can't parse date: ", ex);
