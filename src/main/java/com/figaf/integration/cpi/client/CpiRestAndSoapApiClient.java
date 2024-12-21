@@ -123,6 +123,7 @@ public class CpiRestAndSoapApiClient extends CpiRuntimeArtifactClient {
         );
     }
 
+    @Deprecated
     public void updateRestOrSoapApi(RequestContext requestContext, UpdateRestOrSoapApiRequest request) {
         log.debug("#updateRestOrSoapApi(RequestContext requestContext, UpdateRestOrSoapApiRequest request): {}, {}", requestContext, request);
         updateArtifact(requestContext, request);
