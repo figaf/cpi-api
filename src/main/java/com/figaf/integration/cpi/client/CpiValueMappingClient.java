@@ -73,6 +73,7 @@ public class CpiValueMappingClient extends CpiRuntimeArtifactClient {
 
     }
 
+    @Deprecated
     public void updateValueMapping(RequestContext requestContext, UpdateValueMappingRequest request) {
         log.debug("#updateValueMapping(RequestContext requestContext, UpdateValueMappingRequest request): {}, {}", requestContext, request);
         updateArtifact(requestContext, request);
