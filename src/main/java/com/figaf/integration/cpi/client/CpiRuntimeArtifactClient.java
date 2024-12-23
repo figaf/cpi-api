@@ -145,14 +145,15 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
         );
     }
 
-    public void updateArtifact(RequestContext requestContext, CreateOrUpdateCpiArtifactRequest request) {
+    public void updateArtifact(RequestContext requestContext, CreateOrUpdateCpiArtifactRequest createOrUpdateCpiArtifactRequest) {
+        log.debug("#updateArtifact: requestContext={}, createOrUpdateCpiArtifactRequest={}", requestContext, createOrUpdateCpiArtifactRequest);
         executeMethod(
             requestContext,
-            String.format(API_UPDATE_ARTIFACT, request.getPackageExternalId()),
+            String.format(API_UPDATE_ARTIFACT, createOrUpdateCpiArtifactRequest.getPackageExternalId()),
             (url, token, restTemplateWrapper) -> {
                 uploadArtifact(
                     requestContext.getConnectionProperties(),
-                    request,
+                    createOrUpdateCpiArtifactRequest,
                     url,
                     token,
                     restTemplateWrapper

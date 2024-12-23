@@ -73,6 +73,7 @@ public class CpiMessageMappingClient extends CpiRuntimeArtifactClient {
 
     }
 
+    @Deprecated
     public void updateMessageMapping(RequestContext requestContext, UpdateMessageMappingRequest request) {
         log.debug("#updateMessageMapping(RequestContext requestContext, UpdateMessageMappingRequest request): {}, {}", requestContext, request);
         updateArtifact(requestContext, request);

@@ -78,6 +78,7 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
 
     }
 
+    @Deprecated
     public void updateScriptCollection(RequestContext requestContext, UpdateScriptCollectionRequest request) {
         log.debug("#updateScriptCollection(RequestContext requestContext, UpdateScriptCollectionRequest request): {}, {}",
             requestContext, request);

@@ -97,6 +97,7 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
     }
 
+    @Deprecated
     public void updateIFlow(RequestContext requestContext, UpdateIFlowRequest request) {
         log.debug("#updateIFlow(RequestContext requestContext, UpdateIFlowRequest request): {}, {}", requestContext, request);
         updateArtifact(requestContext, request);
