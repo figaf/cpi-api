@@ -24,13 +24,13 @@ import static java.util.Collections.singletonList;
  * @author Nesterov Ilya
  */
 @Slf4j
-public class HttpComponentMessageSender extends MessageSender {
+public class HttpMessageSender extends MessageSender {
 
     private static final String X_CSRF_TOKEN = "X-CSRF-Token";
 
     private final CsrfTokenHolder csrfTokenHolder;
 
-    public HttpComponentMessageSender(HttpClientsFactory httpClientsFactory) {
+    public HttpMessageSender(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
         csrfTokenHolder = new CsrfTokenHolder();
     }

@@ -36,25 +36,33 @@ public class OperationsClient extends CpiBaseClient {
 
     public RuntimeLocationsResponse getRuntimeLocations(RequestContext requestContext) {
         log.debug("#getRuntimeLocations(RequestContext requestContext): {}", requestContext);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Accept", "application/json");
-
-        return executeGet(
-            requestContext,
-            httpHeaders,
-            RUNTIME_LOCATION_URI,
-            runtimeLocationsResponseRaw -> ObjectMapperFactory.getJsonObjectMapper().readValue(runtimeLocationsResponseRaw, RuntimeLocationsResponse.class),
-            String.class
-        );
+        try {
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add("Accept", "application/json");
+            return executeGet(
+                requestContext,
+                httpHeaders,
+                RUNTIME_LOCATION_URI,
+                runtimeLocationsResponseRaw -> ObjectMapperFactory.getJsonObjectMapper().readValue(runtimeLocationsResponseRaw, RuntimeLocationsResponse.class),
+                String.class
+            );
+        } catch (Exception ex) {
+            throw new ClientIntegrationException("Error occurred while getting runtime locations: " + ex.getMessage(), ex);
+        }
     }
 
     public StatisticOverviewCommandResponse callStatisticOverviewCommand(RequestContext requestContext) {
-        return executeMethod(
-            requestContext,
-            "/itspaces/Operations",
-            "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.StatisticOverviewCommand",
-            (url, token, restTemplateWrapper) -> callStatisticOverviewCommand(url, token, restTemplateWrapper.getRestTemplate())
-        );
+        log.debug("#callStatisticOverviewCommand(RequestContext requestContext): {}", requestContext);
+        try {
+            return executeMethod(
+                requestContext,
+                "/itspaces/Operations",
+                "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.StatisticOverviewCommand",
+                (url, token, restTemplateWrapper) -> callStatisticOverviewCommand(url, token, restTemplateWrapper.getRestTemplate())
+            );
+        } catch (Exception ex) {
+            throw new ClientIntegrationException("Error occurred while calling statistic overview command: " + ex.getMessage(), ex);
+        }
     }
 
     public String getCsrfToken(ConnectionProperties connectionProperties, HttpClient httpClient) {
