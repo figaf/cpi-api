@@ -19,9 +19,9 @@ import static java.util.Collections.singleton;
  * @author Klochkov Sergey
  */
 @Slf4j
-public class IDocComponentMessageSender extends MessageSender {
+public class IDocMessageSender extends MessageSender {
 
-    public IDocComponentMessageSender(HttpClientsFactory httpClientsFactory) {
+    public IDocMessageSender(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
     }
 

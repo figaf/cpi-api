@@ -19,9 +19,9 @@ import static java.util.Collections.singleton;
  * @author Nesterov Ilya
  */
 @Slf4j
-public class SoapComponentMessageSender extends MessageSender {
+public class SoapMessageSender extends MessageSender {
 
-    public SoapComponentMessageSender(HttpClientsFactory httpClientsFactory) {
+    public SoapMessageSender(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
     }
 
