@@ -8,7 +8,6 @@ import lombok.*;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class QueueMetadata {
 
     private String name;

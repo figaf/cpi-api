@@ -104,7 +104,9 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_STRING_PARAMETERS_MANAGE = "/api/v1/StringParameters(Pid='%s',Id='%s')";
     protected static final String API_STRING_PARAMETER = "/api/v1/StringParameters(Pid='%s',Id='%s')?$format=json";
     protected static final String API_QUEUES = "/emis-mgmt-api/sap-event-mesh/management/api/v1/queues";
+    protected static final String API_QUEUES_CREATE = API_QUEUES + "/%s";
     protected static final String API_SUBSCRIPTIONS = "/emis-mgmt-api/sap-event-mesh/management/api/v1/queues/%s/subscriptions";
+    protected static final String API_SUBSCRIPTIONS_CREATE = API_SUBSCRIPTIONS + "/%s";
     protected static final String X_CSRF_TOKEN_HEADER_NAME = "X-CSRF-Token";
 
     public CpiBaseClient(HttpClientsFactory httpClientsFactory) {
