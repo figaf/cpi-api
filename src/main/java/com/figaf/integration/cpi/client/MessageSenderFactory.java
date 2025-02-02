@@ -1,8 +1,9 @@
 package com.figaf.integration.cpi.client;
 
+import com.figaf.integration.common.client.HttpMessageSender;
+import com.figaf.integration.common.client.MessageSender;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
-import com.figaf.integration.cpi.entity.message_sender.MessageSenderType;
 
 public class MessageSenderFactory {
 
@@ -12,12 +13,8 @@ public class MessageSenderFactory {
         this.httpClientsFactory = resolveHttpClientsFactory(defaultHttpClientsFactory, requestContext);
     }
 
-    public MessageSender createMessageSender(MessageSenderType messageSenderType) {
-        return switch (messageSenderType) {
-            case HTTP -> new HttpMessageSender(this.httpClientsFactory);
-            case IDOC -> new IDocMessageSender(this.httpClientsFactory);
-            case SOAP -> new SoapMessageSender(this.httpClientsFactory);
-        };
+    public MessageSender createMessageSender() {
+        return new HttpMessageSender(this.httpClientsFactory);
     }
 
     private HttpClientsFactory resolveHttpClientsFactory(HttpClientsFactory defaultHttpClientsFactory, RequestContext requestContext) {
