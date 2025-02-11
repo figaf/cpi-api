@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 
@@ -29,9 +30,14 @@ public class EventMeshClient extends CpiBaseClient {
         super(httpClientsFactory);
     }
 
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
+
     public List<QueueMetadata> getAllQueuesMetadata(RequestContext requestContext) {
         log.debug("#getAllQueuesMetadata(RequestContext requestContext): {}", requestContext);
-        try {
+        return executeWithExceptionHandling(() -> {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Accept", "application/json");
             return executeGet(
@@ -45,14 +51,12 @@ public class EventMeshClient extends CpiBaseClient {
                 },
                 String.class
             );
-        } catch (Exception ex) {
-            throw new ClientIntegrationException("Error occurred while retrieving all queues: " + ex.getMessage(), ex);
-        }
+        }, "Error occurred while retrieving all queues");
     }
 
     public QueueMetadata getQueueMetadata(String queueName, RequestContext requestContext) {
         log.debug("#getQueueMetadata(String queueName, RequestContext requestContext): {}, {}", requestContext, queueName);
-        try {
+        return executeAndHandleNotFound(() -> {
             String queueNameEncoded = URLEncoder.encode(queueName, StandardCharsets.UTF_8);
             String path = String.format(API_QUEUES_MANAGE, queueNameEncoded);
             HttpHeaders httpHeaders = new HttpHeaders();
@@ -64,22 +68,12 @@ public class EventMeshClient extends CpiBaseClient {
                 queueMetadataResponseRaw -> ObjectMapperFactory.getJsonObjectMapper().readValue(queueMetadataResponseRaw, QueueMetadata.class),
                 String.class
             );
-        } catch (ClientIntegrationException ex) {
-            Throwable cause = ex.getCause();
-            if (cause instanceof HttpClientErrorException httpEx) {
-                if (httpEx.getStatusCode() == HttpStatus.NOT_FOUND) {
-                    log.warn("Queue not found for queueName={}", queueName);
-                }
-            }
-            return null;
-        } catch (Exception ex) {
-            throw new ClientIntegrationException("Error occurred while retrieving queue: " + ex.getMessage(), ex);
-        }
+        }, "Queue not found for queueName=" + queueName);
     }
 
     public List<SubscriptionMetadata> getSubscriptionMetadata(String queueName, RequestContext requestContext) {
         log.debug("#getSubscriptionMetadata(String queueName, RequestContext requestContext): {}, {}", requestContext, queueName);
-        try {
+        return executeAndHandleNotFound(() -> {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Accept", "application/json");
             return executeGet(
@@ -87,45 +81,35 @@ public class EventMeshClient extends CpiBaseClient {
                 httpHeaders,
                 String.format(API_SUBSCRIPTIONS, queueName),
                 subscriptionMetadataRawResponse -> {
-                    TypeReference<List<SubscriptionMetadata>> subscriptionMetadataDtoRef = new TypeReference<>() {};
+                    TypeReference<List<SubscriptionMetadata>> subscriptionMetadataDtoRef = new TypeReference<>() {
+                    };
                     return ObjectMapperFactory.getJsonObjectMapper().readValue(subscriptionMetadataRawResponse, subscriptionMetadataDtoRef);
                 },
                 String.class
             );
-        } catch (ClientIntegrationException ex) {
-            Throwable cause = ex.getCause();
-            if (cause instanceof HttpClientErrorException httpEx) {
-                if (httpEx.getStatusCode() == HttpStatus.NOT_FOUND) {
-                    log.warn("Subscriptions not found for queueName={}", queueName);
-                }
-            }
-            return null;
-        } catch (Exception ex) {
-            throw new ClientIntegrationException("Error occurred while retrieving subscriptions: " + ex.getMessage(), ex);
-        }
+        }, "Subscriptions not found for queueName=" + queueName);
     }
 
     public QueueMetadata createQueue(RequestContext requestContext, String queueName) {
         log.debug("#createQueue(RequestContext requestContext, String queueName): {}, {}", requestContext, queueName);
         String queueNameEncoded = URLEncoder.encode(queueName, StandardCharsets.UTF_8);
         String path = String.format(API_QUEUES_MANAGE, queueNameEncoded);
-        try {
-            return executeMethod(
-                requestContext,
-                "/api/1.0/user",
-                path,
-                (url, token, restTemplateWrapper) -> createQueue(url, token, restTemplateWrapper.getRestTemplate())
-            );
-        } catch (Exception ex) {
-            throw new ClientIntegrationException("Error occurred while creating queue: " + ex.getMessage(), ex);
-        }
+        return executeWithExceptionHandling(() ->
+                executeMethod(
+                    requestContext,
+                    "/api/1.0/user",
+                    path,
+                    (url, token, restTemplateWrapper) -> createQueue(url, token, restTemplateWrapper.getRestTemplate())
+                ),
+            "Error occurred while creating queue"
+        );
     }
 
     public void deleteQueue(RequestContext requestContext, String queueName) {
         log.debug("#deleteQueue(RequestContext requestContext, String queueName): {}, {}", requestContext, queueName);
         String queueNameEncoded = URLEncoder.encode(queueName, StandardCharsets.UTF_8);
         String path = String.format(API_QUEUES_MANAGE, queueNameEncoded);
-        try {
+        executeWithExceptionHandling(() -> {
             executeMethod(
                 requestContext,
                 "/api/1.0/user",
@@ -135,9 +119,8 @@ public class EventMeshClient extends CpiBaseClient {
                     return null;
                 }
             );
-        } catch (Exception ex) {
-            throw new ClientIntegrationException("Error occurred while deleting queue: " + ex.getMessage(), ex);
-        }
+            return null;
+        }, "Error occurred while deleting queue");
     }
 
     public SubscriptionMetadata createSubscription(RequestContext requestContext, String queueName, String subscription) {
@@ -147,30 +130,26 @@ public class EventMeshClient extends CpiBaseClient {
             queueName,
             URLEncoder.encode(subscription, StandardCharsets.UTF_8)
         );
-        try {
-            return executeMethod(
-                requestContext,
-                "/api/1.0/user",
-                path,
-                (url, token, restTemplateWrapper) -> createSubscription(url, token, restTemplateWrapper.getRestTemplate())
-            );
-        } catch (Exception ex) {
-            throw new ClientIntegrationException("Error occurred while creating subscription: " + ex.getMessage(), ex);
-        }
+        return executeWithExceptionHandling(() ->
+                executeMethod(
+                    requestContext,
+                    "/api/1.0/user",
+                    path,
+                    (url, token, restTemplateWrapper) -> createSubscription(url, token, restTemplateWrapper.getRestTemplate())
+                ),
+            "Error occurred while creating subscription"
+        );
     }
 
     private QueueMetadata createQueue(String url, String csrfToken, RestTemplate restTemplate) {
         try {
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("X-CSRF-Token", csrfToken);
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            HttpHeaders httpHeaders = createHeaders(csrfToken);
             HttpEntity<CreateQueueDto> requestEntity = new HttpEntity<>(defaultCreateQueueDto(), httpHeaders);
             URI uri = UriComponentsBuilder
                 .fromUriString(url)
                 .build(true)
                 .toUri();
             ResponseEntity<String> responseEntity = restTemplate.exchange(uri, HttpMethod.PUT, requestEntity, String.class);
-
             if (HttpStatus.CREATED.equals(responseEntity.getStatusCode()) || HttpStatus.OK.equals(responseEntity.getStatusCode())) {
                 return ObjectMapperFactory.getJsonObjectMapper().readValue(responseEntity.getBody(), QueueMetadata.class);
             } else {
@@ -188,16 +167,13 @@ public class EventMeshClient extends CpiBaseClient {
 
     private void deleteQueue(String url, String csrfToken, RestTemplate restTemplate) {
         try {
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("X-CSRF-Token", csrfToken);
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            HttpHeaders httpHeaders = createHeaders(csrfToken);
             HttpEntity<CreateQueueDto> requestEntity = new HttpEntity<>(httpHeaders);
             URI uri = UriComponentsBuilder
                 .fromUriString(url)
                 .build(true)
                 .toUri();
             ResponseEntity<Void> responseEntity = restTemplate.exchange(uri, HttpMethod.DELETE, requestEntity, Void.class);
-
             if (!HttpStatus.NO_CONTENT.equals(responseEntity.getStatusCode())) {
                 throw new ClientIntegrationException(format(
                     "Couldn't delete queue. Code: %d, Message: %s",
@@ -210,11 +186,16 @@ public class EventMeshClient extends CpiBaseClient {
         }
     }
 
+    private HttpHeaders createHeaders(String csrfToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-CSRF-Token", csrfToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
+    }
+
     private SubscriptionMetadata createSubscription(String url, String csrfToken, RestTemplate restTemplate) {
         try {
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("X-CSRF-Token", csrfToken);
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            HttpHeaders httpHeaders = createHeaders(csrfToken);
             HttpEntity<Void> requestEntity = new HttpEntity<>(httpHeaders);
             URI uri = UriComponentsBuilder
                 .fromUriString(url)
@@ -252,8 +233,31 @@ public class EventMeshClient extends CpiBaseClient {
             .build();
     }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
+    private <T> T executeWithExceptionHandling(Supplier<T> action, String errorMessagePrefix) {
+        try {
+            return action.get();
+        } catch (Exception ex) {
+            String errorMessage = String.format("%s: %s", errorMessagePrefix, ex.getMessage());
+            log.error(errorMessage, ex);
+            throw new ClientIntegrationException(errorMessage, ex);
+        }
+    }
+
+    private <T> T executeAndHandleNotFound(Supplier<T> action, String notFoundLogMessage) {
+        try {
+            return action.get();
+        } catch (ClientIntegrationException ex) {
+            Throwable cause = ex.getCause();
+            if (cause instanceof HttpClientErrorException httpEx &&
+                httpEx.getStatusCode() == HttpStatus.NOT_FOUND) {
+                log.warn(notFoundLogMessage);
+                return null;
+            }
+            throw ex;
+        } catch (Exception ex) {
+            String errorMessage = String.format("%s: %s", notFoundLogMessage, ex.getMessage());
+            log.error(errorMessage, ex);
+            throw new ClientIntegrationException(errorMessage, ex);
+        }
     }
 }
