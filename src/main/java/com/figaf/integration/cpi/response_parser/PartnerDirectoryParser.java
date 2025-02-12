@@ -59,6 +59,14 @@ public class PartnerDirectoryParser {
         return stringParameter;
     }
 
+    /*
+    public static PartnerDirectoryParameter createAlternativePartner(JSONObject apiParameter) {
+        PartnerDirectoryParameter alternativePartner = new PartnerDirectoryParameter();
+        setCommonProperties(apiParameter, alternativePartner);
+        alternativePartner.setType(TypeOfParam.ALTERNATIVE_PARTNER);
+        return alternativePartner;
+    }
+     */
     private static List<PartnerDirectoryParameter> buildParameters(JSONArray apiParameters, Function<JSONObject, PartnerDirectoryParameter> parameterCreator) {
         List<PartnerDirectoryParameter> partnerDirectoryParameters = new ArrayList<>();
         for (int i = 0; i < apiParameters.length(); i++) {
