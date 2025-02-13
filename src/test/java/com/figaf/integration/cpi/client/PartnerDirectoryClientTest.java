@@ -6,7 +6,6 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.partner_directory.*;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
-import com.figaf.integration.cpi.utils.HexUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -194,8 +193,8 @@ class PartnerDirectoryClientTest {
             "trial_schema14",
             "test_string_param_to_check_uniqueness14",
             "2132412353316"
-
         );
+
         this.alternativePartnerDataForClearing = new AlternativePartnerDataForClearing(
             alternativePartnerCreationRequest.getAgency(),
             alternativePartnerCreationRequest.getScheme(),

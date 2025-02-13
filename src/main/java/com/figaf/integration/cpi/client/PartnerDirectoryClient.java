@@ -20,7 +20,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.*;
+import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.BINARY_PARAMETER;
+import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.STRING_PARAMETER;
 
 @Slf4j
 public class PartnerDirectoryClient extends CpiBaseClient {
@@ -444,7 +445,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
                 log.debug("Creation operation on alternative partner {} with pid: {} was successful. Response: {}", id, pid, responseBody);
                 return PartnerDirectoryParser.createAlternativePartner(new JSONObject(responseBody).getJSONObject("d"));
             default:
-                log.error("Creation failed for alternative partner {} with PID {}: Code: {}, Response: {}", id, pid, statusCode, responseBody);
+                log.error("Creation failed for alternative partner {} with pid {}: Code: {}, Response: {}", id, pid, statusCode, responseBody);
                 throw new ClientIntegrationException(String.format(
                     "Creation operation failed for alternative partner %s with PID %s: Code: %d, Response: %s", id, pid, statusCode, responseBody));
         }
@@ -491,7 +492,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
                 log.warn("Alternative Partner with agency {}, scheme {} and id {} is not found", agency, scheme, id);
                 return Optional.empty();
             } catch (Exception e) {
-                String errorMsg = String.format("Couldn't fetch parameter with agency %s, scheme %s and id %s: %s", agency, scheme, id, e.getMessage());
+                String errorMsg = String.format("Couldn't fetch alternative partner with agency %s, scheme %s and id %s: %s", agency, scheme, id, e.getMessage());
                 log.error(errorMsg, e);
                 return Optional.empty();
             }
