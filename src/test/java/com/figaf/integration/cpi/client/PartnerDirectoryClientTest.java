@@ -6,6 +6,7 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.partner_directory.*;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
+import com.figaf.integration.cpi.utils.HexUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,6 +36,7 @@ class PartnerDirectoryClientTest {
 
     private static PartnerDirectoryClient partnerDirectoryClient;
     private ParameterDataForCleaning parameterDataForCleaning;
+    private AlternativePartnerDataForClearing alternativePartnerDataForClearing;
 
     @BeforeAll
     static void setUp() {
@@ -43,28 +45,43 @@ class PartnerDirectoryClientTest {
 
     @AfterEach
     void tearDown() {
-        if (!Optional.ofNullable(this.parameterDataForCleaning).isPresent()) {
-            return;
-        }
-        try {
-            if (this.parameterDataForCleaning.getTypeOfParam().equals(TypeOfParam.BINARY_PARAMETER)) {
-                partnerDirectoryClient.deleteBinaryParameter(
-                    this.parameterDataForCleaning.getId(),
-                    this.parameterDataForCleaning.getPid(),
-                    this.parameterDataForCleaning.requestContext
-                );
-            } else {
-                partnerDirectoryClient.deleteStringParameter(
-                    this.parameterDataForCleaning.getId(),
-                    this.parameterDataForCleaning.getPid(),
-                    this.parameterDataForCleaning.requestContext
-                );
+        if (Optional.ofNullable(this.parameterDataForCleaning).isPresent()) {
+            try {
+                if (this.parameterDataForCleaning.getTypeOfParam().equals(TypeOfParam.BINARY_PARAMETER)) {
+                    partnerDirectoryClient.deleteBinaryParameter(
+                        this.parameterDataForCleaning.getId(),
+                        this.parameterDataForCleaning.getPid(),
+                        this.parameterDataForCleaning.requestContext
+                    );
+                } else {
+                    partnerDirectoryClient.deleteStringParameter(
+                        this.parameterDataForCleaning.getId(),
+                        this.parameterDataForCleaning.getPid(),
+                        this.parameterDataForCleaning.requestContext
+                    );
+                }
+                log.debug("Cleaned up test data for parameter ID: {}", parameterDataForCleaning.getId());
+            } catch (Exception e) {
+                log.error("Failed to clean up test data for parameter ID: {}", parameterDataForCleaning.getId(), e);
             }
-            log.debug("Cleaned up test data for parameter ID: {}", parameterDataForCleaning.getId());
-        } catch (Exception e) {
-            log.error("Failed to clean up test data for parameter ID: {}", parameterDataForCleaning.getId(), e);
+            this.parameterDataForCleaning = null;
+        };
+
+        if (Optional.ofNullable(this.alternativePartnerDataForClearing).isPresent()) {
+
+            try {
+                partnerDirectoryClient.deleteAlternativePartner(
+                    this.alternativePartnerDataForClearing.getAgency(),
+                    this.alternativePartnerDataForClearing.getScheme(),
+                    this.alternativePartnerDataForClearing.getId(),
+                   this.alternativePartnerDataForClearing.getRequestContext()
+                );
+                log.debug("Cleaned up test data for alternative partner ID: {}", alternativePartnerDataForClearing.getId());
+            } catch (Exception e) {
+                log.error("Failed to clean up test data for alternative partner ID: {}", alternativePartnerDataForClearing.getId(), e);
+            }
+            this.alternativePartnerDataForClearing = null;
         }
-        this.parameterDataForCleaning = null;
     }
 
     @ParameterizedTest
@@ -109,6 +126,16 @@ class PartnerDirectoryClientTest {
 
     @ParameterizedTest
     @ArgumentsSource(AgentTestDataProvider.class)
+    void test_retrieveAlternativePartners(AgentTestData agentTestData) {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+
+        List<AlternativePartner> alternativePartners = partnerDirectoryClient.retrieveAlternativePartners(requestContext, new PartnerDirectoryParameterFilterRequest());
+
+        assertThat(alternativePartners).as("alternative partners shouldn't be empty").isNotEmpty();
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(AgentTestDataProvider.class)
     void test_createBinaryParameter(AgentTestData agentTestData) throws IOException {
         File testFileForCreation = ResourceUtils.getFile("classpath:partner-directory/test-creation.json");
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
@@ -138,7 +165,7 @@ class PartnerDirectoryClientTest {
     void test_createStringParameter(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         StringParameterCreationRequest stringParameterCreationRequest = new StringParameterCreationRequest(
-            "test_string_param_to_check_uniqueness",
+            "test_string_param_to_check_uniqueness1",
             "213241235",
             "test"
         );
@@ -156,6 +183,32 @@ class PartnerDirectoryClientTest {
             .as("ID of the string parameter does not match the expected ID")
             .isEqualTo(stringParameterCreationRequest.getId());
 
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(AgentTestDataProvider.class)
+    void test_createAlternativePartner(AgentTestData agentTestData) {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        AlternativePartnerCreationRequest alternativePartnerCreationRequest = new AlternativePartnerCreationRequest(
+            "trial_agency14",
+            "trial_schema14",
+            "test_string_param_to_check_uniqueness14",
+            "2132412353316"
+
+        );
+        this.alternativePartnerDataForClearing = new AlternativePartnerDataForClearing(
+            alternativePartnerCreationRequest.getAgency(),
+            alternativePartnerCreationRequest.getScheme(),
+            alternativePartnerCreationRequest.getId(),
+            requestContext
+        );
+
+        AlternativePartner createdAlternativePartner = partnerDirectoryClient.createAlternativePartner(alternativePartnerCreationRequest, requestContext);
+
+        assertTrue(Optional.ofNullable(createdAlternativePartner).isPresent(), "alternative partner doesn't exist");
+        assertThat(createdAlternativePartner.getId())
+            .as("ID of the alternative partner does not match the expected ID")
+            .isEqualTo(alternativePartnerCreationRequest.getId());
     }
 
     @ParameterizedTest
@@ -220,9 +273,9 @@ class PartnerDirectoryClientTest {
     void test_updateStringParameter(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         StringParameterCreationRequest stringParameterCreationRequest = new StringParameterCreationRequest(
-            "test_string_param_to_check_uniqueness",
-            "213241235",
-            "test"
+            "test_string_param_to_check_uniqueness1",
+            "2132412351",
+            "test1"
         );
         this.parameterDataForCleaning = new ParameterDataForCleaning(
             stringParameterCreationRequest.getId(),
@@ -256,6 +309,49 @@ class PartnerDirectoryClientTest {
 
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(AgentTestDataProvider.class)
+    void test_updateAlternativePartner(AgentTestData agentTestData) {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        AlternativePartnerCreationRequest alternativePartnerCreationRequest = new AlternativePartnerCreationRequest(
+            "trial_agency16",
+            "trial_schema16",
+            "test_string_param_to_check_uniqueness16",
+            "2132412353317"
+        );
+
+        this.alternativePartnerDataForClearing = new AlternativePartnerDataForClearing(
+            alternativePartnerCreationRequest.getAgency(),
+            alternativePartnerCreationRequest.getScheme(),
+            alternativePartnerCreationRequest.getId(),
+            requestContext
+        );
+
+        AlternativePartner createdAlternativePartner = partnerDirectoryClient.createAlternativePartner(alternativePartnerCreationRequest, requestContext);
+        assertTrue(Optional.ofNullable(createdAlternativePartner).isPresent(), "created string parameter doesn't exist");
+        AlternativePartnerUpdateRequest alternativePartnerUpdateRequest = new AlternativePartnerUpdateRequest("testUpdate_PID");
+
+        partnerDirectoryClient.updateAlternativePartner(
+            createdAlternativePartner.getAgency(),
+            createdAlternativePartner.getScheme(),
+            createdAlternativePartner.getId(),
+            alternativePartnerUpdateRequest,
+            requestContext
+        );
+
+        Optional<AlternativePartner> optionalAlternativePartnerAfterUpdate = partnerDirectoryClient.retrieveAlternativePartner(
+            createdAlternativePartner.getAgency(),
+            createdAlternativePartner.getScheme(),
+            createdAlternativePartner.getId(),
+            requestContext
+        );
+
+        assertThat(optionalAlternativePartnerAfterUpdate).as("alternative partner  after update doesn't exist").isPresent();
+        optionalAlternativePartnerAfterUpdate.ifPresent(alternativePartnerAfterUpdate -> assertThat(alternativePartnerAfterUpdate.getPid())
+            .as("string parameter value wasn't updated")
+            .isEqualTo(alternativePartnerUpdateRequest.getPid()));
+    }
+
     @AllArgsConstructor
     @Setter
     @Getter
@@ -264,6 +360,16 @@ class PartnerDirectoryClientTest {
         private String id;
         private String pid;
         private TypeOfParam typeOfParam;
+        private RequestContext requestContext;
+    }
+
+    @AllArgsConstructor
+    @Setter
+    @Getter
+    public static class AlternativePartnerDataForClearing {
+        private String agency;
+        private String scheme;
+        private String id;
         private RequestContext requestContext;
     }
 }

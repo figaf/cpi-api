@@ -1,5 +1,6 @@
 package com.figaf.integration.cpi.response_parser;
 
+import com.figaf.integration.cpi.entity.partner_directory.AlternativePartner;
 import com.figaf.integration.cpi.entity.partner_directory.Partner;
 import com.figaf.integration.cpi.entity.partner_directory.PartnerDirectoryParameter;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
@@ -59,14 +60,6 @@ public class PartnerDirectoryParser {
         return stringParameter;
     }
 
-    /*
-    public static PartnerDirectoryParameter createAlternativePartner(JSONObject apiParameter) {
-        PartnerDirectoryParameter alternativePartner = new PartnerDirectoryParameter();
-        setCommonProperties(apiParameter, alternativePartner);
-        alternativePartner.setType(TypeOfParam.ALTERNATIVE_PARTNER);
-        return alternativePartner;
-    }
-     */
     private static List<PartnerDirectoryParameter> buildParameters(JSONArray apiParameters, Function<JSONObject, PartnerDirectoryParameter> parameterCreator) {
         List<PartnerDirectoryParameter> partnerDirectoryParameters = new ArrayList<>();
         for (int i = 0; i < apiParameters.length(); i++) {
@@ -115,5 +108,36 @@ public class PartnerDirectoryParser {
             }
         }
         return Optional.empty();
+    }
+
+    private static List<AlternativePartner> buildAlternativePartnersList(JSONArray apiParameters, Function<JSONObject, AlternativePartner> parameterCreator) {
+        List<AlternativePartner> alternativePartnersList = new ArrayList<>();
+        for (int i = 0; i < apiParameters.length(); i++) {
+            JSONObject apiParameter = apiParameters.getJSONObject(i);
+            if (!Optional.ofNullable(apiParameter).isPresent()) {
+                continue;
+            }
+            try {
+                alternativePartnersList.add(parameterCreator.apply(apiParameter));
+            } catch (JSONException | IllegalArgumentException e) {
+                log.error("Error processing parameter: " + e.getMessage());
+            }
+        }
+        return alternativePartnersList;
+    }
+
+    private static void setCommonProperties(JSONObject apiParameter, AlternativePartner alternativePartner) {
+
+        alternativePartner.setHexagency(getMandatoryString("Hexagency", apiParameter));
+        alternativePartner.setHexscheme(getMandatoryString("Hexscheme", apiParameter));
+        alternativePartner.setHexid(getMandatoryString("Hexid", apiParameter));
+        alternativePartner.setAgency(getMandatoryString("Agency", apiParameter));
+        alternativePartner.setScheme(getMandatoryString("Scheme", apiParameter));
+        alternativePartner.setId(getMandatoryString("Id", apiParameter));
+        alternativePartner.setPid(getMandatoryString("Pid", apiParameter));
+        getOptionalString("LastModifiedBy", apiParameter).ifPresent(alternativePartner::setLastModifiedBy);
+        getOptionalDate("LastModifiedTime", apiParameter).ifPresent(alternativePartner::setLastModifiedTime);
+        getOptionalString("CreatedBy", apiParameter).ifPresent(alternativePartner::setCreatedBy);
+        getOptionalDate("CreatedTime", apiParameter).ifPresent(alternativePartner::setCreatedTime);
     }
 }

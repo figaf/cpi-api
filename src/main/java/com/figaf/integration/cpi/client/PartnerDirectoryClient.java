@@ -5,7 +5,9 @@ import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.partner_directory.*;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
+import com.figaf.integration.cpi.response_parser.AlternativePartnerParser;
 import com.figaf.integration.cpi.response_parser.PartnerDirectoryParser;
+import com.figaf.integration.cpi.utils.HexUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -88,11 +90,11 @@ public class PartnerDirectoryClient extends CpiBaseClient {
 
         return PartnerDirectoryParser.buildStringParameters(apiParameters);
     }
-/*
-    public List<PartnerDirectoryParameter> retrieveAlternativePartners(RequestContext requestContext, PartnerDirectoryParameterFilterRequest partnerDirectoryParameterFilterRequest) {
+
+    public List<AlternativePartner> retrieveAlternativePartners(RequestContext requestContext, PartnerDirectoryParameterFilterRequest partnerDirectoryParameterFilterRequest) {
         log.debug("#retrieveAlternativePartners(RequestContext requestContext): {}", requestContext);
         JSONArray apiParameters;
-        System.out.println("string.format: "+String.format(API_ALTERNATIVE_PARTNERS, partnerDirectoryParameterFilterRequest.createFilter()));
+
         try {
             apiParameters = callRestWs(
                 requestContext,
@@ -105,22 +107,21 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             throw new ClientIntegrationException(errorMsg, e);
         }
 
-        return PartnerDirectoryParser.buildStringParameters(apiParameters);
+        return AlternativePartnerParser.buildAlternativePartners(apiParameters);
     }
-*/
+
     public Optional<PartnerDirectoryParameter> retrieveStringParameter(String id, String pid, RequestContext requestContext) {
         log.debug("#retrieveStringParameter(String id, String pid, RequestContext requestContext): {}, {}, {}", id, pid, requestContext);
         Optional<JSONObject> apiParameter = retrieveApiParameter(id, pid, API_STRING_PARAMETER, requestContext);
         return apiParameter.map(PartnerDirectoryParser::createStringParameter);
     }
 
-    /*
-    public Optional<PartnerDirectoryParameter> retrieveAlternativePartner(String id, String pid, String hexagency, String hexscheme, String hexid, RequestContext requestContext) {
-        log.debug("#retrieveAlternativePartner(String hexagency, String hexscheme, String hexid, RequestContext requestContext): {}, {}, {}, {}", hexagency, hexscheme, hexid, requestContext);
-        Optional<JSONObject> apiParameter = retrieveApiParameterForAlternativePartner(hexagency, hexscheme, hexid, API_ALTERNATIVE_PARTNER, requestContext);
-        return apiParameter.map(PartnerDirectoryParser::createStringParameter);
+    public Optional<AlternativePartner> retrieveAlternativePartner(String agency, String scheme, String id, RequestContext requestContext) {
+        log.debug("#retrieveAlternativePartner(String agency, String scheme, String id, RequestContext requestContext): {}, {}, {}, {}", agency, scheme, id, requestContext);
+        Optional<JSONObject> apiParameter = retrieveApiParameterForAlternativePartner(agency, scheme, id, API_ALTERNATIVE_PARTNER, requestContext);
+        return apiParameter.map(AlternativePartnerParser::createAlternativePartner);
     }
-*/
+
     public PartnerDirectoryParameter createBinaryParameter(BinaryParameterCreationRequest binaryParameterCreationRequest, RequestContext requestContext) {
         log.debug(
             "#createBinaryParameter(BinaryParameterCreationRequest binaryParameterCreationRequest, RequestContext requestContext): {}, {}",
@@ -168,8 +169,8 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             )
         );
     }
-/*
-    public PartnerDirectoryParameter createAlternativePartner(AlternativePartnerCreationRequest alternativePartnerCreationRequest, RequestContext requestContext) {
+
+    public AlternativePartner createAlternativePartner(AlternativePartnerCreationRequest alternativePartnerCreationRequest, RequestContext requestContext) {
         log.debug(
             "#createAlternativePartner(AlternativePartnerCreationRequest alternativePartnerCreationRequest, RequestContext requestContext): {}, {}",
             alternativePartnerCreationRequest,
@@ -184,16 +185,15 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             alternativePartnerCreationRequest,
             HttpMethod.POST,
             httpHeaders,
-            (responseEntity) -> createPartnerDirectoryParameter(
+            (responseEntity) -> createAlternativePartner(
                 responseEntity,
                 alternativePartnerCreationRequest.getId(),
-                alternativePartnerCreationRequest.getPid(),
-                ALTERNATIVE_PARTNER
+                alternativePartnerCreationRequest.getPid()
             )
         );
     }
 
- */
+
 
     public void updateBinaryParameter(
         String id,
@@ -256,42 +256,41 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             }
         );
     }
-/*
+
     public void updateAlternativePartner(
+        String agency,
+        String scheme,
         String id,
-        String pid,
-        String hexagency,
-        String hexscheme,
-        String hexid,
         AlternativePartnerUpdateRequest alternativePartnerUpdateRequest,
         RequestContext requestContext
     ) {
         log.debug(
-            "#updateAlternativePartner(String hexagency, String hexscheme, String hexid, StringParameterUpdateRequest stringParameterUpdateRequest, RequestContext requestContext: {}, {}, {}, {}, {]",
-            hexagency,
-            hexscheme,
-            hexid,
+            "#updateAlternativePartner(String agency, String scheme, String id, StringParameterUpdateRequest stringParameterUpdateRequest, RequestContext requestContext: {}, {}, {}, {}, {}",
+            agency,
+            scheme,
+            id,
             alternativePartnerUpdateRequest,
             requestContext
         );
 
         executeMethodPublicApi(
             requestContext,
-            String.format(API_ALTERNATIVE_PARTNER_MANAGE, hexagency, hexscheme, hexid),
+            String.format(API_ALTERNATIVE_PARTNER_MANAGE, HexUtils.stringToHex(agency), HexUtils.stringToHex(scheme), HexUtils.stringToHex(id)),
             alternativePartnerUpdateRequest,
             HttpMethod.PUT,
             (responseEntity) -> {
-                handleResponse(
+                handleAlternativePartnerResponse(
                     responseEntity,
                     id,
-                    pid,
+                    agency,
+                    scheme,
                     "Update"
                 );
                 return null;
             }
         );
     }
-*/
+
     public void deleteBinaryParameter(String id, String pid, RequestContext requestContext) {
         log.debug(
             "#deleteBinaryParameter(String id, String pid, RequestContext requestContext: {}, {}, {}",
@@ -341,36 +340,33 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             }
         );
     }
-/*
-    public void deleteAlternativePartner(String id, String pid, String hexagency, String hexscheme, String hexid, RequestContext requestContext) {
+
+    public void deleteAlternativePartner(String agency, String scheme, String id, RequestContext requestContext) {
         log.debug(
-            "#deleteAlternativePartner(String id, String pid, String hexagency, String hexscheme, String hexid, RequestContext requestContext: {}, {}, {}, {}, {}, {}",
+            "#deleteAlternativePartner(String agency, String scheme, String id, RequestContext requestContext: {}, {}, {}, {}",
+            agency,
+            scheme,
             id,
-            pid,
-            hexagency,
-            hexscheme,
-            hexid,
             requestContext
         );
 
         executeMethodPublicApi(
             requestContext,
-            String.format(API_ALTERNATIVE_PARTNER_MANAGE, hexagency, hexscheme, hexid),
+            String.format(API_ALTERNATIVE_PARTNER_MANAGE, HexUtils.stringToHex(agency), HexUtils.stringToHex(scheme), HexUtils.stringToHex(id)),
             null,
             HttpMethod.DELETE,
             (responseEntity) -> {
-                handleResponse(
+                handleAlternativePartnerResponse(
                     responseEntity,
                     id,
-                    pid,
+                    agency,
+                    scheme,
                     "Delete"
                 );
                 return null;
             }
         );
     }
-
- */
 
     private void handleResponse(ResponseEntity<String> responseEntity, String id, String pid, String operation) {
         switch (responseEntity.getStatusCode().value()) {
@@ -383,6 +379,20 @@ public class PartnerDirectoryClient extends CpiBaseClient {
                 throw new ClientIntegrationException(String.format(
                     "%s operation failed for parameter %s with PID %s: Code: %d, Message: %s",
                     operation, id, pid, responseEntity.getStatusCode().value(), responseEntity.getBody()));
+        }
+    }
+
+    private void handleAlternativePartnerResponse(ResponseEntity<String> responseEntity, String id, String agency, String scheme, String operation) {
+        switch (responseEntity.getStatusCode().value()) {
+            case 200:
+            case 202:
+            case 204:
+                log.debug("{} operation on alternative partner {} with agency : {}  and scheme {} was successful", operation, id, agency, scheme);
+                break;
+            default:
+                throw new ClientIntegrationException(String.format(
+                    "%s operation failed for alternative partner %s with agency %s and scheme %s : Code: %d, Message: %s",
+                    operation, id, agency, scheme, responseEntity.getStatusCode().value(), responseEntity.getBody()));
         }
     }
 
@@ -416,6 +426,31 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         }
     }
 
+    private AlternativePartner createAlternativePartner(
+        ResponseEntity<String> responseEntity,
+        String id,
+        String pid
+    ) {
+        if (responseEntity == null) {
+            throw new ClientIntegrationException(String.format(
+                "Creation operation failed for alternative partner %s with PID %s: ResponseEntity is null", id, pid));
+        }
+
+        int statusCode = responseEntity.getStatusCode().value();
+        String responseBody = getResponseBody(responseEntity);
+
+        switch (statusCode) {
+            case 200:
+            case 201:
+                log.debug("Creation operation on alternative partner {} with pid: {} was successful. Response: {}", id, pid, responseBody);
+                return AlternativePartnerParser.createAlternativePartner(new JSONObject(responseBody).getJSONObject("d"));
+            default:
+                log.error("Creation failed for alternative partner {} with PID {}: Code: {}, Response: {}", id, pid, statusCode, responseBody);
+                throw new ClientIntegrationException(String.format(
+                    "Creation operation failed for alternative partner %s with PID %s: Code: %d, Response: %s", id, pid, statusCode, responseBody));
+        }
+    }
+
     private String getResponseBody(ResponseEntity<String> responseEntity) {
         try {
             return responseEntity.getBody();
@@ -446,29 +481,27 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         return Optional.empty();
     }
 
-/*
-    private Optional<JSONObject> retrieveApiParameterForAlternativePartner(String hexagency, String hexscheme, String hexid, String url, RequestContext requestContext) {
+    private Optional<JSONObject> retrieveApiParameterForAlternativePartner(String agency, String scheme, String id, String url, RequestContext requestContext) {
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
-                JSONObject apiParameter = this.callRestWs(requestContext, String.format(url, hexagency, hexscheme, hexid), (response) -> (new JSONObject(response)).getJSONObject("d"));
+                JSONObject apiParameter = this.callRestWs(requestContext, String.format(url, HexUtils.stringToHex(agency), HexUtils.stringToHex(scheme), HexUtils.stringToHex(id)), (response) -> (new JSONObject(response)).getJSONObject("d"));
                 return Optional.ofNullable(apiParameter);
             } catch (HttpClientErrorException.TooManyRequests tooManyRequestsEx) {
                 handleTooManyRequests(tooManyRequestsEx, attempt);
             } catch (HttpClientErrorException.NotFound ex) {
-                log.warn("Parameter with hexagency {}, hexscheme {} and hexid {} is not found", hexagency, hexscheme, hexid);
+                log.warn("Alternative Partner with agency {}, scheme {} and id {} is not found", agency, scheme, id);
                 return Optional.empty();
             } catch (Exception e) {
-                String errorMsg = String.format("Couldn't fetch parameter with hexagency %s, hexscheme %s and hexid %s: %s", hexagency, hexscheme, hexid, e.getMessage());
+                String errorMsg = String.format("Couldn't fetch parameter with agency %s, scheme %s and id %s: %s", agency, scheme, id, e.getMessage());
                 log.error(errorMsg, e);
                 return Optional.empty();
             }
         }
-        String errorMsg = String.format("Max retry attempts exceeded for hexagency %s, hexscheme %s and hexid %s", hexagency, hexscheme, hexid);
+        String errorMsg = String.format("Max retry attempts exceeded for agency %s, scheme %s and id %s", agency, scheme, id);
         log.error(errorMsg);
         return Optional.empty();
     }
 
- */
 
     private void handleTooManyRequests(HttpClientErrorException.TooManyRequests tooManyRequestsEx, int attempt) {
         if (tooManyRequestsEx.getResponseHeaders() != null) {
