@@ -140,4 +140,14 @@ public class PartnerDirectoryParser {
         getOptionalString("CreatedBy", apiParameter).ifPresent(alternativePartner::setCreatedBy);
         getOptionalDate("CreatedTime", apiParameter).ifPresent(alternativePartner::setCreatedTime);
     }
+
+    public static List<AlternativePartner> buildAlternativePartners(JSONArray apiParameters) {
+        return buildAlternativePartnersList(apiParameters, PartnerDirectoryParser::createAlternativePartner);
+    }
+
+    public static AlternativePartner createAlternativePartner(JSONObject apiParameter) {
+        AlternativePartner alternativePartner = new AlternativePartner();
+        setCommonProperties(apiParameter, alternativePartner);
+        return alternativePartner;
+    }
 }

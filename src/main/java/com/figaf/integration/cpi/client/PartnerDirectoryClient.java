@@ -5,7 +5,6 @@ import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.partner_directory.*;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
-import com.figaf.integration.cpi.response_parser.AlternativePartnerParser;
 import com.figaf.integration.cpi.response_parser.PartnerDirectoryParser;
 import com.figaf.integration.cpi.utils.HexUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -107,7 +106,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             throw new ClientIntegrationException(errorMsg, e);
         }
 
-        return AlternativePartnerParser.buildAlternativePartners(apiParameters);
+        return PartnerDirectoryParser.buildAlternativePartners(apiParameters);
     }
 
     public Optional<PartnerDirectoryParameter> retrieveStringParameter(String id, String pid, RequestContext requestContext) {
@@ -119,7 +118,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
     public Optional<AlternativePartner> retrieveAlternativePartner(String agency, String scheme, String id, RequestContext requestContext) {
         log.debug("#retrieveAlternativePartner(String agency, String scheme, String id, RequestContext requestContext): {}, {}, {}, {}", agency, scheme, id, requestContext);
         Optional<JSONObject> apiParameter = retrieveApiParameterForAlternativePartner(agency, scheme, id, API_ALTERNATIVE_PARTNER, requestContext);
-        return apiParameter.map(AlternativePartnerParser::createAlternativePartner);
+        return apiParameter.map(PartnerDirectoryParser::createAlternativePartner);
     }
 
     public PartnerDirectoryParameter createBinaryParameter(BinaryParameterCreationRequest binaryParameterCreationRequest, RequestContext requestContext) {
@@ -443,7 +442,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             case 200:
             case 201:
                 log.debug("Creation operation on alternative partner {} with pid: {} was successful. Response: {}", id, pid, responseBody);
-                return AlternativePartnerParser.createAlternativePartner(new JSONObject(responseBody).getJSONObject("d"));
+                return PartnerDirectoryParser.createAlternativePartner(new JSONObject(responseBody).getJSONObject("d"));
             default:
                 log.error("Creation failed for alternative partner {} with PID {}: Code: {}, Response: {}", id, pid, statusCode, responseBody);
                 throw new ClientIntegrationException(String.format(
