@@ -64,7 +64,7 @@ class PartnerDirectoryClientTest {
                 log.error("Failed to clean up test data for parameter ID: {}", parameterDataForCleaning.getId(), e);
             }
             this.parameterDataForCleaning = null;
-        };
+        }
 
         if (Optional.ofNullable(this.alternativePartnerDataForClearing).isPresent()) {
 
