@@ -1,5 +1,6 @@
 package com.figaf.integration.cpi.response_parser;
 
+import com.figaf.integration.cpi.entity.partner_directory.AlternativePartner;
 import com.figaf.integration.cpi.entity.partner_directory.Partner;
 import com.figaf.integration.cpi.entity.partner_directory.PartnerDirectoryParameter;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
@@ -107,5 +108,46 @@ public class PartnerDirectoryParser {
             }
         }
         return Optional.empty();
+    }
+
+    private static List<AlternativePartner> buildAlternativePartnersList(JSONArray alternativePartners, Function<JSONObject, AlternativePartner> alternativePartnerCreator) {
+        List<AlternativePartner> alternativePartnersList = new ArrayList<>();
+        for (int i = 0; i < alternativePartners.length(); i++) {
+            JSONObject apiParameter = alternativePartners.getJSONObject(i);
+            if (!Optional.ofNullable(apiParameter).isPresent()) {
+                continue;
+            }
+            try {
+                alternativePartnersList.add(alternativePartnerCreator.apply(apiParameter));
+            } catch (JSONException | IllegalArgumentException e) {
+                log.error("Error processing parameter: " + e.getMessage());
+            }
+        }
+        return alternativePartnersList;
+    }
+
+    private static void setCommonProperties(JSONObject apiParameter, AlternativePartner alternativePartner) {
+
+        alternativePartner.setHexagency(getMandatoryString("Hexagency", apiParameter));
+        alternativePartner.setHexscheme(getMandatoryString("Hexscheme", apiParameter));
+        alternativePartner.setHexid(getMandatoryString("Hexid", apiParameter));
+        alternativePartner.setAgency(getMandatoryString("Agency", apiParameter));
+        alternativePartner.setScheme(getMandatoryString("Scheme", apiParameter));
+        alternativePartner.setId(getMandatoryString("Id", apiParameter));
+        alternativePartner.setPid(getMandatoryString("Pid", apiParameter));
+        getOptionalString("LastModifiedBy", apiParameter).ifPresent(alternativePartner::setLastModifiedBy);
+        getOptionalDate("LastModifiedTime", apiParameter).ifPresent(alternativePartner::setLastModifiedTime);
+        getOptionalString("CreatedBy", apiParameter).ifPresent(alternativePartner::setCreatedBy);
+        getOptionalDate("CreatedTime", apiParameter).ifPresent(alternativePartner::setCreatedTime);
+    }
+
+    public static List<AlternativePartner> buildAlternativePartners(JSONArray apiParameters) {
+        return buildAlternativePartnersList(apiParameters, PartnerDirectoryParser::createAlternativePartner);
+    }
+
+    public static AlternativePartner createAlternativePartner(JSONObject apiParameter) {
+        AlternativePartner alternativePartner = new AlternativePartner();
+        setCommonProperties(apiParameter, alternativePartner);
+        return alternativePartner;
     }
 }

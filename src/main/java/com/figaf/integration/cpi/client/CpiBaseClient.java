@@ -99,14 +99,19 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_BINARY_PARAMETERS_MANAGE = "/api/v1/BinaryParameters(Pid='%s',Id='%s')";
     protected static final String API_BINARY_PARAMETER = "/api/v1/BinaryParameters(Pid='%s',Id='%s')?$format=json";
     protected static final String API_STRING_PARAMETERS = "/api/v1/StringParameters?$format=json%s";
+    protected static final String API_ALTERNATIVE_PARTNERS = "/api/v1/AlternativePartners?$format=json%s";
     protected static final String API_STRING_PARAMETER_CREATION = "/api/v1/StringParameters";
+    protected static final String API_ALTERNATIVE_PARTNER_CREATION = "/api/v1/AlternativePartners";
     protected static final String API_PARTNERS = "/api/v1/Partners?$format=json";
+    protected static final String API_ALTERNATIVE_PARTNER_MANAGE = "/api/v1/AlternativePartners(Hexagency='%s',Hexscheme='%s',Hexid='%s')";
     protected static final String API_STRING_PARAMETERS_MANAGE = "/api/v1/StringParameters(Pid='%s',Id='%s')";
     protected static final String API_STRING_PARAMETER = "/api/v1/StringParameters(Pid='%s',Id='%s')?$format=json";
     protected static final String API_QUEUES = "/emis-mgmt-api/sap-event-mesh/management/api/v1/queues";
     protected static final String API_QUEUES_MANAGE = API_QUEUES + "/%s";
     protected static final String API_SUBSCRIPTIONS = "/emis-mgmt-api/sap-event-mesh/management/api/v1/queues/%s/subscriptions";
     protected static final String API_SUBSCRIPTIONS_CREATE = API_SUBSCRIPTIONS + "/%s";
+    protected static final String API_ALTERNATIVE_PARTNER = "/api/v1/AlternativePartners(Hexagency='%s',Hexscheme='%s',Hexid='%s')?$format=json";
+
     protected static final String X_CSRF_TOKEN_HEADER_NAME = "X-CSRF-Token";
 
     public CpiBaseClient(HttpClientsFactory httpClientsFactory) {
