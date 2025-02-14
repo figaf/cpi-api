@@ -189,10 +189,10 @@ class PartnerDirectoryClientTest {
     void test_createAlternativePartner(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         AlternativePartnerCreationRequest alternativePartnerCreationRequest = new AlternativePartnerCreationRequest(
-            "trial_agency14",
-            "trial_schema14",
-            "test_string_param_to_check_uniqueness14",
-            "2132412353316"
+            "trial_agency33",
+            "trial_schema33",
+            "test_string_param_to_check_uniqueness33",
+            "2132412353333"
         );
 
         this.alternativePartnerDataForClearing = new AlternativePartnerDataForClearing(
@@ -313,10 +313,10 @@ class PartnerDirectoryClientTest {
     void test_updateAlternativePartner(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         AlternativePartnerCreationRequest alternativePartnerCreationRequest = new AlternativePartnerCreationRequest(
-            "trial_agency16",
-            "trial_schema16",
-            "test_string_param_to_check_uniqueness16",
-            "2132412353317"
+            "trial_agency17",
+            "trial_schema17",
+            "test_string_param_to_check_uniqueness17",
+            "2132412353318"
         );
 
         this.alternativePartnerDataForClearing = new AlternativePartnerDataForClearing(

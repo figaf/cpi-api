@@ -110,15 +110,15 @@ public class PartnerDirectoryParser {
         return Optional.empty();
     }
 
-    private static List<AlternativePartner> buildAlternativePartnersList(JSONArray apiParameters, Function<JSONObject, AlternativePartner> parameterCreator) {
+    private static List<AlternativePartner> buildAlternativePartnersList(JSONArray alternativePartners, Function<JSONObject, AlternativePartner> alternativePartnerCreator) {
         List<AlternativePartner> alternativePartnersList = new ArrayList<>();
-        for (int i = 0; i < apiParameters.length(); i++) {
-            JSONObject apiParameter = apiParameters.getJSONObject(i);
+        for (int i = 0; i < alternativePartners.length(); i++) {
+            JSONObject apiParameter = alternativePartners.getJSONObject(i);
             if (!Optional.ofNullable(apiParameter).isPresent()) {
                 continue;
             }
             try {
-                alternativePartnersList.add(parameterCreator.apply(apiParameter));
+                alternativePartnersList.add(alternativePartnerCreator.apply(apiParameter));
             } catch (JSONException | IllegalArgumentException e) {
                 log.error("Error processing parameter: " + e.getMessage());
             }
