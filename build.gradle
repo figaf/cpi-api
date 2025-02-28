@@ -14,7 +14,7 @@ ext {
 
     lombokVersion = '1.18.34'
     gsonVersion = '2.11.0'
-    integrationCommonsVersion = '2.4-IRT-4812-SNAPSHOT'
+    integrationCommonsVersion = '2.4'
     integrationCommonsTestVersion = '2.1'
 }
 
