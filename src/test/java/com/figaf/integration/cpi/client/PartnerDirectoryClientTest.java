@@ -128,7 +128,7 @@ class PartnerDirectoryClientTest {
     void test_retrieveAlternativePartners(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
-        List<AlternativePartner> alternativePartners = partnerDirectoryClient.retrieveAlternativePartners(requestContext, new PartnerDirectoryParameterFilterRequest());
+        List<AlternativePartner> alternativePartners = partnerDirectoryClient.retrieveAlternativePartners(requestContext, new PartnerDirectoryAlternativePartnerFilterRequest());
 
         assertThat(alternativePartners).as("alternative partners shouldn't be empty").isNotEmpty();
     }
@@ -140,7 +140,7 @@ class PartnerDirectoryClientTest {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         BinaryParameterCreationRequest binaryParameterCreationRequest = new BinaryParameterCreationRequest(
             "test_param_to_check_uniqueness",
-            "21341235",
+            "21341236",
             FileUtils.readFileToByteArray(testFileForCreation),
             "json"
         );
@@ -217,7 +217,7 @@ class PartnerDirectoryClientTest {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         BinaryParameterCreationRequest binaryParameterCreationRequest = new BinaryParameterCreationRequest(
             "test_param_to_check_uniqueness",
-            "21341235",
+            "2134123",
             FileUtils.readFileToByteArray(testFileForCreation),
             "json"
         );
