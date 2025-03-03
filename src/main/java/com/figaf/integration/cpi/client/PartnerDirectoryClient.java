@@ -92,14 +92,14 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         return PartnerDirectoryParser.buildStringParameters(apiParameters);
     }
 
-    public List<AlternativePartner> retrieveAlternativePartners(RequestContext requestContext, PartnerDirectoryParameterFilterRequest partnerDirectoryParameterFilterRequest) {
+    public List<AlternativePartner> retrieveAlternativePartners(RequestContext requestContext, PartnerDirectoryAlternativePartnerFilterRequest partnerDirectoryAlternativePartnerFilterRequest) {
         log.debug("#retrieveAlternativePartners(RequestContext requestContext): {}", requestContext);
         JSONArray apiParameters;
 
         try {
             apiParameters = callRestWs(
                 requestContext,
-                String.format(API_ALTERNATIVE_PARTNERS, partnerDirectoryParameterFilterRequest.createFilter()),
+                String.format(API_ALTERNATIVE_PARTNERS, partnerDirectoryAlternativePartnerFilterRequest.createAlternativePartnerKeyFilter()),
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
             );
 
