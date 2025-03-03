@@ -383,7 +383,11 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             case 200, 202, 204 -> log.debug("{} operation on {} was successful", operation, context);
             default -> throw new ClientIntegrationException(String.format(
                 "%s operation failed for %s : Code: %d, Message: %s",
-                operation, context, statusCode, responseEntity.getBody()));
+                operation,
+                context,
+                statusCode,
+                responseEntity.getBody()
+            ));
         }
     }
 
@@ -399,7 +403,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         }
 
         int statusCode = responseEntity.getStatusCode().value();
-        String responseBody = getResponseBody(responseEntity);
+        String responseBody = responseEntity.getBody();
 
         return switch (statusCode) {
             case 200, 201 -> {
@@ -425,11 +429,14 @@ public class PartnerDirectoryClient extends CpiBaseClient {
     ) {
         if (responseEntity == null) {
             throw new ClientIntegrationException(String.format(
-                "Creation operation failed for alternative partner %s with PID %s: ResponseEntity is null", id, pid));
+                "Creation operation failed for alternative partner %s with PID %s: ResponseEntity is null",
+                id,
+                pid
+            ));
         }
 
         int statusCode = responseEntity.getStatusCode().value();
-        String responseBody = getResponseBody(responseEntity);
+        String responseBody = responseEntity.getBody();
 
         return switch (statusCode) {
             case 200, 201 -> {
@@ -442,15 +449,6 @@ public class PartnerDirectoryClient extends CpiBaseClient {
                     "Creation operation failed for alternative partner %s with PID %s: Code: %d, Response: %s", id, pid, statusCode, responseBody));
             }
         };
-    }
-
-    private String getResponseBody(ResponseEntity<String> responseEntity) {
-        try {
-            return responseEntity.getBody();
-        } catch (Exception e) {
-            log.error("Failed to extract response body", e);
-            return "Unable to retrieve response body";
-        }
     }
 
     private Optional<JSONObject> retrievePartnerDirectoryParameter(String id, String pid, String url, RequestContext requestContext) {
