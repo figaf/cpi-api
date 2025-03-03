@@ -9,6 +9,7 @@ import com.figaf.integration.cpi.response_parser.PartnerDirectoryParser;
 import com.figaf.integration.cpi.utils.RetryUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -403,7 +404,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         }
 
         int statusCode = responseEntity.getStatusCode().value();
-        String responseBody = responseEntity.getBody();
+        String responseBody = getResponseBody(responseEntity);
 
         return switch (statusCode) {
             case 200, 201 -> {
@@ -436,7 +437,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         }
 
         int statusCode = responseEntity.getStatusCode().value();
-        String responseBody = responseEntity.getBody();
+        String responseBody = getResponseBody(responseEntity);
 
         return switch (statusCode) {
             case 200, 201 -> {
@@ -449,6 +450,10 @@ public class PartnerDirectoryClient extends CpiBaseClient {
                     "Creation operation failed for alternative partner %s with PID %s: Code: %d, Response: %s", id, pid, statusCode, responseBody));
             }
         };
+    }
+
+    private String getResponseBody(ResponseEntity<String> responseEntity) {
+        return StringUtils.isNotBlank(responseEntity.getBody()) ? responseEntity.getBody() : StringUtils.EMPTY;
     }
 
     private Optional<JSONObject> retrievePartnerDirectoryParameter(String id, String pid, String url, RequestContext requestContext) {
