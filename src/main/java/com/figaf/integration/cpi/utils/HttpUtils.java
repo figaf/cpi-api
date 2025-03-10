@@ -29,7 +29,7 @@ public class HttpUtils {
                 try {
                     handleTooManyRequests(ex, attempt);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw new ClientIntegrationException(e);
                 }
             } catch (HttpClientErrorException.NotFound ex) {
                 log.warn("Resource not found: {}", ex.getMessage());
