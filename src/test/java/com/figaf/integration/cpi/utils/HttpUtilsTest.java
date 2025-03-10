@@ -8,13 +8,13 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RetryUtilsTest {
+public class HttpUtilsTest {
 
     @Test
     public void testSuccessfulCall() {
         Callable<String> successfulCallable = () -> "Success";
 
-        Optional<String> result = RetryUtils.executeHttpCallWithRetry(successfulCallable);
+        Optional<String> result = HttpUtils.executeHttpCallWithRetry(successfulCallable);
 
         assertTrue(result.isPresent());
         assertEquals("Success", result.get());
@@ -39,7 +39,7 @@ public class RetryUtilsTest {
             return "Recovered";
         };
 
-        Optional<String> result = RetryUtils.executeHttpCallWithRetry(callable);
+        Optional<String> result = HttpUtils.executeHttpCallWithRetry(callable);
 
         assertTrue(result.isPresent());
         assertEquals("Recovered", result.get());
@@ -59,7 +59,7 @@ public class RetryUtilsTest {
             );
         };
 
-        Optional<String> result = RetryUtils.executeHttpCallWithRetry(callable);
+        Optional<String> result = HttpUtils.executeHttpCallWithRetry(callable);
 
         assertFalse(result.isPresent());
     }
@@ -76,7 +76,7 @@ public class RetryUtilsTest {
             );
         };
 
-        Optional<String> result = RetryUtils.executeHttpCallWithRetry(callable);
+        Optional<String> result = HttpUtils.executeHttpCallWithRetry(callable);
 
         assertFalse(result.isPresent());
     }
@@ -87,7 +87,7 @@ public class RetryUtilsTest {
             throw new Exception("Generic error");
         };
 
-        Optional<String> result = RetryUtils.executeHttpCallWithRetry(callable);
+        Optional<String> result = HttpUtils.executeHttpCallWithRetry(callable);
 
         assertFalse(result.isPresent());
     }
@@ -111,7 +111,7 @@ public class RetryUtilsTest {
             return "Recovered";
         };
 
-        Optional<String> result = RetryUtils.executeHttpCallWithRetry(callable);
+        Optional<String> result = HttpUtils.executeHttpCallWithRetry(callable);
 
         assertTrue(result.isPresent());
         assertEquals("Recovered", result.get());
@@ -134,7 +134,7 @@ public class RetryUtilsTest {
             return "Recovered";
         };
 
-        Optional<String> result = RetryUtils.executeHttpCallWithRetry(callable);
+        Optional<String> result = HttpUtils.executeHttpCallWithRetry(callable);
 
         assertTrue(result.isPresent());
         assertEquals("Recovered", result.get());

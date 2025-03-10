@@ -1,15 +1,18 @@
 package com.figaf.integration.cpi.utils;
 
+import com.figaf.integration.common.exception.ClientIntegrationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 
 @Slf4j
-public class RetryUtils {
+public class HttpUtils {
 
     private static final int MAX_ATTEMPTS = 5;
 
@@ -40,13 +43,39 @@ public class RetryUtils {
         return Optional.empty();
     }
 
+    public static <T> T executeWithExceptionHandling(Supplier<T> action, String errorMessagePrefix) {
+        try {
+            return action.get();
+        } catch (Exception ex) {
+            String errorMessage = String.format("%s: %s", errorMessagePrefix, ex.getMessage());
+            log.error(errorMessage, ex);
+            throw new ClientIntegrationException(errorMessage, ex);
+        }
+    }
+
+    public static <T> T executeAndHandleNotFound(Supplier<T> action, String notFoundLogMessage) {
+        try {
+            return action.get();
+        } catch (Exception ex) {
+            if (ex instanceof HttpClientErrorException httpEx
+                && httpEx.getStatusCode() == HttpStatus.NOT_FOUND
+            ) {
+                log.warn(notFoundLogMessage);
+                return null;
+            }
+            String errorMessage = String.format("%s: %s", notFoundLogMessage, ex.getMessage());
+            log.error(errorMessage, ex);
+            throw new ClientIntegrationException(errorMessage, ex);
+        }
+    }
+
     private static void handleTooManyRequests(HttpClientErrorException.TooManyRequests tooManyRequestsEx, int attempt) throws Exception {
         if (tooManyRequestsEx.getResponseHeaders() != null) {
             String retryAfter = tooManyRequestsEx.getResponseHeaders().getFirst("Retry-After");
             if (retryAfter != null) {
                 try {
                     long retryAfterSeconds = Long.parseLong(retryAfter);
-                    log.warn("Rate limit exceeded. Retrying after {} seconds (attempt {}/{})", retryAfterSeconds, attempt, RetryUtils.MAX_ATTEMPTS);
+                    log.warn("Rate limit exceeded. Retrying after {} seconds (attempt {}/{})", retryAfterSeconds, attempt, HttpUtils.MAX_ATTEMPTS);
                     TimeUnit.SECONDS.sleep(retryAfterSeconds);
                     return;
                 } catch (NumberFormatException nfe) {
@@ -65,11 +94,11 @@ public class RetryUtils {
         try {
             log.warn(
                 "Rate limit exceeded. Retrying after {} milliseconds (attempt {}/{})",
-                RetryUtils.INITIAL_DELAY,
+                HttpUtils.INITIAL_DELAY,
                 attempt,
-                RetryUtils.MAX_ATTEMPTS
+                HttpUtils.MAX_ATTEMPTS
             );
-            TimeUnit.MILLISECONDS.sleep(RetryUtils.INITIAL_DELAY);
+            TimeUnit.MILLISECONDS.sleep(HttpUtils.INITIAL_DELAY);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new Exception(ex.getMessage(), ex);

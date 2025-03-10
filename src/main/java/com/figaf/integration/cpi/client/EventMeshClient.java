@@ -21,6 +21,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.figaf.integration.cpi.utils.HttpUtils.executeAndHandleNotFound;
+import static com.figaf.integration.cpi.utils.HttpUtils.executeWithExceptionHandling;
 import static java.lang.String.format;
 
 @Slf4j
@@ -231,33 +233,5 @@ public class EventMeshClient extends CpiBaseClient {
             .maxRedeliveryCount(0)
             .respectTimeToLiveInSeconds(true)
             .build();
-    }
-
-    private <T> T executeWithExceptionHandling(Supplier<T> action, String errorMessagePrefix) {
-        try {
-            return action.get();
-        } catch (Exception ex) {
-            String errorMessage = String.format("%s: %s", errorMessagePrefix, ex.getMessage());
-            log.error(errorMessage, ex);
-            throw new ClientIntegrationException(errorMessage, ex);
-        }
-    }
-
-    private <T> T executeAndHandleNotFound(Supplier<T> action, String notFoundLogMessage) {
-        try {
-            return action.get();
-        } catch (ClientIntegrationException ex) {
-            Throwable cause = ex.getCause();
-            if (cause instanceof HttpClientErrorException httpEx &&
-                httpEx.getStatusCode() == HttpStatus.NOT_FOUND) {
-                log.warn(notFoundLogMessage);
-                return null;
-            }
-            throw ex;
-        } catch (Exception ex) {
-            String errorMessage = String.format("%s: %s", notFoundLogMessage, ex.getMessage());
-            log.error(errorMessage, ex);
-            throw new ClientIntegrationException(errorMessage, ex);
-        }
     }
 }

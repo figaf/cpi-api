@@ -6,7 +6,7 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.partner_directory.*;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
 import com.figaf.integration.cpi.response_parser.PartnerDirectoryParser;
-import com.figaf.integration.cpi.utils.RetryUtils;
+import com.figaf.integration.cpi.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
@@ -16,12 +16,10 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.BINARY_PARAMETER;
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.STRING_PARAMETER;
@@ -457,7 +455,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
     }
 
     private Optional<JSONObject> retrievePartnerDirectoryParameter(String id, String pid, String url, RequestContext requestContext) {
-        return RetryUtils.executeHttpCallWithRetry(
+        return HttpUtils.executeHttpCallWithRetry(
             () -> this.callRestWs(
                 requestContext,
                 String.format(url, pid, id),
@@ -467,7 +465,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
     }
 
     private Optional<JSONObject> retrieveAlternativePartnerInner(String agency, String scheme, String id, RequestContext requestContext) {
-        return RetryUtils.executeHttpCallWithRetry(
+        return HttpUtils.executeHttpCallWithRetry(
             () -> this.callRestWs(
                 requestContext,
                 String.format(
