@@ -128,7 +128,7 @@ class PartnerDirectoryClientTest {
     void test_retrieveAlternativePartners(AgentTestData agentTestData) {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
 
-        List<AlternativePartner> alternativePartners = partnerDirectoryClient.retrieveAlternativePartners(requestContext, new PartnerDirectoryAlternativePartnerFilterRequest());
+        List<AlternativePartner> alternativePartners = partnerDirectoryClient.retrieveAlternativePartners(requestContext, new AlternativePartnerFilterRequest());
 
         assertThat(alternativePartners).as("alternative partners shouldn't be empty").isNotEmpty();
     }

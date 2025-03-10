@@ -12,28 +12,28 @@ import java.util.stream.Collectors;
 @Setter
 @ToString
 @NoArgsConstructor
-public class PartnerDirectoryAlternativePartnerFilterRequest {
+public class AlternativePartnerFilterRequest {
 
-    private List<PartnerDirectoryAlternativePartnerKey> partnerDirectoryAlternativePartnerKeys;
+    private List<AlternativePartnerKey> alternativePartnerKeys;
 
-    public PartnerDirectoryAlternativePartnerFilterRequest(List<PartnerDirectoryAlternativePartnerKey> partnerDirectoryAlternativePartnerKeys) {
-        this.partnerDirectoryAlternativePartnerKeys = partnerDirectoryAlternativePartnerKeys;
+    public AlternativePartnerFilterRequest(List<AlternativePartnerKey> alternativePartnerKeys) {
+        this.alternativePartnerKeys = alternativePartnerKeys;
     }
 
     public String createAlternativePartnerKeyFilter() {
-        if (CollectionUtils.isEmpty(this.partnerDirectoryAlternativePartnerKeys)) {
+        if (CollectionUtils.isEmpty(this.alternativePartnerKeys)) {
             return StringUtils.EMPTY;
         }
-        boolean containsInvalidParams = this.partnerDirectoryAlternativePartnerKeys
+        boolean containsInvalidParams = this.alternativePartnerKeys
             .stream()
             .anyMatch(alternativePartnerKey -> StringUtils.isBlank(alternativePartnerKey.getAgency())
                                                || StringUtils.isBlank(alternativePartnerKey.getScheme())
                                                || StringUtils.isBlank(alternativePartnerKey.getId()));
         if (containsInvalidParams) {
-            throw new IllegalArgumentException(String.format("alternativePartnerKeys %s contain empty agency, scheme or id.", this.partnerDirectoryAlternativePartnerKeys));
+            throw new IllegalArgumentException(String.format("alternativePartnerKeys %s contain empty agency, scheme or id.", this.alternativePartnerKeys));
         }
 
-        return this.partnerDirectoryAlternativePartnerKeys
+        return this.alternativePartnerKeys
             .stream()
             .map(key -> String.format("(Agency eq '%s' and Scheme eq '%s' and Id eq '%s')", key.getAgency(), key.getScheme(), key.getId()))
             .collect(Collectors.joining(" or ", "&$filter=", ""));
@@ -42,7 +42,7 @@ public class PartnerDirectoryAlternativePartnerFilterRequest {
     @Getter
     @Setter
     @AllArgsConstructor
-    public static class PartnerDirectoryAlternativePartnerKey {
+    public static class AlternativePartnerKey {
 
         private String agency;
         private String scheme;

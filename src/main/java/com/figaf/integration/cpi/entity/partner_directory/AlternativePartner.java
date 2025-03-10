@@ -4,12 +4,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Getter
 @Setter
 @ToString
-public class AlternativePartner {
+public class AlternativePartner implements Serializable {
     private String hexagency;
     private String hexscheme;
     private String hexid;
