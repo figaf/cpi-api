@@ -31,7 +31,6 @@ public class HttpUtils {
                 log.warn("Resource not found: {}", ex.getMessage());
                 return Optional.empty();
             } catch (Exception ex) {
-                log.error("HTTP call failed: {}", ex.getMessage(), ex);
                 throw new ClientIntegrationException(ex);
             }
         }
