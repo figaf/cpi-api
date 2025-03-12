@@ -24,20 +24,15 @@ public class HttpUtils {
             try {
                 return Optional.ofNullable(operation.call());
             } catch (HttpClientErrorException.TooManyRequests ex) {
-                if (attempt == MAX_ATTEMPTS) {
-                    break;
-                }
-                try {
-                    handleTooManyRequests(ex, attempt);
-                } catch (Exception e) {
-                    throw new ClientIntegrationException(e);
+                if (attempt < MAX_ATTEMPTS) {
+                    safeHandleTooManyRequests(ex, attempt);
                 }
             } catch (HttpClientErrorException.NotFound ex) {
                 log.warn("Resource not found: {}", ex.getMessage());
                 return Optional.empty();
             } catch (Exception ex) {
                 log.error("HTTP call failed: {}", ex.getMessage(), ex);
-                return Optional.empty();
+                throw new ClientIntegrationException(ex);
             }
         }
         log.error("Max retry attempts exceeded");
@@ -117,6 +112,14 @@ public class HttpUtils {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new Exception(ex.getMessage(), ex);
+        }
+    }
+
+    private static void safeHandleTooManyRequests(HttpClientErrorException.TooManyRequests ex, int attempt) {
+        try {
+            handleTooManyRequests(ex, attempt);
+        } catch (Exception e) {
+            throw new ClientIntegrationException(e);
         }
     }
 }
