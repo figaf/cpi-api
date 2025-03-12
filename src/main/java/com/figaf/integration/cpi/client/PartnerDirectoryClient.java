@@ -6,28 +6,28 @@ import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.partner_directory.*;
 import com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam;
 import com.figaf.integration.cpi.response_parser.PartnerDirectoryParser;
+import com.figaf.integration.cpi.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.BINARY_PARAMETER;
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.STRING_PARAMETER;
+import static com.figaf.integration.cpi.utils.HttpUtils.assertSuccessfulResponse;
 
 @Slf4j
 public class PartnerDirectoryClient extends CpiBaseClient {
-    private static final int MAX_ATTEMPTS = 5;
-    private static final long INITIAL_DELAY = 2000L;
+
 
     public PartnerDirectoryClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -119,7 +119,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
 
     public Optional<AlternativePartner> retrieveAlternativePartner(String agency, String scheme, String id, RequestContext requestContext) {
         log.debug("#retrieveAlternativePartner(String agency, String scheme, String id, RequestContext requestContext): {}, {}, {}, {}", agency, scheme, id, requestContext);
-        Optional<JSONObject> apiParameter = retrieveAlternativePartner(agency, scheme, id, API_ALTERNATIVE_PARTNER, requestContext);
+        Optional<JSONObject> apiParameter = retrieveAlternativePartnerInner(agency, scheme, id, requestContext);
         return apiParameter.map(PartnerDirectoryParser::createAlternativePartner);
     }
 
@@ -194,8 +194,6 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         );
     }
 
-
-
     public void updateBinaryParameter(
         String id,
         String pid,
@@ -216,11 +214,10 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             binaryParameterUpdateRequest,
             HttpMethod.PUT,
             (responseEntity) -> {
-                handleResponse(
+                assertSuccessfulResponse(
                     responseEntity,
-                    id,
-                    pid,
-                    "Update"
+                    "Update",
+                    String.format("parameter %s with pid: %s", id, pid)
                 );
                 return null;
             }
@@ -247,11 +244,10 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             stringParameterUpdateRequest,
             HttpMethod.PUT,
             (responseEntity) -> {
-                handleResponse(
+                assertSuccessfulResponse(
                     responseEntity,
-                    id,
-                    pid,
-                    "Update"
+                    "Update",
+                    String.format("parameter %s with pid: %s", id, pid)
                 );
                 return null;
             }
@@ -285,12 +281,14 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             alternativePartnerUpdateRequest,
             HttpMethod.PUT,
             (responseEntity) -> {
-                handleAlternativePartnerResponse(
+                assertSuccessfulResponse(
                     responseEntity,
-                    id,
-                    agency,
-                    scheme,
-                    "Update"
+                    "Update",
+                    String.format("alternative partner %s with agency: %s and scheme: %s",
+                        id,
+                        agency,
+                        scheme
+                    )
                 );
                 return null;
             }
@@ -311,11 +309,10 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             null,
             HttpMethod.DELETE,
             (responseEntity) -> {
-                handleResponse(
+                assertSuccessfulResponse(
                     responseEntity,
-                    id,
-                    pid,
-                    "Delete"
+                    "Delete",
+                    String.format("parameter %s with pid: %s", id, pid)
                 );
                 return null;
             }
@@ -336,11 +333,10 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             null,
             HttpMethod.DELETE,
             (responseEntity) -> {
-                handleResponse(
+                assertSuccessfulResponse(
                     responseEntity,
-                    id,
-                    pid,
-                    "Delete"
+                    "Delete",
+                    String.format("parameter %s with pid: %s", id, pid)
                 );
                 return null;
             }
@@ -367,42 +363,17 @@ public class PartnerDirectoryClient extends CpiBaseClient {
             null,
             HttpMethod.DELETE,
             (responseEntity) -> {
-                handleAlternativePartnerResponse(
+                assertSuccessfulResponse(
                     responseEntity,
-                    id,
-                    agency,
-                    scheme,
-                    "Delete"
-                );
+                    "Delete",
+                    String.format("alternative partner %s with agency: %s and scheme: %s",
+                        id,
+                        agency,
+                        scheme
+                    ));
                 return null;
             }
         );
-    }
-
-    private void handleResponse(ResponseEntity<String> responseEntity, String id, String pid, String operation) {
-         switch (responseEntity.getStatusCode().value()) {
-            case 200, 202, 204 -> {
-                 log.debug("{} operation on parameter {} with pid: {} was successful", operation, id, pid);
-            }
-
-            default -> {
-                throw new ClientIntegrationException(String.format(
-                    "%s operation failed for parameter %s with PID %s: Code: %d, Message: %s",
-                    operation, id, pid, responseEntity.getStatusCode().value(), responseEntity.getBody()));
-            }
-        }
-    }
-
-    private void handleAlternativePartnerResponse(ResponseEntity<String> responseEntity, String id, String agency, String scheme, String operation) {
-        switch (responseEntity.getStatusCode().value()) {
-            case 200, 202, 204 ->
-                log.debug("{} operation on alternative partner {} with agency : {}  and scheme {} was successful", operation, id, agency, scheme);
-
-            default ->
-                throw new ClientIntegrationException(String.format(
-                    "%s operation failed for alternative partner %s with agency %s and scheme %s : Code: %d, Message: %s",
-                    operation, id, agency, scheme, responseEntity.getStatusCode().value(), responseEntity.getBody()));
-        }
     }
 
     private PartnerDirectoryParameter createPartnerDirectoryParameter(
@@ -443,7 +414,10 @@ public class PartnerDirectoryClient extends CpiBaseClient {
     ) {
         if (responseEntity == null) {
             throw new ClientIntegrationException(String.format(
-                "Creation operation failed for alternative partner %s with PID %s: ResponseEntity is null", id, pid));
+                "Creation operation failed for alternative partner %s with PID %s: ResponseEntity is null",
+                id,
+                pid
+            ));
         }
 
         int statusCode = responseEntity.getStatusCode().value();
@@ -463,93 +437,32 @@ public class PartnerDirectoryClient extends CpiBaseClient {
     }
 
     private String getResponseBody(ResponseEntity<String> responseEntity) {
-        try {
-            return responseEntity.getBody();
-        } catch (Exception e) {
-            log.error("Failed to extract response body", e);
-            return "Unable to retrieve response body";
-        }
+        return StringUtils.isNotBlank(responseEntity.getBody()) ? responseEntity.getBody() : StringUtils.EMPTY;
     }
 
     private Optional<JSONObject> retrievePartnerDirectoryParameter(String id, String pid, String url, RequestContext requestContext) {
-        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-            try {
-                JSONObject apiParameter = this.callRestWs(requestContext, String.format(url, pid, id), (response) -> (new JSONObject(response)).getJSONObject("d"));
-                return Optional.ofNullable(apiParameter);
-            } catch (HttpClientErrorException.TooManyRequests tooManyRequestsEx) {
-                handleTooManyRequests(tooManyRequestsEx, attempt);
-            } catch (HttpClientErrorException.NotFound ex) {
-                log.warn("Parameter with id {} and pid {} is not found", id, pid);
-                return Optional.empty();
-            } catch (Exception e) {
-                String errorMsg = String.format("Couldn't fetch parameter with id %s and pid %s: %s", id, pid, e.getMessage());
-                log.error(errorMsg, e);
-                return Optional.empty();
-            }
-        }
-        String errorMsg = String.format("Max retry attempts exceeded for id %s and pid %s", id, pid);
-        log.error(errorMsg);
-        return Optional.empty();
+        return HttpUtils.executeHttpCallWithRetry(
+            () -> this.callRestWs(
+                requestContext,
+                String.format(url, pid, id),
+                JSONObject::new
+            ).getJSONObject("d")
+        );
     }
 
-    private Optional<JSONObject> retrieveAlternativePartner(String agency, String scheme, String id, String url, RequestContext requestContext) {
-        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-            try {
-                JSONObject apiParameter = this.callRestWs(
-                    requestContext,
-                    String.format(
-                        url,
-                        new String(Hex.encodeHex(agency.getBytes(StandardCharsets.UTF_8), false)),
-                        new String(Hex.encodeHex(scheme.getBytes(StandardCharsets.UTF_8), false)),
-                        new String(Hex.encodeHex(id.getBytes(StandardCharsets.UTF_8), false))),
-                    (response) -> (new JSONObject(response)).getJSONObject("d"));
-                return Optional.ofNullable(apiParameter);
-            } catch (HttpClientErrorException.TooManyRequests tooManyRequestsEx) {
-                handleTooManyRequests(tooManyRequestsEx, attempt);
-            } catch (HttpClientErrorException.NotFound ex) {
-                log.warn("Alternative Partner with agency {}, scheme {} and id {} is not found", agency, scheme, id);
-                return Optional.empty();
-            } catch (Exception e) {
-                String errorMsg = String.format("Couldn't fetch alternative partner with agency %s, scheme %s and id %s: %s", agency, scheme, id, e.getMessage());
-                log.error(errorMsg, e);
-                return Optional.empty();
-            }
-        }
-        String errorMsg = String.format("Max retry attempts exceeded for agency %s, scheme %s and id %s", agency, scheme, id);
-        log.error(errorMsg);
-        return Optional.empty();
-    }
-
-
-    private void handleTooManyRequests(HttpClientErrorException.TooManyRequests tooManyRequestsEx, int attempt) {
-        if (tooManyRequestsEx.getResponseHeaders() != null) {
-            String retryAfter = tooManyRequestsEx.getResponseHeaders().getFirst("Retry-After");
-            if (retryAfter != null) {
-                try {
-                    long retryAfterSeconds = Long.parseLong(retryAfter);
-                    log.warn("Rate limit exceeded. Retrying after {} seconds (attempt {}/{})", retryAfterSeconds, attempt, MAX_ATTEMPTS);
-                    TimeUnit.SECONDS.sleep(retryAfterSeconds);
-                    return;
-                } catch (NumberFormatException nfe) {
-                    log.error("Invalid Retry-After header value: {}", retryAfter, nfe);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    log.error("Retry sleep interrupted", ie);
-                    return;
-                }
-            }
-        }
-        applyDefaultRetry(attempt);
-    }
-
-    private void applyDefaultRetry(int attempt) {
-        try {
-            log.warn("Rate limit exceeded. Retrying after {} milliseconds (attempt {}/{})", INITIAL_DELAY, attempt, MAX_ATTEMPTS);
-            TimeUnit.MILLISECONDS.sleep(INITIAL_DELAY);
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-            log.error("Retry sleep interrupted", ie);
-        }
+    private Optional<JSONObject> retrieveAlternativePartnerInner(String agency, String scheme, String id, RequestContext requestContext) {
+        return HttpUtils.executeHttpCallWithRetry(
+            () -> this.callRestWs(
+                requestContext,
+                String.format(
+                    API_ALTERNATIVE_PARTNER,
+                    new String(Hex.encodeHex(agency.getBytes(StandardCharsets.UTF_8), false)),
+                    new String(Hex.encodeHex(scheme.getBytes(StandardCharsets.UTF_8), false)),
+                    new String(Hex.encodeHex(id.getBytes(StandardCharsets.UTF_8), false))
+                ),
+                JSONObject::new
+            ).getJSONObject("d")
+        );
     }
 
     @Override
