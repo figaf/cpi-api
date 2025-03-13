@@ -1,11 +1,14 @@
 package com.figaf.integration.cpi.utils;
 
+import com.figaf.integration.common.exception.ClientIntegrationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
+
 import java.util.Optional;
 import java.util.concurrent.Callable;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class HttpUtilsTest {
@@ -87,9 +90,7 @@ public class HttpUtilsTest {
             throw new Exception("Generic error");
         };
 
-        Optional<String> result = HttpUtils.executeHttpCallWithRetry(callable);
-
-        assertFalse(result.isPresent());
+        assertThrows(ClientIntegrationException.class, () -> HttpUtils.executeHttpCallWithRetry(callable));
     }
 
     @Test
