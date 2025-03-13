@@ -45,8 +45,7 @@ public class EventMeshClient extends CpiBaseClient {
                 httpHeaders,
                 API_QUEUES,
                 queuesMetadataResponseRaw -> {
-                    TypeReference<List<QueueMetadata>> messageQueueDtoRef = new TypeReference<>() {
-                    };
+                    TypeReference<List<QueueMetadata>> messageQueueDtoRef = new TypeReference<>() {};
                     return ObjectMapperFactory.getJsonObjectMapper().readValue(queuesMetadataResponseRaw, messageQueueDtoRef);
                 },
                 String.class
