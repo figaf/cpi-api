@@ -43,7 +43,6 @@ public class HttpUtils {
             return action.get();
         } catch (Exception ex) {
             String errorMessage = String.format("%s: %s", errorMessagePrefix, ex.getMessage());
-            log.error(errorMessage, ex);
             throw new ClientIntegrationException(errorMessage, ex);
         }
     }
@@ -59,7 +58,6 @@ public class HttpUtils {
                 return null;
             }
             String errorMessage = String.format("%s: %s", notFoundLogMessage, ex.getMessage());
-            log.error(errorMessage, ex);
             throw new ClientIntegrationException(errorMessage, ex);
         }
     }
@@ -91,8 +89,7 @@ public class HttpUtils {
                     log.error("Invalid Retry-After header value: {}", retryAfter, nfe);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    log.error("Retry sleep interrupted", ie);
-                    return;
+                    throw ie;
                 }
             }
         }
@@ -110,7 +107,7 @@ public class HttpUtils {
             TimeUnit.MILLISECONDS.sleep(HttpUtils.INITIAL_DELAY);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new Exception(ex.getMessage(), ex);
+            throw ex;
         }
     }
 
