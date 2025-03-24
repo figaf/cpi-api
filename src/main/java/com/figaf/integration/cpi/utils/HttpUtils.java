@@ -51,9 +51,7 @@ public class HttpUtils {
         try {
             return action.get();
         } catch (Exception ex) {
-            if (ex instanceof HttpClientErrorException httpEx
-                    && httpEx.getStatusCode() == HttpStatus.NOT_FOUND
-            ) {
+            if (isNotFound(ex) || (ex.getCause() != null && isNotFound(ex.getCause()))) {
                 log.warn(notFoundLogMessage);
                 return null;
             }
@@ -67,11 +65,11 @@ public class HttpUtils {
         switch (statusCode) {
             case 200, 202, 204 -> log.debug("{} operation on {} was successful", operation, context);
             default -> throw new ClientIntegrationException(String.format(
-                    "%s operation failed for %s : Code: %d, Message: %s",
-                    operation,
-                    context,
-                    statusCode,
-                    responseEntity.getBody()
+                "%s operation failed for %s : Code: %d, Message: %s",
+                operation,
+                context,
+                statusCode,
+                responseEntity.getBody()
             ));
         }
     }
@@ -99,10 +97,10 @@ public class HttpUtils {
     private static void applyDefaultSleep(int attempt) throws Exception {
         try {
             log.warn(
-                    "Rate limit exceeded. Retrying after {} milliseconds (attempt {}/{})",
-                    HttpUtils.INITIAL_DELAY,
-                    attempt,
-                    HttpUtils.MAX_ATTEMPTS
+                "Rate limit exceeded. Retrying after {} milliseconds (attempt {}/{})",
+                HttpUtils.INITIAL_DELAY,
+                attempt,
+                HttpUtils.MAX_ATTEMPTS
             );
             TimeUnit.MILLISECONDS.sleep(HttpUtils.INITIAL_DELAY);
         } catch (InterruptedException ex) {
@@ -117,5 +115,10 @@ public class HttpUtils {
         } catch (Exception e) {
             throw new ClientIntegrationException(e);
         }
+    }
+
+    private static boolean isNotFound(Throwable throwable) {
+        return throwable instanceof HttpClientErrorException httpEx
+            && httpEx.getStatusCode() == HttpStatus.NOT_FOUND;
     }
 }
