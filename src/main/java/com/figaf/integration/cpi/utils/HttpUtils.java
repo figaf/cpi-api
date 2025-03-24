@@ -50,8 +50,8 @@ public class HttpUtils {
     public static <T> T executeAndHandleNotFound(Supplier<T> action, String notFoundLogMessage) {
         try {
             return action.get();
-        } catch (Exception ex) {
-            if (isNotFound(ex) || (ex.getCause() != null && isNotFound(ex.getCause()))) {
+        } catch (ClientIntegrationException ex) {
+            if ((ex.getCause() != null && isNotFound(ex.getCause()))) {
                 log.warn(notFoundLogMessage);
                 return null;
             }
