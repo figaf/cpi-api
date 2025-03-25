@@ -204,7 +204,7 @@ public abstract class CpiBaseClient extends BaseClient {
     }
 
     protected static boolean isIntegrationSuiteHost(String host) {
-        return StringUtils.containsIgnoreCase(host, "integrationsuite");
+        return StringUtils.containsIgnoreCase(host, ".integrationsuite.");
     }
 
     protected Header createCsrfTokenHeader(String csrfToken) {
