@@ -2,9 +2,9 @@ package com.figaf.integration.cpi.utils;
 
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
+import com.figaf.integration.common.utils.Utils;
 import com.figaf.integration.cpi.entity.message_processing.CustomHeaderProperty;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
@@ -13,47 +13,18 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Arsenii Istlentev
  */
 public class CpiApiUtils {
 
-    private static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder()
-        .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
-        .optionalStart()
-        .appendPattern(".SSS")
-        .optionalEnd()
-        .optionalStart()
-        .appendLiteral('Z')
-        .optionalEnd()
-        .toFormatter()
-        .withZone(ZoneId.of("GMT"));
-
     public static Date parseDate(String date) {
-        try {
-            if (date == null) {
-                return null;
-            }
-            if (date.matches(".*Date\\(.*\\).*")) {
-                return new Timestamp(
-                    Long.parseLong(
-                        date.replaceAll("[^0-9]", "")
-                    )
-                );
-            } else {
-                ZonedDateTime zdt = ZonedDateTime.parse(date, DATE_FORMATTER);
-                return Date.from(zdt.toInstant());
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Can't parse date: ", ex);
-        }
+        return Utils.parseDate(date);
     }
 
     public static List<CustomHeaderProperty> parseCustomerHeaderProperties(JSONObject messageProcessingLogElement) {
