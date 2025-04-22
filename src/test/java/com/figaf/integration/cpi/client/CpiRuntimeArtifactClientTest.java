@@ -2,9 +2,11 @@ package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
+import com.figaf.integration.cpi.entity.designtime_artifacts.AdditionalAttributes;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.IntegrationPackage;
 import com.figaf.integration.cpi.entity.runtime_artifacts.VersionHistoryRecord;
+import com.figaf.integration.cpi.utils.IFlowUtils;
 import com.figaf.integration.cpi.utils.PackageUtils;
 import com.figaf.integration.cpi.utils.RequestContextUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -21,6 +23,7 @@ public class CpiRuntimeArtifactClientTest {
     private static CpiRuntimeArtifactClient cpiRuntimeArtifactClient;
     private static CpiIntegrationFlowClient cpiIntegrationFlowClient;
     private static PackageUtils packageUtils;
+    private static IFlowUtils iFlowUtils;
 
 
     @BeforeAll
@@ -29,6 +32,7 @@ public class CpiRuntimeArtifactClientTest {
         cpiRuntimeArtifactClient = new CpiRuntimeArtifactClient(new HttpClientsFactory());
         cpiIntegrationFlowClient = new CpiIntegrationFlowClient(new HttpClientsFactory());
         packageUtils = new PackageUtils(integrationPackageClient);
+        iFlowUtils = new IFlowUtils(packageUtils, cpiIntegrationFlowClient);
     }
 
 
@@ -55,5 +59,19 @@ public class CpiRuntimeArtifactClientTest {
                     String.format("Version history records for iFlow '%s' should not be null", iFlow.getDisplayedName()));
 
         });
+    }
+
+    @Test
+    void test_getArtifactAdditionalAttributes() {
+        RequestContext requestContext = RequestContextUtils.createRequestContextForWebApiWithCloudIntegrationUrl();
+        CpiArtifact testIFlow = iFlowUtils.findTestIFlowInTestPackageIfExist(requestContext);
+
+        AdditionalAttributes additionalAttributes = cpiIntegrationFlowClient.getArtifactAdditionalAttributes(
+            testIFlow.getPackageExternalId(),
+            testIFlow.getExternalId(),
+            requestContext
+        );
+
+        assertNotNull(additionalAttributes);
     }
 }
