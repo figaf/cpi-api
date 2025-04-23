@@ -7,6 +7,7 @@ import com.figaf.integration.common.entity.RestTemplateWrapper;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.client.mapper.ObjectMapperFactory;
+import com.figaf.integration.cpi.entity.designtime_artifacts.AdditionalAttributes;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateOrUpdateCpiArtifactRequest;
@@ -34,8 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.buildCpiArtifacts;
-import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.retrieveDeployingResult;
+import static com.figaf.integration.cpi.response_parser.CpiRuntimeArtifactParser.*;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.collections4.SetUtils.hashSet;
@@ -53,7 +53,7 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
     private static final String API_PACKAGES = "/itspaces/odata/1.0/workspace.svc/ContentPackages";
     private static final String API_ARTIFACTS = "/itspaces/odata/1.0/workspace.svc/ContentPackages('%s')/Artifacts?$format=json";
     private static final String API_ARTIFACT_DEPLOY_STATUS = "/itspaces/api/1.0/deploystatus/%s";
-    private static final String API_DELETE_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts/%s";
+    private static final String API_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts/%s";
     private static final String API_DOWNLOAD_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s";
     private static final String API_UPDATE_ARTIFACT = "/itspaces/api/1.0/workspace/%s/artifacts";
     private static final String API_VERSION_HISTORY_ARTIFACT = "/api/1.0/workspace/%s/artifacts/%s?versionhistory=true&webdav=REPORT";
@@ -117,7 +117,7 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
         String packageExternalId,
         Set<CpiArtifactType> artifactTypes
     ) {
-        String path = String.format(API_ARTIFACTS, packageTechnicalName);
+        String path = format(API_ARTIFACTS, packageTechnicalName);
         return executeGet(
             requestContext,
             path,
@@ -128,6 +128,19 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
                 artifactTypes,
                 body
             )
+        );
+    }
+
+    public AdditionalAttributes getArtifactAdditionalAttributes(
+        String packageExternalId,
+        String artifactExternalId,
+        RequestContext requestContext
+    ) {
+        String path = format(API_ARTIFACT, packageExternalId, artifactExternalId);
+        return executeGet(
+            requestContext,
+            path,
+            CpiRuntimeArtifactParser::retrieveAdditionalAttributes
         );
     }
 
@@ -186,7 +199,7 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
         executeMethod(
             requestContext,
             API_PACKAGES,
-            format(API_DELETE_ARTIFACT, packageExternalId, artifactExternalId),
+            format(API_ARTIFACT, packageExternalId, artifactExternalId),
             (url, token, restTemplateWrapper) -> {
                 deleteArtifact(
                     requestContext.getConnectionProperties(),

@@ -2,6 +2,7 @@ package com.figaf.integration.cpi.response_parser;
 
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.utils.Utils;
+import com.figaf.integration.cpi.entity.designtime_artifacts.AdditionalAttributes;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType;
 import com.figaf.integration.cpi.utils.CpiApiUtils;
@@ -68,6 +69,23 @@ public class CpiRuntimeArtifactParser {
     public static String retrieveDeployStatus(String body) {
         JSONObject response = new JSONObject(body);
         return (String) response.get("status");
+    }
+
+    public static AdditionalAttributes retrieveAdditionalAttributes(String body) {
+        JSONObject response = new JSONObject(body);
+        AdditionalAttributes additionalAttributes = new AdditionalAttributes();
+        if (!response.has("additionalAttrs")) {
+            return additionalAttributes;
+        }
+
+        JSONObject additionalAttrsObj = response.getJSONObject("additionalAttrs");
+        if (additionalAttrsObj.has("source")) {
+            additionalAttrsObj.getJSONArray("source").forEach(item -> additionalAttributes.getSource().add(item.toString()));
+        }
+        if (additionalAttrsObj.has("target")) {
+            additionalAttrsObj.getJSONArray("target").forEach(item -> additionalAttributes.getTarget().add(item.toString()));
+        }
+        return additionalAttributes;
     }
 
     public static String retrieveDeployingResult(String result, CpiArtifactType objectType) {

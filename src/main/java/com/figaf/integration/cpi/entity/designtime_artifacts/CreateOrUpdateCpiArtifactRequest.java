@@ -91,12 +91,4 @@ public abstract class CreateOrUpdateCpiArtifactRequest {
         }
         return additionalAttrs;
     }
-
-    @Getter
-    @ToString
-    public static class AdditionalAttributes {
-
-        private final List<String> source = new ArrayList<>();
-        private final List<String> target = new ArrayList<>();
-    }
 }
