@@ -421,25 +421,27 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
     }
 
     private void checkArtifactUploadStatusCodeAndThrowErrorIfNotSuccessful(ClassicHttpResponse uploadArtifactResponse) throws IOException {
-        if (uploadArtifactResponse.getCode() != 201) {
-            String responseBody = IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8);
-            String errorMsg;
-            if (uploadArtifactResponse.getCode() == 403 && StringUtils.isBlank(responseBody)) {
-                errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, " +
-                        "but 201 was expected.%nResponse body is empty. The problem may be related to access policies configured for IFlow. " +
-                        "Check if Figaf application user that executes request (S-user / P-user / role assignment in Custom IdP) has enough access permissions. " +
-                        "If access policy roles had been added recently, wait for ~10 min and then try again. Recreate the session if it's cached: " +
-                        "in Figaf Tool execute `Reset http client forcibly` from CPI agent page.",
-                    uploadArtifactResponse.getCode()
-                );
-            } else {
-                errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, but 201 was expected.%nResponse body: %s",
-                    uploadArtifactResponse.getCode(),
-                    responseBody
-                );
-            }
-            throw new ClientIntegrationException(errorMsg);
+        if (List.of(200,201).contains(uploadArtifactResponse.getCode())) {
+            return;
         }
+
+        String responseBody = IOUtils.toString(uploadArtifactResponse.getEntity().getContent(), UTF_8);
+        String errorMsg;
+        if (uploadArtifactResponse.getCode() == 403 && StringUtils.isBlank(responseBody)) {
+            errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, " +
+                    "but 200 or 201 was expected.%nResponse body is empty. The problem may be related to access policies configured for IFlow. " +
+                    "Check if Figaf application user that executes request (S-user / P-user / role assignment in Custom IdP) has enough access permissions. " +
+                    "If access policy roles had been added recently, wait for ~10 min and then try again. Recreate the session if it's cached: " +
+                    "in Figaf Tool execute `Reset http client forcibly` from CPI agent page.",
+                uploadArtifactResponse.getCode()
+            );
+        } else {
+            errorMsg = format("Couldn't execute artifact upload successfully. API responded with status code %d, but 200 or 201 was expected.%nResponse body: %s",
+                uploadArtifactResponse.getCode(),
+                responseBody
+            );
+        }
+        throw new ClientIntegrationException(errorMsg);
     }
 
     //we use this method as a reading operation although in SAP is a PUT operation
