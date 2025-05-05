@@ -94,7 +94,7 @@ public class PartnerDirectoryClient extends CpiBaseClient {
                 String.format(API_ALTERNATIVE_PARTNERS, alternativePartnerFilterRequest.createAlternativePartnerKeyFilter()),
                 PartnerDirectoryParser::buildAlternativePartners);
         } catch (Exception e) {
-            String errorMsg = String.format("Couldn't fetch string parameters: %s", e.getMessage());
+            String errorMsg = String.format("Couldn't fetch alternative partners: %s", e.getMessage());
             throw new ClientIntegrationException(errorMsg, e);
         }
     }
