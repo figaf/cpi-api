@@ -18,8 +18,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.BINARY_PARAMETER;
 import static com.figaf.integration.cpi.entity.partner_directory.enums.TypeOfParam.STRING_PARAMETER;
@@ -54,18 +56,15 @@ public class PartnerDirectoryClient extends CpiBaseClient {
         PartnerDirectoryParameterFilterRequest partnerDirectoryParameterFilterRequest
     ) {
         log.debug("#retrieveBinaryParametersMetadata(RequestContext requestContext, partnerDirectoryParameterFilterRequest): {}, {}", requestContext, partnerDirectoryParameterFilterRequest);
-        JSONArray apiParameters;
         try {
-            apiParameters = callRestWs(
+            return executeRequestWithPagination(
                 requestContext,
                 String.format(API_BINARY_PARAMETERS_META_DATA, partnerDirectoryParameterFilterRequest.createFilter()),
-                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-            );
+                PartnerDirectoryParser::buildBinaryParameters);
         } catch (Exception e) {
             String errorMsg = String.format("Couldn't fetch binary parameters metadata: %s", e.getMessage());
             throw new ClientIntegrationException(errorMsg, e);
         }
-        return PartnerDirectoryParser.buildBinaryParameters(apiParameters);
     }
 
     public Optional<PartnerDirectoryParameter> retrieveBinaryParameter(String id, String pid, RequestContext requestContext) {
@@ -76,39 +75,28 @@ public class PartnerDirectoryClient extends CpiBaseClient {
 
     public List<PartnerDirectoryParameter> retrieveStringParameters(RequestContext requestContext, PartnerDirectoryParameterFilterRequest partnerDirectoryParameterFilterRequest) {
         log.debug("#retrieveStringParameters(RequestContext requestContext): {}", requestContext);
-        JSONArray apiParameters;
         try {
-            apiParameters = callRestWs(
+            return executeRequestWithPagination(
                 requestContext,
                 String.format(API_STRING_PARAMETERS, partnerDirectoryParameterFilterRequest.createFilter()),
-                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-            );
-
+                PartnerDirectoryParser::buildStringParameters);
         } catch (Exception e) {
             String errorMsg = String.format("Couldn't fetch string parameters: %s", e.getMessage());
             throw new ClientIntegrationException(errorMsg, e);
         }
-
-        return PartnerDirectoryParser.buildStringParameters(apiParameters);
     }
 
     public List<AlternativePartner> retrieveAlternativePartners(RequestContext requestContext, AlternativePartnerFilterRequest alternativePartnerFilterRequest) {
         log.debug("#retrieveAlternativePartners(RequestContext requestContext): {}", requestContext);
-        JSONArray apiParameters;
-
         try {
-            apiParameters = callRestWs(
+            return executeRequestWithPagination(
                 requestContext,
                 String.format(API_ALTERNATIVE_PARTNERS, alternativePartnerFilterRequest.createAlternativePartnerKeyFilter()),
-                response -> new JSONObject(response).getJSONObject("d").getJSONArray("results")
-            );
-
+                PartnerDirectoryParser::buildAlternativePartners);
         } catch (Exception e) {
-            String errorMsg = String.format("Couldn't fetch alternative partners: %s", e.getMessage());
+            String errorMsg = String.format("Couldn't fetch string parameters: %s", e.getMessage());
             throw new ClientIntegrationException(errorMsg, e);
         }
-
-        return PartnerDirectoryParser.buildAlternativePartners(apiParameters);
     }
 
     public Optional<PartnerDirectoryParameter> retrieveStringParameter(String id, String pid, RequestContext requestContext) {
@@ -463,6 +451,32 @@ public class PartnerDirectoryClient extends CpiBaseClient {
                 JSONObject::new
             ).getJSONObject("d")
         );
+    }
+
+    private <T> List<T> executeRequestWithPagination(
+        RequestContext requestContext,
+        String initialPath,
+        Function<JSONArray, List<T>> jsonParser
+    ) {
+        List<T> aggregated = new ArrayList<>();
+        String path = initialPath;
+
+        do {
+            JSONObject page = callRestWs(
+                requestContext,
+                path,
+                response -> new JSONObject(response).getJSONObject("d")
+            );
+
+            aggregated.addAll(jsonParser.apply(page.getJSONArray("results")));
+
+            path = optString(page, "__next");
+            if (path != null) {
+                path = "/api/v1/" + path;
+            }
+        } while (path != null);
+
+        return aggregated;
     }
 
     @Override
