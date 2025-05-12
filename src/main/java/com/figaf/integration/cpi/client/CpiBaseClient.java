@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
@@ -113,6 +114,7 @@ public abstract class CpiBaseClient extends BaseClient {
     protected static final String API_ALTERNATIVE_PARTNER = "/api/v1/AlternativePartners(Hexagency='%s',Hexscheme='%s',Hexid='%s')?$format=json";
 
     protected static final String X_CSRF_TOKEN_HEADER_NAME = "X-CSRF-Token";
+    private static final Pattern PATTERN_IS = Pattern.compile("^[^.]+\\.[^.]*integrationsuite[^.]*\\..+$");
 
     public CpiBaseClient(HttpClientsFactory httpClientsFactory) {
         super(httpClientsFactory);
@@ -209,7 +211,8 @@ public abstract class CpiBaseClient extends BaseClient {
     }
 
     protected static boolean isIntegrationSuiteHost(String host) {
-        return StringUtils.containsIgnoreCase(host, ".integrationsuite.");
+        return StringUtils.isNotBlank(host)
+            && PATTERN_IS.matcher(host).matches();
     }
 
     protected Header createCsrfTokenHeader(String csrfToken) {
