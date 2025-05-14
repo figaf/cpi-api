@@ -2,9 +2,11 @@ package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.entity.CloudPlatformType;
 import com.figaf.integration.common.entity.RequestContext;
+import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.client.mapper.ObjectMapperFactory;
 import com.figaf.integration.cpi.entity.DeleteAndUndeployIFlowResult;
+import com.figaf.integration.cpi.entity.UndeployIFlowResult;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactFromPublicApi;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateIFlowRequest;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -214,23 +217,43 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     }
 
     public DeleteAndUndeployIFlowResult deleteAndUndeployIFlow(RequestContext requestContext, String iFlowTechnicalName) {
-        log.debug("#deleteAndUndeployIFlow(RequestContext requestContext, String iFlowTechnicalName): {}, {}", requestContext, iFlowTechnicalName);
+        log.debug("#deleteAndUndeployIFlow: iFlowTechnicalName={}, requestContext={}", iFlowTechnicalName, requestContext);
         DeleteAndUndeployIFlowResult deleteAndUndeployIFlowResult = new DeleteAndUndeployIFlowResult(iFlowTechnicalName);
 
         boolean deletedSuccessfully = deleteIFlow(requestContext, iFlowTechnicalName);
         deleteAndUndeployIFlowResult.setDeleted(deletedSuccessfully);
 
-        //It doesn't work for NEO due to a SAP bug
-        if (CloudPlatformType.CLOUD_FOUNDRY.equals(requestContext.getCloudPlatformType())) {
-            RuntimeArtifactIdentifier runtimeArtifactIdentifier = RuntimeArtifactIdentifier
-                .builder()
-                .technicalName(iFlowTechnicalName)
-                .build();
-            integrationContentClient.undeployIntegrationRuntimeArtifact(requestContext, runtimeArtifactIdentifier);
-            deleteAndUndeployIFlowResult.setUndeployed(true);
-        }
+        UndeployIFlowResult undeployIFlowResult = undeployIFlow(requestContext, iFlowTechnicalName);
+        deleteAndUndeployIFlowResult.setUndeployed(undeployIFlowResult.isUndeploymentTriggeredSuccessfully());
 
         return deleteAndUndeployIFlowResult;
+    }
+
+    public UndeployIFlowResult undeployIFlow(RequestContext requestContext, String iFlowTechnicalName) {
+        log.debug("#undeployIFlow: iFlowTechnicalName={}, requestContext={}", iFlowTechnicalName, requestContext);
+
+        UndeployIFlowResult result = new UndeployIFlowResult(iFlowTechnicalName);
+
+        // check if IFlow is deployed
+        DeployedArtifact deployedArtifactInfo;
+        try {
+            deployedArtifactInfo = getDeployedArtifactInfo(requestContext, iFlowTechnicalName);
+        } catch (ClientIntegrationException ex) {
+            if (ex.getCause() instanceof HttpClientErrorException.NotFound) {
+                result.setSkippedBecauseNotDeployed(true);
+                return result;
+            }
+            throw ex;
+        }
+
+        RuntimeArtifactIdentifier runtimeArtifactIdentifier = RuntimeArtifactIdentifier
+            .builder()
+            .runtimeArtifactId(deployedArtifactInfo.getId())
+            .technicalName(iFlowTechnicalName)
+            .build();
+        integrationContentClient.undeployIntegrationRuntimeArtifact(requestContext, runtimeArtifactIdentifier);
+        result.setUndeploymentTriggeredSuccessfully(true);
+        return result;
     }
 
     private void setTraceLogLevelForIFlows(
