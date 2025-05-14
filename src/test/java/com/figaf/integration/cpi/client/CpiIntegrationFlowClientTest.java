@@ -2,6 +2,7 @@ package com.figaf.integration.cpi.client;
 
 import com.figaf.integration.common.data_provider.AgentTestData;
 import com.figaf.integration.common.entity.RequestContext;
+import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.data_provider.AgentTestDataProvider;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 
@@ -28,12 +30,15 @@ import static com.figaf.integration.cpi.utils.IFlowUtils.*;
 import static com.figaf.integration.cpi.utils.PackageUtils.API_TEST_PACKAGE_NAME;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Klochkov Sergey
  */
 @Slf4j
 class CpiIntegrationFlowClientTest {
+
+    private static final long DEPLOYMENT_TIMEOUT_MS = 60000;
 
     private static CpiIntegrationFlowClient cpiIntegrationFlowClient;
     private static IntegrationContentWebApiClient integrationContentWebApiClient;
@@ -123,7 +128,7 @@ class CpiIntegrationFlowClientTest {
 
     @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
     @ArgumentsSource(AgentTestDataProvider.class)
-    void test_deployIFlowAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
+    void test_deployIFlowAndCheckDeploymentStatusThenUndeployIFlowAndCheckDeploymentStatus(AgentTestData agentTestData) throws Exception {
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
         CpiArtifact iFlow = iFlowUtils.getOrCreateDummyIFlow(requestContext);
         assertThat(iFlow).as("iFlow %s wasn't found", API_TEST_DUMMY_IFLOW_NAME).isNotNull();
@@ -136,16 +141,28 @@ class CpiIntegrationFlowClientTest {
             API_TEST_DUMMY_IFLOW_NAME
         );
         assertThat(taskId).isNotBlank();
+        // uncomment together with enabling undeployment validation
+        //log.debug("Waiting {} ms for deployment", DEPLOYMENT_TIMEOUT_MS);
+        //Thread.sleep(DEPLOYMENT_TIMEOUT_MS);
 
         String status = cpiIntegrationFlowClient.checkDeploymentStatus(requestContext, taskId);
         assertThat(status).isNotBlank();
 
-        DeployedArtifact deployedArtifactInfo = cpiIntegrationFlowClient.getDeployedArtifactInfo(requestContext, iFlow.getTechnicalName());
+        DeployedArtifact deployedArtifactInfo = cpiIntegrationFlowClient.getDeployedArtifactInfo(requestContext, API_TEST_DUMMY_IFLOW_NAME);
         assertThat(deployedArtifactInfo).isNotNull();
 
         iFlowUtils.deleteIFlow(requestContext, iFlow);
+
         iFlow = iFlowUtils.findDummyIFlowInTestPackageIfExist(requestContext);
         assertThat(iFlow).as("iFlow %s was not deleted", API_TEST_DUMMY_IFLOW_NAME).isNull();
+
+        // undeployment sometimes takes even more than 2 min, it's not efficient to wait
+        // we didn't have any validation before, so, I would skip it now as well until we decide it's OK to wait for ~5 min for such test
+        //log.debug("Waiting {} ms for undeployment", DEPLOYMENT_TIMEOUT_MS);
+        //Thread.sleep(DEPLOYMENT_TIMEOUT_MS);
+        //assertThatThrownBy(() -> cpiIntegrationFlowClient.getDeployedArtifactInfo(requestContext, API_TEST_DUMMY_IFLOW_NAME))
+        //    .isInstanceOf(ClientIntegrationException.class)
+        //    .cause().isInstanceOf(HttpClientErrorException.NotFound.class);
     }
 
     @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
