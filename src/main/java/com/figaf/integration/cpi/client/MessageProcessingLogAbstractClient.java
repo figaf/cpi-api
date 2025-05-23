@@ -44,11 +44,11 @@ abstract class MessageProcessingLogAbstractClient extends CpiBaseClient {
 
     protected static final String PAGINATION_EXPAND_FILTER_TEMPLATE = "$inlinecount=allpages&$format=json&$top=%d&$skip=%d&$expand=Log&$filter=%s";
 
-    protected static final String QUERY_PARAMS_FOR_TRACES_WITH_IFLOW_NAME = "$format=json&$filter=LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
+    protected static final String QUERY_PARAMS_FOR_TRACES_WITH_IFLOW_NAME = "$format=json&$filter=LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED' or Status eq 'ESCALATED')";
 
     protected static final String SORT_FILTER_TEMPLATE = "$format=json&$orderby=LogEnd&$filter=%s";
 
-    protected static final String QUERY_PARAMS_FOR_TRACES = "$format=json&$filter=LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')";
+    protected static final String QUERY_PARAMS_FOR_TRACES = "$format=json&$filter=LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED' or Status eq 'ESCALATED')";
 
     protected static final String API_MSG_PROC_LOGS_CUSTOM_HEADER = "/api/v1/MessageProcessingLogs('%s')/CustomHeaderProperties?$format=json";
 
