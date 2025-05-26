@@ -61,7 +61,7 @@ public class MessageProcessingLogDefaultRuntimeClient extends MessageProcessingL
     public List<MessageProcessingLog> getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate) {
         log.debug("#getFinishedMessageProcessingLogsWithTraceLevel(RequestContext requestContext, String integrationFlowName, Date startDate): {}, {}, {}", requestContext, integrationFlowName, startDate);
         String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
-            format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
+            format("LogLevel eq 'TRACE' and IntegrationFlowName eq '%s' and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED' or Status eq 'ESCALATED')",
                 integrationFlowName,
                 GMT_DATE_FORMAT.format(startDate),
                 GMT_DATE_FORMAT.format(shiftDateTo55MinutesBackFromNow())
@@ -74,7 +74,7 @@ public class MessageProcessingLogDefaultRuntimeClient extends MessageProcessingL
         log.debug("#getFinishedMessageProcessingLogsWithTraceLevelByIFlowTechnicalNames(RequestContext requestContext, List<String> technicalNames, Date startDate): {}, {}, {}", requestContext, technicalNames, startDate);
         String technicalNamesFilter = buildTechnicalNamesFilter(technicalNames);
         String resourcePath = format(API_MSG_PROC_LOGS_WITH_PARAMS,
-            format("LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED')",
+            format("LogLevel eq 'TRACE' and (%s) and LogStart gt datetime'%s' and LogStart gt datetime'%s' and (Status eq 'COMPLETED' or Status eq 'FAILED' or Status eq 'ESCALATED')",
                 technicalNamesFilter,
                 GMT_DATE_FORMAT.format(startDate),
                 GMT_DATE_FORMAT.format(shiftDateTo55MinutesBackFromNow())
