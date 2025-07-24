@@ -56,7 +56,7 @@ public class CpiRuntimeArtifactParser {
             artifact.setCreationDate(CpiApiUtils.parseDate(artifactElement.getString("CreatedAt")));
             artifact.setCreatedBy(Utils.optString(artifactElement, "CreatedBy"));
             artifact.setModificationDate(CpiApiUtils.parseDate(Utils.optString(artifactElement, "ModifiedAt")));
-            artifact.setModifiedBy(artifactElement.getString("ModifiedBy"));
+            artifact.setModifiedBy(Utils.optString(artifactElement,"ModifiedBy"));
             artifact.setDescription(Utils.optString(artifactElement, "Description"));
             artifact.setTrackedObjectType(cpiArtifactType.getTrackedObjectType());
             artifact.setPackageTechnicalName(packageTechnicalName);

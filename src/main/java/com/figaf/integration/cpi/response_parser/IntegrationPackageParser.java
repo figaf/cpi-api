@@ -33,7 +33,7 @@ public class IntegrationPackageParser {
                 integrationPackage.setCreationDate(CpiApiUtils.parseDate(packageElement.getString("CreatedAt")));
                 integrationPackage.setCreatedBy(Utils.optString(packageElement, "CreatedBy"));
                 integrationPackage.setModificationDate(CpiApiUtils.parseDate(Utils.optString(packageElement, "ModifiedAt")));
-                integrationPackage.setModifiedBy(packageElement.getString("ModifiedBy"));
+                integrationPackage.setModifiedBy(Utils.optString(packageElement,"ModifiedBy"));
                 integrationPackage.setVendor(Utils.optString(packageElement, "Vendor"));
                 integrationPackage.setShortDescription(Utils.optString(packageElement, "ShortText"));
 
