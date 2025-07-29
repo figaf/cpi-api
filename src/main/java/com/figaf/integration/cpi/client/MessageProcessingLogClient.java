@@ -1,5 +1,7 @@
 package com.figaf.integration.cpi.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
@@ -125,7 +127,12 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationId(RequestContext requestContext, String correlationId) {
-        return  this.withRuntime(requestContext).getMessageProcessingLogsByCorrelationId(requestContext, correlationId);
+        return this.withRuntime(requestContext).getMessageProcessingLogsByCorrelationId(requestContext, correlationId);
+    }
+
+    public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdForTesting(RequestContext requestContext, String correlationId) {
+        RequestContext runtimeRequestContext = prepareRuntimeRequestContext(requestContext);
+        return this.withRuntime(runtimeRequestContext).getMessageProcessingLogsByCorrelationId(runtimeRequestContext, correlationId);
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdsAndIFlowNames(RequestContext requestContext, List<String> correlationIds, List<String> technicalNames) {
@@ -274,6 +281,17 @@ public class MessageProcessingLogClient {
             return defaultRuntimeClient;
         }
         return edgeRuntimeClient;
+    }
+
+    private RequestContext prepareRuntimeRequestContext(RequestContext requestContext) {
+        ConnectionProperties connectionProperties = isDefaultRuntime(requestContext)
+            ? requestContext.createConnectionPropertiesForMplNonEdge()
+            : requestContext.createConnectionPropertiesWithUserNameAndPassword();
+        //swallow copy here is acceptable, we don't mutate the references of original requestContext like samlResponseSigner
+        return requestContext
+            .toBuilder()
+            .connectionProperties(connectionProperties)
+            .build();
     }
 
     private void failDueToUnsupportedOperationInEdgeIntegrationCell(String runtimeLocationId) {
