@@ -73,12 +73,7 @@ public class CpiApiUtils {
         return uuid;
     }
 
-    public static boolean isDefaultRuntime(RequestContext requestContext) {
-        return isDefaultRuntime(requestContext.getRuntimeLocationId(), requestContext.getDefaultRuntimeLocationId());
-    }
-
     public static boolean isDefaultRuntime(String runtimeLocationId, String defaultRuntimeLocationId) {
         return StringUtils.isBlank(runtimeLocationId) || Objects.equals(runtimeLocationId, defaultRuntimeLocationId);
     }
-
 }

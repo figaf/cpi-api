@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-import static com.figaf.integration.cpi.utils.CpiApiUtils.isDefaultRuntime;
-
 /**
  * @author Ilya Nesterov
  */
@@ -93,7 +91,7 @@ public class IntegrationContentClient {
     }
 
     private IntegrationContentAbstractClient withRuntime(RequestContext requestContext) {
-        if (isDefaultRuntime(requestContext)) {
+        if (requestContext.isDefaultRuntime()) {
             return defaultRuntimeClient;
         }
         return edgeRuntimeClient;

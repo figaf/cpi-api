@@ -1,6 +1,5 @@
 package com.figaf.integration.cpi.client;
 
-import com.figaf.integration.common.entity.ConnectionProperties;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.factory.HttpClientsFactory;
 import com.figaf.integration.cpi.entity.criteria.MessageProcessingLogRunStepSearchCriteria;
@@ -12,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import static com.figaf.integration.cpi.utils.CpiApiUtils.isDefaultRuntime;
 
 /**
  * @author Kostas Charalambous
@@ -130,7 +128,7 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogsByCorrelationIdForTesting(RequestContext requestContext, String correlationId) {
-        RequestContext runtimeRequestContext = prepareRuntimeRequestContext(requestContext);
+        RequestContext runtimeRequestContext = requestContext.createFromCurrentUsingConnectionPropertiesContainer();
         return this.withRuntime(runtimeRequestContext).getMessageProcessingLogsByCorrelationId(runtimeRequestContext, correlationId);
     }
 
@@ -185,7 +183,7 @@ public class MessageProcessingLogClient {
     }
 
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String resourcePath) {
-        if (!isDefaultRuntime(requestContext)) {
+        if (!requestContext.isDefaultRuntime()) {
             log.debug(
                 "#getMessageProcessingLogs edge: requestContext={}, resourcePath={}",
                 requestContext,
@@ -276,21 +274,10 @@ public class MessageProcessingLogClient {
     }
 
     private MessageProcessingLogAbstractClient withRuntime(RequestContext requestContext) {
-        if (isDefaultRuntime(requestContext)) {
+        if (requestContext.isDefaultRuntime()) {
             return defaultRuntimeClient;
         }
         return edgeRuntimeClient;
-    }
-
-    private RequestContext prepareRuntimeRequestContext(RequestContext requestContext) {
-        ConnectionProperties connectionProperties = isDefaultRuntime(requestContext)
-            ? requestContext.getConnectionPropertiesContainer().getConnectionPropertiesForPublicApi()
-            : requestContext.getConnectionPropertiesContainer().getConnectionPropertiesUsernameAndPassword();
-        //swallow copy here is acceptable, we don't mutate the references of original requestContext like samlResponseSigner
-        return requestContext
-            .toBuilder()
-            .connectionProperties(connectionProperties)
-            .build();
     }
 
     private void failDueToUnsupportedOperationInEdgeIntegrationCell(String runtimeLocationId) {
