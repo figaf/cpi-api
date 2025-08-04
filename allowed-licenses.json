@@ -1,0 +1,47 @@
+{
+  "allowedLicenses": [
+    {
+      "moduleLicense": "Apache-2.0"
+    },
+    {
+      "moduleLicense": "MIT"
+    },
+    {
+      "moduleLicense": "MIT-0"
+    },
+    {
+      "moduleLicense": "Bouncy Castle Licence"
+    },
+    {
+      "moduleLicense": "LGPL-3.0-only"
+    },
+    {
+      "moduleLicense": "0BSD"
+    },
+    {
+      "moduleLicense": "BSD-2-Clause"
+    },
+    {
+      "moduleLicense": "BSD-3-Clause"
+    },
+    {
+      "moduleLicense": "The BSD License"
+    },
+    {
+      "moduleLicense": "MPL 2.0"
+    },
+    {
+      "moduleLicense": "Mozilla Public License, Version 2.0"
+    },
+    {
+      "moduleLicense": "EDL-1.0"
+    },
+    {
+      "moduleLicense": "EPL-2.0"
+    },
+    {
+      "moduleLicense": "Public-Domain",
+      "moduleName": "org.json:json"
+    }
+  ]
+}
