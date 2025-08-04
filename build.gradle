@@ -1,10 +1,11 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
+    id 'com.github.jk1.dependency-license-report' version '2.9'
 }
 
 group = 'com.github.figaf'
-version = '3.11'
+version = '3.12-IRT-5185-SNAPSHOT'
 ext {
     enableSnapshotsForDependencyResolutionAndPublishing = project.findProperty('enableSnapshots') ?: 'false'
     snapshotsRepoUrl = project.findProperty('snapshotsRepoUrl') ?: ''
@@ -13,8 +14,9 @@ ext {
 
     lombokVersion = '1.18.34'
     gsonVersion = '2.11.0'
-    integrationCommonsVersion = '2.6'
-    integrationCommonsTestVersion = '2.1'
+    integrationCommonsVersion = '2.8-IRT-5185-SNAPSHOT'
+    integrationCommonsTestVersion = '2.2-IRT-5185-SNAPSHOT'
+    logbackVersion = "1.5.7"
 }
 
 repositories {
@@ -44,6 +46,7 @@ dependencies {
     implementation "com.google.code.gson:gson:${gsonVersion}"
 
     testImplementation "com.github.figaf:integration-commons-test:${integrationCommonsTestVersion}"
+    testImplementation "ch.qos.logback:logback-classic:${logbackVersion}"
 }
 
 java {
@@ -67,14 +70,60 @@ test {
     maxHeapSize = "2G"
 }
 
+licenseReport {
+    renderers = [
+        new com.github.jk1.license.render.InventoryHtmlReportRenderer("report.html", "Backend")
+    ]
+    outputDir = "$projectDir/build/reports/licenses"
+    configurations = ['runtimeClasspath']
+    excludeBoms = true
+    allowedLicensesFile = new File("$projectDir/allowed-licenses.json")
+    filters = [new com.github.jk1.license.filter.SpdxLicenseBundleNormalizer()]
+}
+
 configurations.configureEach {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
+
+jar {
+    dependsOn "generateLicenseReport"
+
+    from("${rootDir}/LICENSE") {
+        into 'META-INF'
+        rename { 'LICENSE.txt' }
+    }
+
+    manifest {
+        attributes(
+            'Implementation-Title': project.name,
+            'Implementation-Version': project.version,
+            'License': 'MIT',
+            'License-URL': 'https://opensource.org/licenses/MIT'
+        )
+    }
+}
+
+check {
+    dependsOn "checkLicense"
+}
+
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
+
+            pom {
+                url = 'https://github.com/figaf/cpi-api'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                        distribution = 'repo'
+                    }
+                }
+            }
         }
     }
 
