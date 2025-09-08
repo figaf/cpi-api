@@ -13,6 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
+ * IMPORTANT! Result of configurations API depends on user that is used to execute it!
+ * So, that test may fail just because user doesn't have permissions to see statistics for particular part of the IS
  * @author Kostas Charalambous
  * @author Ilya Nesterov
  */
@@ -40,7 +42,7 @@ class ConfigurationsClientTest {
         assertThat(cpiConfigurations.getCloudIntegrationBuildNumber()).isNotBlank();
         assertThat(cpiConfigurations.getCloudIntegrationRunTimeBuildNumber()).isNotBlank();
         assertThat(cpiConfigurations.getIntegrationAdvisorBuildNumber()).isNotBlank();
-        assertThat(cpiConfigurations.getApiManagementBuildNumber()).isNotBlank();
+        //assertThat(cpiConfigurations.getApiManagementBuildNumber()).isNotBlank();
     }
 
     @Test
@@ -50,7 +52,8 @@ class ConfigurationsClientTest {
 
         CpiConfigurations cpiConfigurations = configurationsClient.getConfigurations(requestContext);
 
-        assertThat(cpiConfigurations.getTenantBuildNumber()).isNotBlank();
+        assertThat(cpiConfigurations.getCloudIntegrationBuildNumber()).isNotBlank();
+        assertThat(cpiConfigurations.getCloudIntegrationRunTimeBuildNumber()).isNotBlank();
     }
 
     @Test
