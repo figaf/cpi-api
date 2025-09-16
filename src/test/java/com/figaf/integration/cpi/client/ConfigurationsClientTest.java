@@ -32,9 +32,6 @@ class ConfigurationsClientTest {
     void test_getConfigurationsForIntegrationSuiteAgent_usingIntegrationSuiteUrl() {
         AgentTestData agentTestData = AgentTestDataProvider.buildAgentTestDataForCfIntegrationSuite();
         RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
-        requestContext
-            .getConnectionProperties()
-            .setHost("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
 
         CpiConfigurations cpiConfigurations = configurationsClient.getConfigurations(requestContext);
 

@@ -21,15 +21,11 @@ public class ConfigurationsClient extends CpiBaseClient {
 
     public CpiConfigurations getConfigurations(RequestContext requestContext) {
         log.debug("#getConfigurations(RequestContext requestContext): {}", requestContext);
-
-        String path;
-        if (isIntegrationSuiteHost(requestContext.getConnectionProperties().getHost())) {
-            path = API_CONFIGURATIONS;
-        } else {
-            path = "/itspaces" + API_CONFIGURATIONS;
-        }
-
-        return executeGet(requestContext, path, ConfigurationsParser::parseConfigurationsFromJsonString);
+        return executeGet(
+            requestContext.withPreservingIntegrationSuiteUrl(),
+            API_CONFIGURATIONS,
+            ConfigurationsParser::parseConfigurationsFromJsonString
+        );
     }
 
     @Override

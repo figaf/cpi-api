@@ -66,7 +66,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         try {
             String resourcePath = format(createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_ATTACHMENTS), messageGuid);
             JSONArray attachmentsJsonArray = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 resourcePath,
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
                 String.class
@@ -83,7 +83,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         try {
             String resourcePath = format(createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_MESSAGE_STORE_ENTRIES), messageGuid);
             JSONArray attachmentsJsonArray = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 resourcePath,
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
                 String.class
@@ -99,7 +99,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         try {
             String resourcePath = format(createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_ID), messageGuid);
             JSONObject messageProcessingLogsObject = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 resourcePath,
                 response -> new JSONObject(response).getJSONObject("d"),
                 String.class
@@ -118,7 +118,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         try {
             String resourcePath = format(createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_ERROR_INFORMATION_VALUE), messageGuid);
             return executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 resourcePath,
                 response -> response,
                 String.class
@@ -133,7 +133,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         String resourcePath = format(createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_CUSTOM_HEADER), messageGuid);
         try {
             JSONObject messageProcessingLogsObject = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 resourcePath,
                 response -> new JSONObject(response).getJSONObject("d"),
                 String.class
@@ -152,7 +152,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         String resourcePath = format(createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_RUNS), messageGuid);
         try {
             JSONArray runsJsonArray = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 resourcePath,
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
                 String.class
@@ -170,7 +170,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
                 ? createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_COUNT) :
                 new URI(null, null, createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_COUNT), String.format(FILTER, filter), null).toString();
             return executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 resourcePath,
                 response -> NumberUtils.isCreatable(response) ? NumberUtils.toInt(response) : 0,
                 String.class
@@ -188,7 +188,8 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
             URI uri = new URI(null, null, resourcePath, queryParams, null);
             int totalCount = getCountOfMessageProcessingLogsByFilter(requestContext, filter);
             return executeGet(
-                requestContext, uri.toString(),
+                requestContext.withPreservingIntegrationSuiteUrl(),
+                uri.toString(),
                 (response) -> MessageProcessingLogParser.buildMessageProcessingLogsResult(
                     response,
                     totalCount,
@@ -241,7 +242,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
             String attachmentResource = format(apiMsgStoreEntriesValue, attachmentId);
             String resourcePath = createBaseResourcePath(requestContext.getRuntimeLocationId(), attachmentResource);
             String responseText = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 resourcePath,
                 response -> response
             );
@@ -326,7 +327,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         String resourcePath = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOG_RUN_STEP_TRACE_MESSAGES);
         String fullPath = format(resourcePath, runId, runStep.getChildCount());
         JSONArray runsJsonArray = executeGet(
-            requestContext,
+            requestContext.withPreservingIntegrationSuiteUrl(),
             fullPath,
             response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
             String.class
@@ -346,7 +347,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
                 String resourcePathProperties = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_TRACE_MESSAGE_PROPERTIES);
                 String fullPathProperties = format(resourcePathProperties, optString(currentTraceMessage, "TraceId"));
                 JSONArray traceMessagePropertiesJsonArray = executeGet(
-                    requestContext,
+                    requestContext.withPreservingIntegrationSuiteUrl(),
                     fullPathProperties,
                     response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
                     String.class
@@ -361,7 +362,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
             traceMessageElement,
             runStep,
             runStepSearchCriteria,
-            requestContext
+            requestContext.withPreservingIntegrationSuiteUrl()
         );
 
         if (runStepSearchCriteria.isInitTraceMessageProperties()) {
@@ -374,7 +375,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
                 String resourcePathProperties = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_TRACE_MESSAGE_PROPERTIES);
                 String fullPathProperties = format(resourcePathProperties, traceMessage.getTraceId());
                 traceMessagePropertiesJsonArray = executeGet(
-                    requestContext,
+                    requestContext.withPreservingIntegrationSuiteUrl(),
                     fullPathProperties,
                     response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
                     String.class
@@ -385,7 +386,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
             String resourcePathProperties = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_TRACE_MESSAGE_EXCHANGE_PROPERTIES);
             String fullPathProperties = format(resourcePathProperties, traceMessage.getTraceId());
             JSONArray traceMessageExchangePropertiesJsonArray = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 fullPathProperties,
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
                 String.class
@@ -398,7 +399,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
     public List<MessageProcessingLogRunStep> getRunSteps(RequestContext requestContext, String runId) {
         log.debug("#getRunSteps(RequestContext requestContext, String runId): {}, {}", requestContext, runId);
         try {
-            List<JSONObject> jsonObjectRunSteps = getRunStepJsonObjects(requestContext, runId);
+            List<JSONObject> jsonObjectRunSteps = getRunStepJsonObjects(requestContext.withPreservingIntegrationSuiteUrl(), runId);
             return MessageProcessingLogRunStepParser.createMessageProcessingLogRunSteps(jsonObjectRunSteps);
         } catch (Exception ex) {
             throw new ClientIntegrationException("Error occurred while parsing response: " + ex.getMessage(), ex);
@@ -411,7 +412,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
             String resourcePath = createBaseResourcePath(requestContext.getRuntimeLocationId(), API_TRACE_MESSAGE_PAYLOAD);
             String fullPathWithParams = format(resourcePath, traceId);
             String payloadResponse = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 fullPathWithParams,
                 response -> response,
                 String.class
@@ -478,7 +479,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         try {
             String resourcePath = format(createBaseResourcePath(requestContext.getRuntimeLocationId(), API_MSG_PROC_LOGS_ERROR_INFORMATION), messageId);
             JSONObject jsonObject = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 resourcePath,
                 response -> new JSONObject(response).getJSONObject("d"),
                 String.class
@@ -556,7 +557,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
             String queryParams = String.format(SORT_FILTER_LIMIT_TEMPLATE, top, filter);
             URI uri = new URI(null, null, resourcePath, queryParams, null);
             JSONArray messageProcessingLogsJsonArray = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 uri.toString(),
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
                 String.class
@@ -568,12 +569,11 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
         }
     }
 
-
     public List<MessageProcessingLog> getMessageProcessingLogs(RequestContext requestContext, String resourcePath, String queryParams) {
         try {
             URI uri = new URI(null, null, resourcePath, queryParams, null);
             JSONArray messageProcessingLogsJsonArray = executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 uri.toString(),
                 response -> new JSONObject(response).getJSONObject("d").getJSONArray("results"),
                 String.class
@@ -593,7 +593,7 @@ public class MessageProcessingLogEdgeRuntimeClient extends MessageProcessingLogA
     ) throws URISyntaxException {
         URI uri = new URI(null, null, resourcePath, queryParams, null);
         JSONObject jsonObjectD = executeGet(
-            requestContext,
+            requestContext.withPreservingIntegrationSuiteUrl(),
             uri.toString(),
             response -> new JSONObject(response).getJSONObject("d"),
             String.class

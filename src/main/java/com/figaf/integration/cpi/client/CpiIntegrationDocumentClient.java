@@ -61,17 +61,11 @@ public class CpiIntegrationDocumentClient extends BaseClient {
         log.debug("#getDocumentsByPackage(RequestContext requestContext, String packageTechnicalName, String packageDisplayedName, String packagePackageExternalId, TrackedObjectType documentType): " +
             "{}, {}, {}, {}, {}", requestContext, packageTechnicalName, packageDisplayedName, packagePackageExternalId, documentType);
 
-        String path;
-        switch (documentType) {
-            case "FILE_DOCUMENT":
-                path = String.format(API_FILE_DOCUMENTS_META_DATA, packageTechnicalName);
-                break;
-            case "URL_DOCUMENT":
-                path = String.format(API_URL_DOCUMENTS, packageTechnicalName);
-                break;
-            default:
-                throw new IllegalArgumentException("Unexpected object type " + documentType);
-        }
+        String path = switch (documentType) {
+            case "FILE_DOCUMENT" -> String.format(API_FILE_DOCUMENTS_META_DATA, packageTechnicalName);
+            case "URL_DOCUMENT" -> String.format(API_URL_DOCUMENTS, packageTechnicalName);
+            default -> throw new IllegalArgumentException("Unexpected object type " + documentType);
+        };
 
         return executeGet(
             requestContext,

@@ -41,7 +41,7 @@ public class EventMeshClient extends CpiBaseClient {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Accept", "application/json");
             return executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 httpHeaders,
                 API_QUEUES,
                 queuesMetadataResponseRaw -> {
@@ -61,7 +61,7 @@ public class EventMeshClient extends CpiBaseClient {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Accept", "application/json");
             return executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 httpHeaders,
                 path,
                 queueMetadataResponseRaw -> ObjectMapperFactory.getJsonObjectMapper().readValue(queueMetadataResponseRaw, QueueMetadata.class),
@@ -76,7 +76,7 @@ public class EventMeshClient extends CpiBaseClient {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Accept", "application/json");
             return executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 httpHeaders,
                 String.format(API_SUBSCRIPTIONS, queueName),
                 subscriptionMetadataRawResponse -> {
@@ -95,7 +95,7 @@ public class EventMeshClient extends CpiBaseClient {
         String path = String.format(API_QUEUES_MANAGE, queueNameEncoded);
         return executeWithExceptionHandling(() ->
                 executeMethod(
-                    requestContext,
+                    requestContext.withPreservingIntegrationSuiteUrl(),
                     "/api/1.0/user",
                     path,
                     (url, token, restTemplateWrapper) -> createQueue(url, token, restTemplateWrapper.getRestTemplate())
@@ -110,7 +110,7 @@ public class EventMeshClient extends CpiBaseClient {
         String path = String.format(API_QUEUES_MANAGE, queueNameEncoded);
         executeWithExceptionHandling(() -> {
             executeMethod(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 "/api/1.0/user",
                 path,
                 (url, token, restTemplateWrapper) -> {
@@ -131,7 +131,7 @@ public class EventMeshClient extends CpiBaseClient {
         );
         return executeWithExceptionHandling(() ->
                 executeMethod(
-                    requestContext,
+                    requestContext.withPreservingIntegrationSuiteUrl(),
                     "/api/1.0/user",
                     path,
                     (url, token, restTemplateWrapper) -> createSubscription(url, token, restTemplateWrapper.getRestTemplate())

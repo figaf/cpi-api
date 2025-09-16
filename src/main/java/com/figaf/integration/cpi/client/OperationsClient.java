@@ -40,7 +40,7 @@ public class OperationsClient extends CpiBaseClient {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Accept", "application/json");
             return executeGet(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 httpHeaders,
                 RUNTIME_LOCATION_URI,
                 runtimeLocationsResponseRaw -> ObjectMapperFactory.getJsonObjectMapper().readValue(runtimeLocationsResponseRaw, RuntimeLocationsResponse.class),

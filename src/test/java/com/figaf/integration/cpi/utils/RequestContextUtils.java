@@ -10,8 +10,7 @@ public class RequestContextUtils {
 
     public static RequestContext createRequestContextForWebApiWithIntegrationSuiteUrl() {
         AgentTestData integrationSuiteAgentTestData = AgentTestDataProvider.buildAgentTestDataForCfIntegrationSuite();
-        RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());
-        requestContext.getConnectionProperties().setHost("figafpartner-1.integrationsuite.cfapps.eu10-003.hana.ondemand.com");
+        RequestContext requestContext = integrationSuiteAgentTestData.createRequestContext(integrationSuiteAgentTestData.getTitle());;
         requestContext.setRestTemplateWrapperKey(integrationSuiteAgentTestData.getTitle() + "_IS");
         requestContext.setDefaultRuntimeLocationId(CLOUD_INTEGRATION_RUNTIME_LOCATION_ID);
         requestContext.setRuntimeLocationId(CLOUD_INTEGRATION_RUNTIME_LOCATION_ID);
