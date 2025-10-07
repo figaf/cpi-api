@@ -57,8 +57,7 @@ public class IntegrationContentPublicApiClient extends IntegrationContentAbstrac
                 }
             );
         } catch (Exception ex) {
-            log.error("Error occurred while fetching integration runtime artifacts " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while fetching integration runtime artifacts: " + ex.getMessage(), ex);
+            throw new ClientIntegrationException("Error occurred while fetching integration runtime artifacts", ex);
         }
     }
 
@@ -76,8 +75,10 @@ public class IntegrationContentPublicApiClient extends IntegrationContentAbstrac
                 }
             );
         } catch (Exception ex) {
-            log.error("Error occurred while fetching integration runtime artifact " + ex.getMessage(), ex);
-            throw new ClientIntegrationException("Error occurred while fetching integration runtime artifact: " + ex.getMessage(), ex);
+            throw new ClientIntegrationException(
+                "Failed to retrieve integration runtime artifact %s".formatted(technicalName),
+                ex
+            );
         }
     }
 
@@ -119,7 +120,6 @@ public class IntegrationContentPublicApiClient extends IntegrationContentAbstrac
                     }
             );
         } catch (Exception ex) {
-            log.error("Error occurred while fetching error information about runtime artifact " + ex.getMessage(), ex);
             throw new ClientIntegrationException("Error occurred while fetching error information about runtime artifact: " + ex.getMessage(), ex);
         }
     }
