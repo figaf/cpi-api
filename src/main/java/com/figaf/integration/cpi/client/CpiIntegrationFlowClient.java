@@ -39,7 +39,7 @@ import static java.lang.String.format;
 @Slf4j
 public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
 
-    private static final String API_IFLOW_DEPLOYED_ARTIFACT_INFO = "%s/api/1.0/deployedartifacts/%s?bundleType=IntegrationFlow";
+    private static final String API_IFLOW_DEPLOYED_ARTIFACT_INFO = "/api/1.0/deployedartifacts/%s?bundleType=IntegrationFlow";
     private static final String API_UPLOAD_IFLOW = "/itspaces/api/1.0/workspace/%s/iflows/";
     private static final String API_DEPLOY_IFLOW = "/itspaces/api/1.0/workspace/%s/artifacts/%s/entities/%s/iflows/%s?webdav=DEPLOY";
     private static final String API_SET_TRACE_LOG_LEVEL_FOR_IFLOWS = "/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentSetMplLogLevelCommand";
@@ -143,10 +143,7 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     // that API has parameter bundleType but it works only for IntegrationFlow type, so for now it's not in parent class
     public DeployedArtifact getDeployedArtifactInfo(RequestContext requestContext, String iFlowTechnicalName) {
         log.debug("#getDeployedArtifactInfo: iFlowTechnicalName={}, requestContext={}", iFlowTechnicalName, requestContext);
-        String url = format(API_IFLOW_DEPLOYED_ARTIFACT_INFO,
-            resolveApiPrefix(requestContext.getConnectionProperties().getHost()),
-            iFlowTechnicalName
-        );
+        String url = format(API_IFLOW_DEPLOYED_ARTIFACT_INFO, iFlowTechnicalName);
         url = addRuntimeLocationIdToUrlIfNotBlank(url, requestContext.getRuntimeLocationId());
 
         return executeGet(
