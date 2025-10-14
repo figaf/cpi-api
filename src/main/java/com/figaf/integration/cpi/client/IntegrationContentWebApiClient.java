@@ -33,10 +33,10 @@ import static java.lang.String.format;
 @Slf4j
 public class IntegrationContentWebApiClient extends IntegrationContentAbstractClient {
 
-    private static final String OPERATIONS_PATH_FOR_TOKEN = "%s/Operations";
+    private static final String OPERATIONS_PATH_FOR_TOKEN = "/Operations";
 
-    private static final String INTEGRATION_COMPONENTS_LIST_API = "%s/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand";
-    private static final String INTEGRATION_COMPONENT_DETAIL_API = "%s/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentDetailCommand?artifactId=%s";
+    private static final String INTEGRATION_COMPONENTS_LIST_API = "/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand";
+    private static final String INTEGRATION_COMPONENT_DETAIL_API = "/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentDetailCommand?artifactId=%s";
     private static final String DELETE_CONTENT_API = "%s/Operations/com.sap.it.nm.commands.deploy.DeleteContentCommand";
 
     private static final Map<String, String> NODE_TYPE_MAPPING = new HashMap<>();
@@ -51,11 +51,10 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
 
     public List<IntegrationContent> getAllIntegrationRuntimeArtifacts(RequestContext requestContext) {
         log.debug("#getAllIntegrationRuntimeArtifacts: requestContext={}", requestContext);
-        String apiPrefix = resolveApiPrefix(requestContext.getConnectionProperties().getHost());
         return executeMethod(
-            requestContext,
-            format(OPERATIONS_PATH_FOR_TOKEN, apiPrefix),
-            addRuntimeLocationIdToUrlIfNotBlank(format(INTEGRATION_COMPONENTS_LIST_API, apiPrefix), requestContext.getRuntimeLocationId()),
+            requestContext.withPreservingIntegrationSuiteUrl(),
+            OPERATIONS_PATH_FOR_TOKEN,
+            addRuntimeLocationIdToUrlIfNotBlank(INTEGRATION_COMPONENTS_LIST_API, requestContext.getRuntimeLocationId()),
             (url, token, restTemplateWrapper) -> callIntegrationComponentsList(
                 url,
                 requestContext.getRuntimeLocationId(),
@@ -70,11 +69,10 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
     public IntegrationContent getIntegrationRuntimeArtifact(RequestContext requestContext, String runtimeArtifactId) {
         log.debug("#getIntegrationRuntimeArtifact: requestContext={}, runtimeArtifactId={}", requestContext, runtimeArtifactId);
         try {
-            String apiPrefix = resolveApiPrefix(requestContext.getConnectionProperties().getHost());
             return executeMethod(
-                requestContext,
-                format(OPERATIONS_PATH_FOR_TOKEN, apiPrefix),
-                addRuntimeLocationIdToUrlIfNotBlank(format(INTEGRATION_COMPONENT_DETAIL_API, apiPrefix, normalizeUuid(runtimeArtifactId)), requestContext.getRuntimeLocationId()),
+                requestContext.withPreservingIntegrationSuiteUrl(),
+                OPERATIONS_PATH_FOR_TOKEN,
+                addRuntimeLocationIdToUrlIfNotBlank(format(INTEGRATION_COMPONENT_DETAIL_API, normalizeUuid(runtimeArtifactId)), requestContext.getRuntimeLocationId()),
                 (url, token, restTemplateWrapper) -> callIntegrationComponentDetail(
                     url,
                     requestContext.getRuntimeLocationId(),
@@ -129,11 +127,10 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
 
         try {
             IntegrationContent runtimeArtifact = getIntegrationRuntimeArtifact(requestContext, runtimeArtifactId);
-            String apiPrefix = resolveApiPrefix(requestContext.getConnectionProperties().getHost());
             executeMethod(
                 requestContext,
-                format(OPERATIONS_PATH_FOR_TOKEN, apiPrefix),
-                format(DELETE_CONTENT_API, apiPrefix),
+                OPERATIONS_PATH_FOR_TOKEN,
+                DELETE_CONTENT_API,
                 (url, token, restTemplateWrapper) -> callDeleteContent(
                     url,
                     runtimeArtifact,

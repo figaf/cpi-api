@@ -15,7 +15,7 @@ ext {
     lombokVersion = '1.18.34'
     gsonVersion = '2.11.0'
     integrationCommonsVersion = '2.11-IRT-5261-SNAPSHOT'
-    integrationCommonsTestVersion = '2.2'
+    integrationCommonsTestVersion = '2.3-IRT-5148-SNAPSHOT'
     logbackVersion = "1.5.7"
 }
 

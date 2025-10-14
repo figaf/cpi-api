@@ -204,12 +204,6 @@ public abstract class CpiBaseClient extends BaseClient {
         );
     }
 
-    protected static String resolveApiPrefix(String host) {
-        return isIntegrationSuiteHost(host)
-            ? ""
-            : "/itspaces";
-    }
-
     protected static boolean isIntegrationSuiteHost(String host) {
         return StringUtils.isNotBlank(host)
             && PATTERN_IS.matcher(host).matches();
