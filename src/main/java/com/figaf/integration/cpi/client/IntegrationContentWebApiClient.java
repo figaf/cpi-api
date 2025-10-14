@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -68,19 +69,27 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
     @Override
     public IntegrationContent getIntegrationRuntimeArtifact(RequestContext requestContext, String runtimeArtifactId) {
         log.debug("#getIntegrationRuntimeArtifact: requestContext={}, runtimeArtifactId={}", requestContext, runtimeArtifactId);
-        String apiPrefix = resolveApiPrefix(requestContext.getConnectionProperties().getHost());
-        return executeMethod(
-            requestContext,
-            format(OPERATIONS_PATH_FOR_TOKEN, apiPrefix),
-            addRuntimeLocationIdToUrlIfNotBlank(format(INTEGRATION_COMPONENT_DETAIL_API, apiPrefix, normalizeUuid(runtimeArtifactId)), requestContext.getRuntimeLocationId()),
-            (url, token, restTemplateWrapper) -> callIntegrationComponentDetail(
-                url,
-                requestContext.getRuntimeLocationId(),
-                requestContext.getDefaultRuntimeLocationId(),
-                token,
-                restTemplateWrapper.getRestTemplate()
-            )
-        );
+        try {
+            String apiPrefix = resolveApiPrefix(requestContext.getConnectionProperties().getHost());
+            return executeMethod(
+                requestContext,
+                format(OPERATIONS_PATH_FOR_TOKEN, apiPrefix),
+                addRuntimeLocationIdToUrlIfNotBlank(format(INTEGRATION_COMPONENT_DETAIL_API, apiPrefix, normalizeUuid(runtimeArtifactId)), requestContext.getRuntimeLocationId()),
+                (url, token, restTemplateWrapper) -> callIntegrationComponentDetail(
+                    url,
+                    requestContext.getRuntimeLocationId(),
+                    requestContext.getDefaultRuntimeLocationId(),
+                    token,
+                    restTemplateWrapper.getRestTemplate()
+                )
+            );
+        } catch (Exception ex) {
+            String errorMessage = "Failed to retrieve integration runtime artifact %s".formatted(runtimeArtifactId);
+            if (ex instanceof HttpClientErrorException.NotFound) {
+                errorMessage += " because it wasn't found. Most likely artifact is not deployed or not started yet";
+            }
+            throw new ClientIntegrationException(errorMessage, ex);
+        }
     }
 
     @Override

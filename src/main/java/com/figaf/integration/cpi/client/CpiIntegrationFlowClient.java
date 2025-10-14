@@ -155,10 +155,11 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
                 body -> ObjectMapperFactory.getJsonObjectMapper().readValue(body, DeployedArtifact.class)
             );
         } catch (Exception ex) {
-            throw new ClientIntegrationException(
-                "Failed to retrieve deployed artifact info for IFlow %s".formatted(iFlowTechnicalName),
-                ex
-            );
+            String errorMessage = "Failed to retrieve deployed artifact info for IFlow %s".formatted(iFlowTechnicalName);
+            if (ex instanceof HttpClientErrorException.NotFound) {
+                errorMessage += " because it wasn't found. Most likely artifact is not deployed or not started yet";
+            }
+            throw new ClientIntegrationException(errorMessage, ex);
         }
     }
 

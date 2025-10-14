@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,10 +76,11 @@ public class IntegrationContentPublicApiClient extends IntegrationContentAbstrac
                 }
             );
         } catch (Exception ex) {
-            throw new ClientIntegrationException(
-                "Failed to retrieve integration runtime artifact %s".formatted(technicalName),
-                ex
-            );
+            String errorMessage = "Failed to retrieve integration runtime artifact %s".formatted(technicalName);
+            if (ex instanceof HttpClientErrorException.NotFound) {
+                errorMessage += " because it wasn't found. Most likely artifact is not deployed or not started yet";
+            }
+            throw new ClientIntegrationException(errorMessage, ex);
         }
     }
 
