@@ -149,13 +149,21 @@ public class CpiRuntimeArtifactClient extends CpiBaseClient {
         String packageExternalId,
         String artifactExternalId
     ) {
-        String path = String.format(API_DOWNLOAD_ARTIFACT, packageExternalId, artifactExternalId, artifactExternalId);
-        return executeGet(
-            requestContext,
-            path,
-            resolvedBody -> resolvedBody,
-            byte[].class
-        );
+        try {
+            String path = String.format(API_DOWNLOAD_ARTIFACT, packageExternalId, artifactExternalId, artifactExternalId);
+            return executeGet(
+                requestContext,
+                path,
+                resolvedBody -> resolvedBody,
+                byte[].class
+            );
+        } catch (Exception ex) {
+            String errorMessage = "Could not download artifact";
+            if (ex.getMessage().contains("\"errorCode\":\"ARTIFACT_ACCESS_DENIED_DOWNLOAD\"")) {
+                errorMessage += " because user does not have access to it. Most likely access is restricted by Access Policies";
+            }
+            throw new ClientIntegrationException(errorMessage, ex);
+        }
     }
 
     public void updateArtifact(RequestContext requestContext, CreateOrUpdateCpiArtifactRequest createOrUpdateCpiArtifactRequest) {

@@ -1,6 +1,5 @@
 package com.figaf.integration.cpi.client;
 
-import com.figaf.integration.common.entity.CloudPlatformType;
 import com.figaf.integration.common.entity.RequestContext;
 import com.figaf.integration.common.exception.ClientIntegrationException;
 import com.figaf.integration.common.factory.HttpClientsFactory;
@@ -143,14 +142,22 @@ public class CpiIntegrationFlowClient extends CpiRuntimeArtifactClient {
     // that API has parameter bundleType but it works only for IntegrationFlow type, so for now it's not in parent class
     public DeployedArtifact getDeployedArtifactInfo(RequestContext requestContext, String iFlowTechnicalName) {
         log.debug("#getDeployedArtifactInfo: iFlowTechnicalName={}, requestContext={}", iFlowTechnicalName, requestContext);
-        String url = format(API_IFLOW_DEPLOYED_ARTIFACT_INFO, iFlowTechnicalName);
-        url = addRuntimeLocationIdToUrlIfNotBlank(url, requestContext.getRuntimeLocationId());
+        try {
+            String url = format(API_IFLOW_DEPLOYED_ARTIFACT_INFO, iFlowTechnicalName);
+            url = addRuntimeLocationIdToUrlIfNotBlank(url, requestContext.getRuntimeLocationId());
 
-        return executeGet(
-            requestContext,
-            url,
-            body -> ObjectMapperFactory.getJsonObjectMapper().readValue(body, DeployedArtifact.class)
-        );
+            return executeGet(
+                requestContext,
+                url,
+                body -> ObjectMapperFactory.getJsonObjectMapper().readValue(body, DeployedArtifact.class)
+            );
+        } catch (Exception ex) {
+            String errorMessage = "Failed to retrieve deployed artifact info for IFlow %s".formatted(iFlowTechnicalName);
+            if (ex instanceof HttpClientErrorException.NotFound) {
+                errorMessage += " because it wasn't found. Most likely artifact is not deployed or not started yet";
+            }
+            throw new ClientIntegrationException(errorMessage, ex);
+        }
     }
 
     public void setTraceLogLevelForIFlows(RequestContext requestContext, Collection<IFlowRuntimeData> iFlowRuntimeDataCollection) {
