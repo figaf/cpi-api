@@ -276,14 +276,7 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
         integrationContent.setExternalId(artifactInformation.getId());
         integrationContent.setVersion(artifactInformation.getVersion());
         integrationContent.setName(artifactInformation.getName());
-        String typeToReplace = NODE_TYPE_MAPPING.getOrDefault(
-            artifactInformation.getNodeType(),
-            artifactInformation.getNodeType()
-        );
-        if (StringUtils.isBlank(typeToReplace)) {
-            typeToReplace = artifactInformation.getNodeType();
-        }
-        integrationContent.setType(typeToReplace);
+        integrationContent.setType(artifactInformation.getType());
         integrationContent.setTenantId(artifactInformation.getTenantId());
         integrationContent.setDeployedBy(artifactInformation.getDeployedBy());
         integrationContent.setDeployedOn(CpiApiUtils.parseDate(artifactInformation.getDeployedOn()));
