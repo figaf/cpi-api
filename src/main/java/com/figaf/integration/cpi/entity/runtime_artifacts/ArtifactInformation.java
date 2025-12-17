@@ -34,6 +34,9 @@ public class ArtifactInformation {
     @JacksonXmlProperty(localName = "name")
     private String name;
 
+    @JacksonXmlProperty(localName = "type")
+    private String type;
+
     @JacksonXmlProperty(localName = "tenantId")
     private String tenantId;
 
