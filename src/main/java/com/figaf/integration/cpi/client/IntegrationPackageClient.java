@@ -42,6 +42,39 @@ public class IntegrationPackageClient extends BaseClient {
         return executeGet(requestContext, path, IntegrationPackageParser::buildIntegrationPackages);
     }
 
+    public IntegrationPackage getIntegrationPackageByTechnicalName(RequestContext requestContext, String packageTechnicalName) {
+        return getIntegrationPackageByTechnicalName(requestContext, packageTechnicalName, true);
+    }
+
+    public IntegrationPackage getIntegrationPackageByTechnicalName(
+        RequestContext requestContext,
+        String packageTechnicalName,
+        boolean throwExceptionIfNotFound
+    ) {
+        List<IntegrationPackage> integrationPackagesSearchResult = getIntegrationPackages(
+            requestContext,
+            format("TechnicalName eq '%s'", packageTechnicalName)
+        );
+
+        if (integrationPackagesSearchResult.size() == 1) {
+            return integrationPackagesSearchResult.get(0);
+        } else if (integrationPackagesSearchResult.size() > 1) {
+            throw new ClientIntegrationException(
+                format(
+                    "Unexpected state: %d integration packages were found by name %s.",
+                    integrationPackagesSearchResult.size(),
+                    packageTechnicalName
+                )
+            );
+        } else {
+            if (throwExceptionIfNotFound) {
+                throw new ClientIntegrationException(format("Can't find integration package by name %s.", packageTechnicalName));
+            } else {
+                return null;
+            }
+        }
+    }
+
     public byte[] downloadPackage(RequestContext requestContext, String packageTechnicalName) {
         log.debug("#downloadPackage(RequestContext requestContext, String packageTechnicalName): {}, {}", requestContext, packageTechnicalName);
 
