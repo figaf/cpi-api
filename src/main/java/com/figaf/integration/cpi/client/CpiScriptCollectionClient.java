@@ -6,11 +6,13 @@ import com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifact;
 import com.figaf.integration.cpi.entity.designtime_artifacts.CreateScriptCollectionRequest;
 import com.figaf.integration.cpi.entity.designtime_artifacts.UpdateScriptCollectionRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.SCRIPT_COLLECTION;
+import static com.figaf.integration.cpi.utils.CpiApiUtils.appendRuntimeProfileIfPresent;
 
 /**
  * @author Klochkov Sergey
@@ -89,22 +91,30 @@ public class CpiScriptCollectionClient extends CpiRuntimeArtifactClient {
         RequestContext requestContext,
         String packageExternalId,
         String scriptCollectionExternalId,
-        String scriptCollectionTechnicalName
+        String scriptCollectionTechnicalName,
+        String runtimeProfile
     ) {
         log.debug("#deployScriptCollection(RequestContext commonClientWrapperEntity, String packageExternalId, " +
                 "String scriptCollectionExternalId, String scriptCollectionTechnicalName): {}, {}, {}, {}",
             requestContext, packageExternalId, scriptCollectionExternalId, scriptCollectionTechnicalName
         );
-
+        String baseUrl = String.format(
+            API_DEPLOY_SCRIPT_COLLECTION,
+            packageExternalId,
+            scriptCollectionExternalId,
+            scriptCollectionExternalId,
+            scriptCollectionTechnicalName
+        );
+        String resolvedUrl = appendRuntimeProfileIfPresent(
+            baseUrl,
+            runtimeProfile
+        );
+        if (StringUtils.isNotBlank(runtimeProfile)) {
+            resolvedUrl = resolvedUrl + "&artifactType=ScriptCollection";
+        }
         return executeMethod(
             requestContext,
-            String.format(
-                API_DEPLOY_SCRIPT_COLLECTION,
-                packageExternalId,
-                scriptCollectionExternalId,
-                scriptCollectionExternalId,
-                scriptCollectionTechnicalName
-            ),
+            resolvedUrl,
             (url, token, restTemplateWrapper) -> deployArtifact(
                 requestContext.getConnectionProperties(),
                 packageExternalId,
