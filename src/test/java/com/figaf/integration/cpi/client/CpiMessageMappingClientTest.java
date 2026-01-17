@@ -134,4 +134,30 @@ class CpiMessageMappingClientTest {
         assertThat(messageMapping).as("message mapping %s was not deleted", API_TEST_DUMMY_MESSAGE_MAPPING_NAME).isNull();
     }
 
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
+    @ArgumentsSource(AgentTestDataProvider.class)
+    void test_deployMessageMappingWithRuntimeProfileAndCheckDeploymentStatus(
+        AgentTestData agentTestData
+    ) throws Exception {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        CpiArtifact messageMapping = messageMappingUtils.getOrCreateDummyMessageMapping(requestContext);
+        assertThat(messageMapping).as("message mapping %s wasn't found", API_TEST_DUMMY_MESSAGE_MAPPING_NAME).isNotNull();
+
+        String messageMappingExternalId = messageMapping.getExternalId();
+        requestContext.setRuntimeLocationId("edge-suseedge");
+        String taskId = cpiMessageMappingClient.deployMessageMapping(
+            requestContext,
+            messageMapping.getPackageExternalId(),
+            messageMappingExternalId
+        );
+
+        assertThat(taskId).isNotBlank();
+        String status = cpiMessageMappingClient.checkDeploymentStatus(requestContext, taskId);
+        assertThat(status).isNotBlank();
+        messageMappingUtils.deleteMessageMapping(requestContext, messageMapping);
+        messageMapping = messageMappingUtils.findDummyMessageMappingInTestPackageIfExist(requestContext);
+        assertThat(messageMapping)
+            .as("message mapping %s was not deleted", API_TEST_DUMMY_MESSAGE_MAPPING_NAME)
+            .isNull();
+    }
 }

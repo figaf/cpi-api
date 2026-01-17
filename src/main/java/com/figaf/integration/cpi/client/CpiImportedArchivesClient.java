@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.IMPORTED_ARCHIVES;
+import static com.figaf.integration.cpi.utils.CpiApiUtils.appendRuntimeProfileIfPresent;
 
 @Slf4j
 public class CpiImportedArchivesClient extends CpiRuntimeArtifactClient {
@@ -77,16 +78,21 @@ public class CpiImportedArchivesClient extends CpiRuntimeArtifactClient {
                 "String importedArchivesExternalId, String importedArchivesTechnicalName): {}, {}, {}, {}",
             requestContext, packageExternalId, importedArchivesExternalId, importedArchivesTechnicalName
         );
-
+        String baseUrl = String.format(
+            API_DEPLOY_IMPORTED_ARCHIVES,
+            packageExternalId,
+            importedArchivesExternalId,
+            importedArchivesExternalId,
+            importedArchivesTechnicalName
+        );
+        String resolvedUrl = appendRuntimeProfileIfPresent(
+            baseUrl,
+            requestContext.getRuntimeLocationId(),
+            requestContext
+        );
         return executeMethod(
             requestContext,
-            String.format(
-                API_DEPLOY_IMPORTED_ARCHIVES,
-                packageExternalId,
-                importedArchivesExternalId,
-                importedArchivesExternalId,
-                importedArchivesTechnicalName
-            ),
+            resolvedUrl,
             (url, token, restTemplateWrapper) -> deployArtifact(
                 requestContext.getConnectionProperties(),
                 packageExternalId,
