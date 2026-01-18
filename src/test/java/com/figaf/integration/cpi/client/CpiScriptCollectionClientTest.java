@@ -123,7 +123,8 @@ class CpiScriptCollectionClientTest {
             requestContext,
             scriptCollection.getPackageExternalId(),
             scriptCollectionExternalId,
-            scriptCollection.getTechnicalName()
+            scriptCollection.getTechnicalName(),
+            null
         );
         assertThat(taskId).isNotBlank();
 
@@ -135,4 +136,39 @@ class CpiScriptCollectionClientTest {
         assertThat(scriptCollection).as("script collection %s was not deleted", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME).isNull();
     }
 
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
+    @ArgumentsSource(AgentTestDataProvider.class)
+    void test_deployScriptCollectionWithRuntimeProfileAndCheckDeploymentStatus(
+        AgentTestData agentTestData
+    ) throws Exception {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        CpiArtifact scriptCollection = scriptCollectionUtils.getOrCreateDummyScriptCollection(requestContext);
+        assertThat(scriptCollection)
+            .as("script collection %s wasn't found", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME)
+            .isNotNull();
+
+        String scriptCollectionExternalId = scriptCollection.getExternalId();
+        String runtimeProfile = "edge-suseedge";
+        String taskId = cpiScriptCollectionClient.deployScriptCollection(
+            requestContext,
+            scriptCollection.getPackageExternalId(),
+            scriptCollectionExternalId,
+            scriptCollection.getTechnicalName(),
+            runtimeProfile
+        );
+
+        assertThat(taskId).isNotBlank();
+        String status = cpiScriptCollectionClient.checkDeploymentStatus(requestContext, taskId);
+
+        assertThat(status).isNotBlank();
+        scriptCollectionUtils.deleteScriptCollection(
+            requestContext,
+            scriptCollection
+        );
+
+        scriptCollection = scriptCollectionUtils.findDummyScriptCollectionInTestPackageIfExist(requestContext);
+        assertThat(scriptCollection)
+            .as("script collection %s was not deleted", API_TEST_DUMMY_SCRIPT_COLLECTION_NAME)
+            .isNull();
+    }
 }

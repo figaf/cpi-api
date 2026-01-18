@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.MESSAGE_MAPPING;
+import static com.figaf.integration.cpi.utils.CpiApiUtils.appendRuntimeProfileIfPresent;
 
 /**
  * @author Klochkov Sergey
@@ -82,22 +83,29 @@ public class CpiMessageMappingClient extends CpiRuntimeArtifactClient {
     public String deployMessageMapping(
         RequestContext requestContext,
         String packageExternalId,
-        String messageMappingExternalId
+        String messageMappingExternalId,
+        String runtimeProfile
     ) {
+
         log.debug("#deployMessageMapping(RequestContext commonClientWrapperEntity, String packageExternalId, " +
                 "String messageMappingExternalId): {}, {}, {}",
             requestContext, packageExternalId, messageMappingExternalId
         );
+        String baseUrl = String.format(
+            API_DEPLOY_MESSAGE_MAPPING,
+            packageExternalId,
+            messageMappingExternalId,
+            messageMappingExternalId,
+            messageMappingExternalId
+        );
+        String resolvedUrl = appendRuntimeProfileIfPresent(
+            baseUrl,
+            runtimeProfile
+        );
 
         return executeMethod(
             requestContext,
-            String.format(
-                API_DEPLOY_MESSAGE_MAPPING,
-                packageExternalId,
-                messageMappingExternalId,
-                messageMappingExternalId,
-                messageMappingExternalId
-            ),
+            resolvedUrl,
             (url, token, restTemplateWrapper) -> deployArtifact(
                 requestContext.getConnectionProperties(),
                 packageExternalId,

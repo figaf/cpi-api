@@ -122,7 +122,8 @@ class CpiValueMappingClientTest {
         String taskId = cpiValueMappingClient.deployValueMapping(
             requestContext,
             valueMapping.getPackageExternalId(),
-            valueMappingExternalId
+            valueMappingExternalId,
+            null
         );
         assertThat(taskId).isNotBlank();
 
@@ -134,4 +135,39 @@ class CpiValueMappingClientTest {
         assertThat(valueMapping).as("value mapping %s was not deleted", API_TEST_DUMMY_VALUE_MAPPING_NAME).isNull();
     }
 
+    @ParameterizedTest(name = PARAMETERIZED_TEST_NAME)
+    @ArgumentsSource(AgentTestDataProvider.class)
+    void test_deployValueMappingWithRuntimeProfileAndCheckDeploymentStatus(
+        AgentTestData agentTestData
+    ) throws Exception {
+        RequestContext requestContext = agentTestData.createRequestContext(agentTestData.getTitle());
+        CpiArtifact valueMapping = valueMappingUtils.getOrCreateDummyValueMapping(requestContext);
+        assertThat(valueMapping)
+            .as("value mapping %s wasn't found", API_TEST_DUMMY_VALUE_MAPPING_NAME)
+            .isNotNull();
+
+        String valueMappingExternalId = valueMapping.getExternalId();
+        String runtimeProfile = "edge-suseedge";
+        String taskId = cpiValueMappingClient.deployValueMapping(
+            requestContext,
+            valueMapping.getPackageExternalId(),
+            valueMappingExternalId,
+            runtimeProfile
+        );
+
+        assertThat(taskId).isNotBlank();
+        String status = cpiValueMappingClient.checkDeploymentStatus(requestContext, taskId);
+        assertThat(status).isNotBlank();
+        valueMappingUtils.deleteValueMapping(
+            requestContext,
+            valueMapping
+        );
+
+        valueMapping = valueMappingUtils.findDummyValueMappingInTestPackageIfExist(
+            requestContext
+        );
+        assertThat(valueMapping)
+            .as("value mapping %s was not deleted", API_TEST_DUMMY_VALUE_MAPPING_NAME)
+            .isNull();
+    }
 }

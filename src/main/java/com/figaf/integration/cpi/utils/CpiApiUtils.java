@@ -81,4 +81,17 @@ public class CpiApiUtils {
         return StringUtils.isBlank(runtimeLocationId) || Objects.equals(runtimeLocationId, defaultRuntimeLocationId);
     }
 
+    public static String appendRuntimeProfileIfPresent(
+        String baseUrl,
+        String runtimeProfile
+    ) {
+        if (StringUtils.isBlank(baseUrl)) {
+            return baseUrl;
+        }
+        if (StringUtils.isBlank(runtimeProfile)) {
+            return baseUrl;
+        }
+        String queryDelimiter = baseUrl.contains("?") ? "&" : "?";
+        return baseUrl + queryDelimiter + "runtimeProfile=" + runtimeProfile;
+    }
 }
