@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.VALUE_MAPPING;
+import static com.figaf.integration.cpi.utils.CpiApiUtils.appendRuntimeProfileIfPresent;
 
 /**
  * @author Klochkov Sergey
@@ -79,14 +80,30 @@ public class CpiValueMappingClient extends CpiRuntimeArtifactClient {
         updateArtifact(requestContext, request);
     }
 
-    public String deployValueMapping(RequestContext requestContext, String packageExternalId, String valueMappingExternalId) {
+    public String deployValueMapping(
+        RequestContext requestContext,
+        String packageExternalId,
+        String valueMappingExternalId,
+        String runtimeProfile
+    ) {
         log.debug("#deployValueMapping(RequestContext commonClientWrapperEntity, String packageExternalId, String valueMappingExternalId): {}, {}, {}",
             requestContext, packageExternalId, valueMappingExternalId
         );
 
+        String baseUrl = String.format(
+            API_DEPLOY_VALUE_MAPPING,
+            "undefined",
+            valueMappingExternalId,
+            valueMappingExternalId,
+            valueMappingExternalId
+        );
+        String resolvedUrl = appendRuntimeProfileIfPresent(
+            baseUrl,
+            runtimeProfile
+        );
         return executeMethod(
             requestContext,
-            String.format(API_DEPLOY_VALUE_MAPPING, "undefined", valueMappingExternalId, valueMappingExternalId, valueMappingExternalId),
+            resolvedUrl,
             (url, token, restTemplateWrapper) -> deployArtifact(
                 requestContext.getConnectionProperties(),
                 packageExternalId,
