@@ -128,7 +128,7 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
         try {
             IntegrationContent runtimeArtifact = getIntegrationRuntimeArtifact(requestContext, runtimeArtifactId);
             executeMethod(
-                requestContext,
+                requestContext.withPreservingIntegrationSuiteUrl(),
                 OPERATIONS_PATH_FOR_TOKEN,
                 DELETE_CONTENT_API,
                 (url, token, restTemplateWrapper) -> callDeleteContent(
