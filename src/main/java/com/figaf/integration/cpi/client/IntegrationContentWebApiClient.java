@@ -37,7 +37,7 @@ public class IntegrationContentWebApiClient extends IntegrationContentAbstractCl
 
     private static final String INTEGRATION_COMPONENTS_LIST_API = "/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand";
     private static final String INTEGRATION_COMPONENT_DETAIL_API = "/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentDetailCommand?artifactId=%s";
-    private static final String DELETE_CONTENT_API = "%s/Operations/com.sap.it.nm.commands.deploy.DeleteContentCommand";
+    private static final String DELETE_CONTENT_API = "/Operations/com.sap.it.nm.commands.deploy.DeleteContentCommand";
 
     private static final Map<String, String> NODE_TYPE_MAPPING = new HashMap<>();
 
