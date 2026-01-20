@@ -81,4 +81,23 @@ public class CpiApiUtils {
         return StringUtils.isBlank(runtimeLocationId) || Objects.equals(runtimeLocationId, defaultRuntimeLocationId);
     }
 
+    public static String appendRuntimeProfileIfPresent(
+        String baseUrl,
+        String runtimeProfile,
+        RequestContext requestContext
+    ) {
+        String finalizedRuntimeProfile;
+        if (StringUtils.isBlank(runtimeProfile) || runtimeProfile.equals(requestContext.getDefaultRuntimeLocationId())) {
+            finalizedRuntimeProfile = requestContext.getDefaultRuntimeLocationId();
+        } else {
+            finalizedRuntimeProfile = runtimeProfile.startsWith("edge-")
+                ? runtimeProfile
+                : "edge-" + runtimeProfile;
+        }
+        String queryDelimiter = baseUrl.contains("?") ? "&" : "?";
+        return baseUrl
+            + queryDelimiter
+            + "runtimeProfile="
+            + finalizedRuntimeProfile;
+    }
 }

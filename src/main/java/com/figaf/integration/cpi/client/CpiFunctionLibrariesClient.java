@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.figaf.integration.cpi.entity.designtime_artifacts.CpiArtifactType.*;
+import static com.figaf.integration.cpi.utils.CpiApiUtils.appendRuntimeProfileIfPresent;
 
 @Slf4j
 public class CpiFunctionLibrariesClient extends CpiRuntimeArtifactClient {
@@ -78,15 +79,22 @@ public class CpiFunctionLibrariesClient extends CpiRuntimeArtifactClient {
             requestContext, packageExternalId, functionLibrariesExternalId, functionLibrariesTechnicalName
         );
 
+        String baseUrl = String.format(
+            API_DEPLOY_FUNCTION_LIBRARIES,
+            packageExternalId,
+            functionLibrariesExternalId,
+            functionLibrariesExternalId,
+            functionLibrariesTechnicalName
+        );
+        String resolvedUrl = appendRuntimeProfileIfPresent(
+            baseUrl,
+            requestContext.getRuntimeLocationId(),
+            requestContext
+        );
+
         return executeMethod(
             requestContext,
-            String.format(
-                API_DEPLOY_FUNCTION_LIBRARIES,
-                packageExternalId,
-                functionLibrariesExternalId,
-                functionLibrariesExternalId,
-                functionLibrariesTechnicalName
-            ),
+            resolvedUrl,
             (url, token, restTemplateWrapper) -> deployArtifact(
                 requestContext.getConnectionProperties(),
                 packageExternalId,
